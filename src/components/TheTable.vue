@@ -17,7 +17,7 @@ defineProps({
 		<!-- Колонка для стрелочки разворота -->
 		<el-table-column type="expand">
 			<template #default="props">
-				<div class="p-4 bg-gray-200">
+				<div class="p-4 bg-green-100">
 					<p><strong>№ замовлення:</strong> {{ props.row.order_number }}</p>
 					<p><strong>Джерело</strong> {{ props.row.source }}</p>
 				</div>
@@ -31,17 +31,17 @@ defineProps({
 			width="150"
 			sortable
 		/>
-		<el-table-column prop="source" label="Джерело" width="150" sortable />
+		<el-table-column prop="source" label="Джерело" width="120" sortable />
 		<el-table-column
 			prop="created_at"
 			label="Час створення"
-			width="150"
+			width="170"
 			sortable
 		/>
 		<el-table-column
 			prop="delivery_date"
-			label="Дата доставки/відправки"
-			width="150"
+			label="Дата доставки"
+			width="170"
 			sortable
 		/>
 		<el-table-column
@@ -52,7 +52,7 @@ defineProps({
 		/>
 		<el-table-column prop="manager" label="Менеджер" width="150" sortable
 			><template #default="{ row }">
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-4">
 					<el-avatar :size="20" :icon="UserFilled" />
 					<span>{{ row.manager }}</span>
 				</div>
