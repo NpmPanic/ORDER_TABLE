@@ -1,6 +1,9 @@
 <script setup>
-// Импорт иконки поиска для input
-import { Search } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import TheDrawer from './TheDrawer.vue'
+import { Search, Edit, Plus, Switch } from '@element-plus/icons-vue'
+// Переменная хранения состояния окна редактирования столбцов таблицы
+const isDrawer = ref(false)
 // Список вариантов фильтрации для select со значениями полей массива данных
 const options = [
 	{
@@ -47,8 +50,9 @@ const onSelectChange = val => emit('update:valueQuery', val)
 			<el-select
 				:model-value="valueQuery"
 				@update:model-value="onSelectChange"
-				placeholder="Вибрати"
 				style="width: 240px"
+				placeholder="Вибрати"
+				:suffix-icon="Switch"
 				clearable
 			>
 				<el-option
@@ -59,6 +63,12 @@ const onSelectChange = val => emit('update:valueQuery', val)
 				/>
 			</el-select>
 		</div>
-		<el-button>Додати замовлення</el-button>
+		<div>
+			<el-button type="success" plain>Додати замовлення</el-button>
+			<el-button @click="isDrawer = true" type="primary" plain
+				>Редагувати таблицю</el-button
+			>
+		</div>
 	</div>
+	<TheDrawer v-model="isDrawer" />
 </template>

@@ -1,7 +1,7 @@
 <script setup>
 import { defineProps } from 'vue'
 // Иконки для компонентов element plus
-import { Delete, Edit, UserFilled } from '@element-plus/icons-vue'
+import { Delete, Edit, User } from '@element-plus/icons-vue'
 // Пропс для проброса данных таблицы из родителя
 defineProps({
 	table_data: Array,
@@ -53,7 +53,7 @@ defineProps({
 		<el-table-column prop="manager" label="Менеджер" width="150" sortable
 			><template #default="{ row }">
 				<div class="flex items-center gap-4">
-					<el-avatar :size="20" :icon="UserFilled" />
+					<el-icon><User /></el-icon>
 					<span>{{ row.manager }}</span>
 				</div>
 			</template></el-table-column
