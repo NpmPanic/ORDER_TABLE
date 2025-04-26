@@ -47,7 +47,7 @@ const emit = defineEmits(['update:modelValue'])
 				<div
 					class="flex items-center gap-3 text-2xl mb-10 border-b border-gray-200"
 				>
-					<p class="pb-2">Редагування структури</p>
+					<p class="pb-2">Налаштування</p>
 					<el-icon><Setting /></el-icon>
 				</div>
 
@@ -56,21 +56,24 @@ const emit = defineEmits(['update:modelValue'])
 					:key="item"
 					class="w-full flex items-center justify-between mb-6 border-b border-gray-200"
 				>
-					<div class="flex items-center gap-3">
+					<div
+						class="flex items-center gap-3"
+						:class="{ 'text-gray-400': !switchStates[item] }"
+					>
 						<el-icon v-if="switchStates[item]"><Unlock /></el-icon>
 						<el-icon v-else><Lock /></el-icon>
 						<p>{{ item }}</p>
 					</div>
-					<el-switch v-model="switchStates[item]" size="large" />
+					<el-switch v-model="switchStates[item]" />
 				</div>
 			</div>
 
 			<div class="pt-5 bg-white z-10 border-t border-slate-200">
-				<div class="flex justify-center gap-20">
-					<el-button size="large" @click="emit('update:modelValue', false)"
+				<div class="flex justify-center gap-15">
+					<el-button @click="emit('update:modelValue', false)" size="large"
 						>Закрити</el-button
 					>
-					<el-button size="large" type="primary">Зберегти</el-button>
+					<el-button type="primary" size="large">Зберегти</el-button>
 				</div>
 			</div>
 		</div>
