@@ -23,7 +23,7 @@ export const TABLE_DATA = ref([
 			price: 21000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '20400098765432',
 			adress: 'Відділення №5',
 			city: 'м. Львів',
@@ -60,7 +60,7 @@ export const TABLE_DATA = ref([
 			price: 15000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '10560012312312',
 			adress: 'Відділення №7',
 			city: 'м. Харків',
@@ -97,7 +97,7 @@ export const TABLE_DATA = ref([
 			price: 2200,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '98765432101234',
 			adress: 'Відділення №55',
 			city: 'м. Одеса',
@@ -134,7 +134,7 @@ export const TABLE_DATA = ref([
 			price: 25000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '10450098765432',
 			adress: 'Відділення №12',
 			city: 'м. Київ',
@@ -171,7 +171,7 @@ export const TABLE_DATA = ref([
 			price: 18000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '20450098765433',
 			adress: 'Відділення №8',
 			city: 'м. Дніпро',
@@ -208,7 +208,7 @@ export const TABLE_DATA = ref([
 			price: 50000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '90887765432123',
 			adress: 'Відділення №32',
 			city: 'м. Харків',
@@ -245,7 +245,7 @@ export const TABLE_DATA = ref([
 			price: 22000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '20450098765434',
 			adress: 'Відділення №4',
 			city: 'м. Одеса',
@@ -282,7 +282,7 @@ export const TABLE_DATA = ref([
 			price: 60000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '10340098765433',
 			adress: 'Відділення №3',
 			city: 'м. Київ',
@@ -319,7 +319,7 @@ export const TABLE_DATA = ref([
 			price: 15000,
 		},
 		delivery: {
-			service: './delivery.png"',
+			service: './delivery.png',
 			ttn: '90780098765432',
 			adress: 'Відділення №9',
 			city: 'м. Чернівці',
