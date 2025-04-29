@@ -1,40 +1,30 @@
 <script setup>
 import { Setting, Lock, Unlock } from '@element-plus/icons-vue'
-import { ref } from 'vue'
-const dataColumn = ref([
-	'№ замовлення',
-	'Джерело',
-	'Час створення',
-	'Дата доставки',
-	'Статус',
-	'Менеджер',
-	'Покупець',
-	'Телефон покупця',
-	'E-mail покупця',
-	'Служба доставки',
-	'Трекінг код',
-	'Статус доставки',
-	'Товари',
-	'Вартість',
-	'Отримувач',
-	'Телефон отримувача',
-	'Адреса відділення',
-	'Місто',
-])
-// Объект для хранения состояния каждого переключателя
-const switchStates = ref(
-	dataColumn.value.reduce((acc, item) => {
-		acc[item] = true // Изначально все включены
-		return acc
-	}, {})
-)
+import { ref, watch } from 'vue'
+
 // Props принимающий значение переменной isDrawer через v-model в TheHeader.vue
 const prop = defineProps({
 	modelValue: Boolean,
+	tableData: Array,
+	columns: Object,
 })
-const value = ref(true)
+const switchStates = ref({ ...prop.columns }) // Инициализируем текущими значениями
+// Инициализация состояний переключателей
+watch(
+	() => prop.columns,
+	newColumns => {
+		switchStates.value = { ...newColumns }
+	},
+	{ immediate: true }
+)
 // Emits отправляющий событие о закрытии модалки и изменении значения переменной состояния через :update в TheHeader.vue
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'update:columns'])
+
+// Функция для сохранения настроек
+const saveSettings = () => {
+	emit('update:columns', switchStates.value)
+	emit('update:modelValue', false)
+}
 </script>
 <template>
 	<el-drawer
@@ -43,7 +33,7 @@ const emit = defineEmits(['update:modelValue'])
 		:with-header="false"
 	>
 		<div class="flex flex-col h-full">
-			<div class="flex-1 overflow-y-auto px-5">
+			<div class="flex-1 overflow-y-auto px-8">
 				<div
 					class="flex items-center gap-3 text-2xl mb-10 border-b border-gray-200"
 				>
@@ -52,19 +42,19 @@ const emit = defineEmits(['update:modelValue'])
 				</div>
 
 				<div
-					v-for="item in dataColumn"
-					:key="item"
+					v-for="(isVisible, columnName) in switchStates"
+					:key="columnName"
 					class="w-full flex items-center justify-between mb-6 border-b border-gray-200"
 				>
 					<div
 						class="flex items-center gap-3"
-						:class="{ 'text-gray-400': !switchStates[item] }"
+						:class="{ 'text-gray-400': !isVisible }"
 					>
-						<el-icon v-if="switchStates[item]"><Unlock /></el-icon>
+						<el-icon v-if="isVisible"><Unlock /></el-icon>
 						<el-icon v-else><Lock /></el-icon>
-						<p>{{ item }}</p>
+						<p>{{ columnName }}</p>
 					</div>
-					<el-switch v-model="switchStates[item]" />
+					<el-switch v-model="switchStates[columnName]" />
 				</div>
 			</div>
 
@@ -73,7 +63,9 @@ const emit = defineEmits(['update:modelValue'])
 					<el-button @click="emit('update:modelValue', false)" size="large"
 						>Закрити</el-button
 					>
-					<el-button type="primary" size="large">Зберегти</el-button>
+					<el-button @click="saveSettings" type="primary" size="large"
+						>Зберегти</el-button
+					>
 				</div>
 			</div>
 		</div>

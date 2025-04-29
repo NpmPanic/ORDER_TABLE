@@ -3,6 +3,7 @@ import { ref } from 'vue'
 export const TABLE_DATA = ref([
 	{
 		id: 1,
+		isActive: true,
 		order_number: '1001',
 		customer: {
 			id: '1',
@@ -22,7 +23,7 @@ export const TABLE_DATA = ref([
 			price: 21000,
 		},
 		delivery: {
-			service: 'Нова пошта',
+			service: './public/delivery.png',
 			ttn: '20400098765432',
 			adress: 'Відділення №5',
 			city: 'м. Львів',
@@ -34,11 +35,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-16 09:15:00',
 		delivery_date: '2025-04-18 15:00:00',
-		source: 'Rozetka',
+		source: './public/prom.png',
 		manager: 'Марія',
 	},
 	{
 		id: 2,
+		isActive: true,
 		order_number: '1002',
 		customer: {
 			id: '2',
@@ -58,7 +60,7 @@ export const TABLE_DATA = ref([
 			price: 15000,
 		},
 		delivery: {
-			service: 'Укрпошта',
+			service: './public/delivery.png',
 			ttn: '10560012312312',
 			adress: 'Відділення №7',
 			city: 'м. Харків',
@@ -70,11 +72,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-15 14:00:00',
 		delivery_date: '2025-04-19 10:00:00',
-		source: 'Facebook',
+		source: './public/prom.png',
 		manager: 'Ірина',
 	},
 	{
 		id: 3,
+		isActive: true,
 		order_number: '1003',
 		customer: {
 			id: '3',
@@ -94,7 +97,7 @@ export const TABLE_DATA = ref([
 			price: 2200,
 		},
 		delivery: {
-			service: 'Justin',
+			service: './public/delivery.png',
 			ttn: '98765432101234',
 			adress: 'Відділення №55',
 			city: 'м. Одеса',
@@ -106,11 +109,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-14 12:45:00',
 		delivery_date: '2025-04-16 11:00:00',
-		source: 'Instagram',
+		source: './public/prom.png',
 		manager: 'Сергій',
 	},
 	{
 		id: 4,
+		isActive: true,
 		order_number: '1004',
 		customer: {
 			id: '4',
@@ -130,7 +134,7 @@ export const TABLE_DATA = ref([
 			price: 25000,
 		},
 		delivery: {
-			service: 'Нова пошта',
+			service: './public/delivery.png',
 			ttn: '10450098765432',
 			adress: 'Відділення №12',
 			city: 'м. Київ',
@@ -142,11 +146,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-13 16:20:00',
 		delivery_date: '2025-04-17 13:30:00',
-		source: 'Rozetka',
+		source: './public/prom.png',
 		manager: 'Катерина',
 	},
 	{
 		id: 5,
+		isActive: true,
 		order_number: '1005',
 		customer: {
 			id: '5',
@@ -166,7 +171,7 @@ export const TABLE_DATA = ref([
 			price: 18000,
 		},
 		delivery: {
-			service: 'Укрпошта',
+			service: './public/delivery.png',
 			ttn: '20450098765433',
 			adress: 'Відділення №8',
 			city: 'м. Дніпро',
@@ -178,11 +183,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-12 11:10:00',
 		delivery_date: '2025-04-15 14:00:00',
-		source: 'Facebook',
+		source: './public/prom.png',
 		manager: 'Ольга',
 	},
 	{
 		id: 6,
+		isActive: true,
 		order_number: '1006',
 		customer: {
 			id: '6',
@@ -202,7 +208,7 @@ export const TABLE_DATA = ref([
 			price: 50000,
 		},
 		delivery: {
-			service: 'Justin',
+			service: './public/delivery.png',
 			ttn: '90887765432123',
 			adress: 'Відділення №32',
 			city: 'м. Харків',
@@ -214,11 +220,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-11 15:40:00',
 		delivery_date: '2025-04-14 09:00:00',
-		source: 'Instagram',
+		source: './public/prom.png',
 		manager: 'Софія',
 	},
 	{
 		id: 7,
+		isActive: true,
 		order_number: '1007',
 		customer: {
 			id: '7',
@@ -238,7 +245,7 @@ export const TABLE_DATA = ref([
 			price: 22000,
 		},
 		delivery: {
-			service: 'Нова пошта',
+			service: './public/delivery.png',
 			ttn: '20450098765434',
 			adress: 'Відділення №4',
 			city: 'м. Одеса',
@@ -250,11 +257,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-10 13:25:00',
 		delivery_date: '2025-04-12 17:00:00',
-		source: 'Rozetka',
+		source: './public/prom.png',
 		manager: 'Андрій',
 	},
 	{
 		id: 8,
+		isActive: true,
 		order_number: '1008',
 		customer: {
 			id: '8',
@@ -274,7 +282,7 @@ export const TABLE_DATA = ref([
 			price: 60000,
 		},
 		delivery: {
-			service: 'Укрпошта',
+			service: './public/delivery.png',
 			ttn: '10340098765433',
 			adress: 'Відділення №3',
 			city: 'м. Київ',
@@ -286,11 +294,12 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-09 14:50:00',
 		delivery_date: '2025-04-11 12:00:00',
-		source: 'Instagram',
+		source: './public/prom.png',
 		manager: 'Олександр',
 	},
 	{
 		id: 9,
+		isActive: true,
 		order_number: '1009',
 		customer: {
 			id: '9',
@@ -310,7 +319,7 @@ export const TABLE_DATA = ref([
 			price: 15000,
 		},
 		delivery: {
-			service: 'Justin',
+			service: './public/delivery.png',
 			ttn: '90780098765432',
 			adress: 'Відділення №9',
 			city: 'м. Чернівці',
@@ -322,7 +331,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-08 11:30:00',
 		delivery_date: '2025-04-10 14:30:00',
-		source: 'Rozetka',
+		source: './public/prom.png',
 		manager: 'Марина',
 	},
 ])
