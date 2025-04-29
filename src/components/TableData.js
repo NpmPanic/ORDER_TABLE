@@ -23,7 +23,7 @@ export const TABLE_DATA = ref([
 			price: 21000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '20400098765432',
 			adress: 'Відділення №5',
 			city: 'м. Львів',
@@ -35,7 +35,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-16 09:15:00',
 		delivery_date: '2025-04-18 15:00:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Марія',
 	},
 	{
@@ -60,7 +60,7 @@ export const TABLE_DATA = ref([
 			price: 15000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '10560012312312',
 			adress: 'Відділення №7',
 			city: 'м. Харків',
@@ -72,7 +72,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-15 14:00:00',
 		delivery_date: '2025-04-19 10:00:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Ірина',
 	},
 	{
@@ -97,7 +97,7 @@ export const TABLE_DATA = ref([
 			price: 2200,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '98765432101234',
 			adress: 'Відділення №55',
 			city: 'м. Одеса',
@@ -109,7 +109,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-14 12:45:00',
 		delivery_date: '2025-04-16 11:00:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Сергій',
 	},
 	{
@@ -134,7 +134,7 @@ export const TABLE_DATA = ref([
 			price: 25000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '10450098765432',
 			adress: 'Відділення №12',
 			city: 'м. Київ',
@@ -146,7 +146,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-13 16:20:00',
 		delivery_date: '2025-04-17 13:30:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Катерина',
 	},
 	{
@@ -171,7 +171,7 @@ export const TABLE_DATA = ref([
 			price: 18000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '20450098765433',
 			adress: 'Відділення №8',
 			city: 'м. Дніпро',
@@ -183,7 +183,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-12 11:10:00',
 		delivery_date: '2025-04-15 14:00:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Ольга',
 	},
 	{
@@ -208,7 +208,7 @@ export const TABLE_DATA = ref([
 			price: 50000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '90887765432123',
 			adress: 'Відділення №32',
 			city: 'м. Харків',
@@ -220,7 +220,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-11 15:40:00',
 		delivery_date: '2025-04-14 09:00:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Софія',
 	},
 	{
@@ -245,7 +245,7 @@ export const TABLE_DATA = ref([
 			price: 22000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '20450098765434',
 			adress: 'Відділення №4',
 			city: 'м. Одеса',
@@ -257,7 +257,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-10 13:25:00',
 		delivery_date: '2025-04-12 17:00:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Андрій',
 	},
 	{
@@ -282,7 +282,7 @@ export const TABLE_DATA = ref([
 			price: 60000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '10340098765433',
 			adress: 'Відділення №3',
 			city: 'м. Київ',
@@ -294,7 +294,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-09 14:50:00',
 		delivery_date: '2025-04-11 12:00:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Олександр',
 	},
 	{
@@ -319,7 +319,7 @@ export const TABLE_DATA = ref([
 			price: 15000,
 		},
 		delivery: {
-			service: 'public/delivery.png',
+			service: '/ORDER_TABLE/public/delivery.png',
 			ttn: '90780098765432',
 			adress: 'Відділення №9',
 			city: 'м. Чернівці',
@@ -331,7 +331,7 @@ export const TABLE_DATA = ref([
 		},
 		created_at: '2025-04-08 11:30:00',
 		delivery_date: '2025-04-10 14:30:00',
-		source: 'public/prom.png',
+		source: '/ORDER_TABLE/public/prom.png',
 		manager: 'Марина',
 	},
 ])
