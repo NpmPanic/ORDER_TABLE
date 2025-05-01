@@ -1,52 +1,48 @@
 <script setup>
-import {
-	Search,
-	Edit,
-	Delete,
-	User,
-	Plus,
-	Switch,
-} from '@element-plus/icons-vue'
+import { Search, User, Switch, CopyDocument } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref } from 'vue'
 import TableEditDrawer from './components/TableEditDrawer.vue'
-// Переменные для хранения значения input и select
+
 const inputQuerySearch = ref('')
 const valueQuerySelect = ref('')
-// Переменная хранения состояния окна редактирования столбцов таблицы
 const isDrawer = ref(false)
-// Список вариантов фильтрации для select со значениями полей массива данных
+
+// Функция копирования текста по клику
+const copyText = async text => {
+	try {
+		await navigator.clipboard.writeText(text)
+		ElMessage({
+			message: 'Скопійовано до буферу обміну',
+			type: 'success',
+		})
+	} catch (err) {
+		ElMessage({
+			message: 'Помилка копіювання',
+			type: 'error',
+		})
+		console.error('Clipboard error:', err)
+	}
+}
+
+// Опции для выпадающего списка полей поиска
 const options = [
-	{
-		value: 'order_number',
-		label: '№ замовлення',
-	},
-	{
-		value: 'customer.name',
-		label: 'Покупець',
-	},
-	{
-		value: 'customer.phone',
-		label: 'Телефон покупця',
-	},
-	{
-		value: 'delivery.ttn',
-		label: 'Трекінг код',
-	},
-	{
-		value: 'manager',
-		label: 'Менеджер',
-	},
+	{ value: 'order_number', label: '№ замовлення' },
+	{ value: 'customer.name', label: 'Покупець' },
+	{ value: 'customer.phone', label: 'Телефон покупця' },
+	{ value: 'delivery.ttn', label: 'Трекінг код' },
+	{ value: 'manager', label: 'Менеджер' },
 ]
-// Возвращаем значение из объекта по пути цыклом с проверкой промежуточных свойств на null или undefined
+
+// Функция для получения значения из объекта по пути
 const getValueByPath = (obj, path) => {
 	return path.split('.').reduce((acc, key) => acc?.[key], obj)
 }
-// Отображаем строку соответствующую поисковому запросу по выбраному значению select
+
+// Фильтрация данных таблицы по поисковому запросу
 const resultData = computed(() => {
-	// Проверка выбран ли select, ато без нее не работает очистка поля
 	if (!valueQuerySelect.value) return TABLE_DATA.value
-	// Сама фильтрация по выбраной колонке из значения select и запросу в input
 	return TABLE_DATA.value.filter(item => {
 		const fieldValue = getValueByPath(item, valueQuerySelect.value)
 		return String(fieldValue)
@@ -54,93 +50,123 @@ const resultData = computed(() => {
 			.includes(inputQuerySearch.value.toLowerCase())
 	})
 })
-// Состояние видимости столбцов по умолчанию
-const columnVisibility = ref({
-	'№ замовлення': true,
-	Джерело: true,
-	'Час створення': true,
-	'Дата доставки': false,
-	Статус: false,
-	Менеджер: true,
-	Покупець: true,
-	'Телефон покупця': true,
-	'E-mail покупця': false,
-	'Служба доставки': true,
-	'Трекінг код': true,
-	'Статус доставки': false,
-	Товари: true,
-	Вартість: true,
-	Отримувач: false,
-	'Телефон отримувача': false,
-	'Адреса відділення': true,
-	Місто: true,
-})
-// Обработчик обновления видимости столбцов
-const handleColumnUpdate = newVisibility => {
-	columnVisibility.value = newVisibility
-}
-// Маппинг названий столбцов и их свойства
-const columnMapping = {
-	'№ замовлення': { prop: 'order_number', label: '№ замовлення', width: '150' },
-	Джерело: { prop: 'source', label: 'Джерело', width: '120' },
-	'Час створення': { prop: 'created_at', label: 'Час створення', width: '150' },
-	'Дата доставки': {
-		prop: 'delivery_date',
-		label: 'Дата доставки',
+
+// Объект с настройками колонок таблицы
+const tableColumns = ref({
+	'№ замовлення': {
+		visible: true,
+		prop: 'order_number',
 		width: '150',
 	},
-	Статус: { prop: 'status.order_status', label: 'Статус', width: '120' },
-	Менеджер: { prop: 'manager', label: 'Менеджер', width: '120' },
-	Покупець: { prop: 'customer.name', label: 'Покупець', width: '150' },
+	Джерело: {
+		visible: true,
+		prop: 'source',
+		width: '120',
+	},
+	'Час створення': {
+		visible: true,
+		prop: 'created_at',
+		width: '150',
+	},
+	'Дата доставки': {
+		visible: false,
+		prop: 'delivery_date',
+		width: '150',
+	},
+	Статус: {
+		visible: true,
+		prop: 'status.order_status',
+		width: '120',
+	},
+	Менеджер: {
+		visible: true,
+		prop: 'manager',
+		width: '120',
+	},
+	Покупець: {
+		visible: true,
+		prop: 'customer.name',
+		width: '150',
+	},
 	'Телефон покупця': {
+		visible: true,
 		prop: 'customer.phone',
-		label: 'Телефон покупця',
 		width: '170',
 	},
 	'E-mail покупця': {
+		visible: false,
 		prop: 'customer.email',
-		label: 'E-mail покупця',
 		width: '170',
 	},
 	'Служба доставки': {
+		visible: true,
 		prop: 'delivery.service',
-		label: 'Служба доставки',
 		width: '170',
 	},
-	'Трекінг код': { prop: 'delivery.ttn', label: 'Трекінг код', width: '140' },
+	'Трекінг код': {
+		visible: true,
+		prop: 'delivery.ttn',
+		width: '170',
+	},
 	'Статус доставки': {
+		visible: false,
 		prop: 'delivery.status',
-		label: 'Статус доставки',
 		width: '170',
 	},
-	Товари: { prop: 'products.name', label: 'Товари', width: '150' },
-	Вартість: { prop: 'products.price', label: 'Вартість', width: '120' },
-	Отримувач: { prop: 'recipient.name', label: 'Отримувач', width: '150' },
+	Товари: {
+		visible: true,
+		prop: 'products.name',
+		width: '150',
+	},
+	Вартість: {
+		visible: true,
+		prop: 'products.price',
+		width: '120',
+	},
+	Отримувач: {
+		visible: false,
+		prop: 'recipient.name',
+		width: '150',
+	},
 	'Телефон отримувача': {
+		visible: false,
 		prop: 'recipient.phone',
-		label: 'Телефон отримувача',
 		width: '190',
 	},
 	'Адреса відділення': {
+		visible: true,
 		prop: 'delivery.adress',
-		label: 'Адреса відділення',
 		width: '190',
 	},
-	Місто: { prop: 'delivery.city', label: 'Місто', width: '120' },
-}
+	Місто: {
+		visible: true,
+		prop: 'delivery.city',
+		width: '120',
+	},
+})
 
-// Вычисляемые столбцы для таблицы
+// Вычисляемое свойство для получения только видимых колонок таблицы
+// Возвращает массив объектов с настройками видимых колонок
 const visibleColumns = computed(() => {
-	return Object.entries(columnVisibility.value)
-		.filter(([_, isVisible]) => isVisible)
-		.map(([columnName]) => ({
-			...columnMapping[columnName],
-			key: columnMapping[columnName].prop, // Добавляем уникальный ключ
+	return Object.entries(tableColumns.value)
+		.filter(([_, settings]) => settings.visible)
+		.map(([label, settings]) => ({
+			label,
+			prop: settings.prop,
+			width: settings.width,
+			key: settings.prop,
 		}))
 })
+
+// Обработчик обновления видимости колонок таблицы
+const handleColumnUpdate = newColumns => {
+	Object.keys(tableColumns.value).forEach(key => {
+		tableColumns.value[key].visible = newColumns[key].visible
+	})
+}
 </script>
+
 <template>
-	<!-- Header таблицы -->
 	<div class="flex items-center justify-between m-5">
 		<div class="flex gap-5">
 			<el-input
@@ -167,26 +193,26 @@ const visibleColumns = computed(() => {
 		</div>
 		<div>
 			<el-button type="success" plain>Додати замовлення</el-button>
-			<el-button @click="isDrawer = true" type="primary" plain
-				>Редагувати таблицю</el-button
-			>
+			<el-button @click="isDrawer = true" type="primary" plain>
+				Редагувати таблицю
+			</el-button>
 		</div>
 	</div>
-	<!-- Drawer настройки таблицы -->
+
 	<TableEditDrawer
 		v-model="isDrawer"
-		:tableData="columnVisibility"
-		:columns="columnVisibility"
+		:columns="tableColumns"
 		@update:columns="handleColumnUpdate"
 	/>
-	<!-- Body таблицы -->
+
+	<!-- Основная таблица с данными -->
 	<el-table
 		:data="resultData"
 		:default-sort="{ prop: 'created_at', order: 'descending' }"
 		height="100%"
 		style="width: 100%"
 	>
-		<!-- Колонка для стрелочки разворота -->
+		<!-- Колонка с раскрывающейся секцией -->
 		<el-table-column type="expand">
 			<template #default="props">
 				<div class="p-4 bg-green-100">
@@ -196,7 +222,7 @@ const visibleColumns = computed(() => {
 			</template>
 		</el-table-column>
 
-		<!-- Динамические колонки -->
+		<!-- Динамически генерируемые колонки таблицы -->
 		<el-table-column
 			v-for="column in visibleColumns"
 			:key="column.key"
@@ -205,18 +231,21 @@ const visibleColumns = computed(() => {
 			:width="column.width"
 			sortable
 		>
+			<!-- Кастомные шаблоны для определенных колонок -->
 			<template #default="{ row }">
-				<!-- Колонка "source" -->
-				<div v-if="column.prop === 'source'">
+				<div
+					class="flex items-center gap-2"
+					v-if="column.prop === 'order_number'"
+				>
+					<span>{{ row.order_number }}</span>
+					<el-icon @click="copyText(row.order_number)"
+						><CopyDocument
+					/></el-icon>
+				</div>
+
+				<div v-else-if="column.prop === 'source'">
 					<img class="w-12" :src="row.source" alt="source" />
 				</div>
-
-				<!-- Колонка "delivery" -->
-				<div v-else-if="column.prop === 'delivery.service'">
-					<img class="w-12 ml-5" :src="row.delivery.service" alt="source" />
-				</div>
-
-				<!-- Колонка "manager" -->
 				<div
 					v-else-if="column.prop === 'manager'"
 					class="flex items-center gap-4"
@@ -224,13 +253,37 @@ const visibleColumns = computed(() => {
 					<el-icon><User /></el-icon>
 					<span>{{ row.manager }}</span>
 				</div>
+				<div
+					class="flex items-center gap-2"
+					v-else-if="column.prop === 'customer.phone'"
+				>
+					<span>{{ row.customer.phone }}</span>
+					<el-icon @click="copyText(row.customer.phone)"
+						><CopyDocument
+					/></el-icon>
+				</div>
+				<div v-else-if="column.prop === 'delivery.service'">
+					<img class="w-12 ml-5" :src="row.delivery.service" alt="source" />
+				</div>
+				<div
+					class="flex items-center gap-2"
+					v-else-if="column.prop === 'delivery.ttn'"
+				>
+					<span>{{ row.delivery.ttn }}</span>
+					<el-icon @click="copyText(row.delivery.ttn)"
+						><CopyDocument
+					/></el-icon>
+				</div>
+				<div
+					class="flex items-center gap-2"
+					v-else-if="column.prop === 'recipient.phone'"
+				>
+					<span>{{ row.recipient.phone }}</span>
+					<el-icon @click="copyText(row.recipient.phone)"
+						><CopyDocument
+					/></el-icon>
+				</div>
 			</template>
-		</el-table-column>
-
-		<!-- Всегда видимая колонка действий -->
-		<el-table-column label="Дії" width="150">
-			<el-button type="default" :icon="Edit" circle />
-			<el-button type="default" :icon="Delete" circle />
 		</el-table-column>
 	</el-table>
 </template>
