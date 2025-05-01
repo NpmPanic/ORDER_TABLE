@@ -238,9 +238,11 @@ const handleColumnUpdate = newColumns => {
 					v-if="column.prop === 'order_number'"
 				>
 					<span>{{ row.order_number }}</span>
-					<el-icon @click="copyText(row.order_number)"
-						><CopyDocument
-					/></el-icon>
+					<div class="cursor-pointer">
+						<el-icon @click="copyText(row.order_number)"
+							><CopyDocument
+						/></el-icon>
+					</div>
 				</div>
 
 				<div v-else-if="column.prop === 'source'">
@@ -258,9 +260,11 @@ const handleColumnUpdate = newColumns => {
 					v-else-if="column.prop === 'customer.phone'"
 				>
 					<span>{{ row.customer.phone }}</span>
-					<el-icon @click="copyText(row.customer.phone)"
-						><CopyDocument
-					/></el-icon>
+					<div class="cursor-pointer">
+						<el-icon @click="copyText(row.customer.phone)"
+							><CopyDocument
+						/></el-icon>
+					</div>
 				</div>
 				<div v-else-if="column.prop === 'delivery.service'">
 					<img class="w-12 ml-5" :src="row.delivery.service" alt="source" />
@@ -270,18 +274,22 @@ const handleColumnUpdate = newColumns => {
 					v-else-if="column.prop === 'delivery.ttn'"
 				>
 					<span>{{ row.delivery.ttn }}</span>
-					<el-icon @click="copyText(row.delivery.ttn)"
-						><CopyDocument
-					/></el-icon>
+					<div class="cursor-pointer">
+						<el-icon @click="copyText(row.delivery.ttn)"
+							><CopyDocument
+						/></el-icon>
+					</div>
 				</div>
 				<div
 					class="flex items-center gap-2"
 					v-else-if="column.prop === 'recipient.phone'"
 				>
 					<span>{{ row.recipient.phone }}</span>
-					<el-icon @click="copyText(row.recipient.phone)"
-						><CopyDocument
-					/></el-icon>
+					<div class="cursor-pointer">
+						<el-icon @click="copyText(row.recipient.phone)"
+							><CopyDocument
+						/></el-icon>
+					</div>
 				</div>
 			</template>
 		</el-table-column>
