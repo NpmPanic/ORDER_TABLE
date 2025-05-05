@@ -5,6 +5,7 @@ import {
 	Switch,
 	CopyDocument,
 	Edit,
+	Delete,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -134,12 +135,12 @@ const tableColumns = ref({
 	Товари: {
 		visible: true,
 		prop: 'products.name',
-		width: '150',
+		width: '120',
 	},
 	Вартість: {
 		visible: true,
 		prop: 'products.price',
-		width: '120',
+		width: '110',
 	},
 	Отримувач: {
 		visible: false,
@@ -159,7 +160,7 @@ const tableColumns = ref({
 	Місто: {
 		visible: true,
 		prop: 'delivery.city',
-		width: '100',
+		width: '120',
 	},
 })
 
@@ -231,19 +232,19 @@ const handleColumnUpdate = newColumns => {
 	<div class="pb-5">
 		<el-table
 			:data="resultData"
-			:default-sort="{ prop: 'created_at', order: 'descending' }"
+			:default-sort="{ prop: 'status.order_status', order: 'descending' }"
 			height="100%"
 			style="width: 100%"
 		>
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
 				<template #default="props">
-					<div class="w-full flex">
+					<div class="w-full flex gap-5">
 						<div class="w-1/2">
 							<el-descriptions
 								direction="vertical"
 								border
-								style="margin: 10px"
+								style="margin: 0px"
 								size="large"
 								column="4"
 							>
@@ -253,7 +254,7 @@ const handleColumnUpdate = newColumns => {
 									label="ЗАМОВЛЕННЯ"
 									align="center"
 								>
-									<el-image style="width: 150px" src="./order.png" />
+									<el-image style="width: 120px" src="./order.png" />
 								</el-descriptions-item>
 								<el-descriptions-item label="№ замовлення">{{
 									props.row.order_number
@@ -265,9 +266,37 @@ const handleColumnUpdate = newColumns => {
 									props.row.created_at
 								}}</el-descriptions-item>
 								<el-descriptions-item label="Статус">
-									<el-tag size="large" effect="plain">{{
-										props.row.status.order_status
-									}}</el-tag>
+									<div v-if="props.row.status.order_status === 'Новий'">
+										<el-button
+											type="primary"
+											size="small"
+											style="width: 70px"
+											>{{ props.row.status.order_status }}</el-button
+										>
+									</div>
+									<div v-else-if="props.row.status.order_status === 'Доставка'">
+										<el-button
+											type="warning"
+											size="small"
+											style="width: 70px"
+											>{{ props.row.status.order_status }}</el-button
+										>
+									</div>
+									<div v-else-if="props.row.status.order_status === 'Виконано'">
+										<el-button
+											type="success"
+											size="small"
+											style="width: 70px"
+											>{{ props.row.status.order_status }}</el-button
+										>
+									</div>
+									<div
+										v-else-if="props.row.status.order_status === 'Скасовано'"
+									>
+										<el-button type="danger" size="small" style="width: 70px">{{
+											props.row.status.order_status
+										}}</el-button>
+									</div>
 								</el-descriptions-item>
 								<el-descriptions-item label="Менеджер">{{
 									props.row.manager
@@ -281,8 +310,9 @@ const handleColumnUpdate = newColumns => {
 							<el-descriptions
 								direction="vertical"
 								border
-								style="margin: 10px"
+								style="margin: 0px"
 								size="large"
+								column="3"
 							>
 								<el-descriptions-item
 									:rowspan="2"
@@ -290,7 +320,7 @@ const handleColumnUpdate = newColumns => {
 									label="ПОКУПЕЦЬ"
 									align="center"
 								>
-									<el-image style="width: 150px" src="./customer.png" />
+									<el-image style="width: 122px" src="./customer.png" />
 								</el-descriptions-item>
 								<el-descriptions-item label="Ім'я покупця">{{
 									props.row.customer.name
@@ -306,7 +336,7 @@ const handleColumnUpdate = newColumns => {
 										<div>
 											<p>{{ TextEditDialogValue }}</p>
 										</div>
-										<div class="cursor-pointer">
+										<div class="cursor-pointer hover:text-blue-500 transition">
 											<el-icon @click="isTextEditDialog = true" size="large"
 												><Edit
 											/></el-icon>
@@ -315,6 +345,60 @@ const handleColumnUpdate = newColumns => {
 								</el-descriptions-item>
 							</el-descriptions>
 						</div>
+					</div>
+					<div class="w-full flex items-center font-bold uppercase mt-5">
+						<el-badge
+							:value="props.row.products.count"
+							:offset="[15, 10]"
+							type="primary"
+						>
+							<h1 class="pl-15">Товари</h1>
+						</el-badge>
+					</div>
+					<div class="w-full mt-5">
+						<el-descriptions
+							direction="vertical"
+							border
+							style="margin: 0px"
+							size="large"
+							column="7"
+						>
+							<el-descriptions-item
+								:rowspan="2"
+								:width="200"
+								label="Зображення"
+								align="center"
+							>
+								<el-image style="width: 70px" :src="props.row.products.img" />
+							</el-descriptions-item>
+							<el-descriptions-item label="Артикуль" align="center">{{
+								props.row.products.id
+							}}</el-descriptions-item>
+							<el-descriptions-item label="Назва товару" align="center">{{
+								props.row.products.name
+							}}</el-descriptions-item>
+							<el-descriptions-item label="Кількість" align="center">
+								{{ props.row.products.count }} <span>шт.</span>
+							</el-descriptions-item>
+							<el-descriptions-item label="Ціна товару" align="center"
+								>{{ props.row.products.price }} <span>&#8372;</span>
+							</el-descriptions-item>
+							<el-descriptions-item label="Ціна продажу" align="center"
+								>{{ props.row.products.price * props.row.products.count }}
+								<span>&#8372;</span>
+							</el-descriptions-item>
+
+							<el-descriptions-item label="Дії" align="center">
+								<div class="flex items-center gap-5 justify-center">
+									<div class="cursor-pointer hover:text-blue-500 transition">
+										<el-icon size="large"><Edit /></el-icon>
+									</div>
+									<div class="cursor-pointer hover:text-red-500 transition">
+										<el-icon size="large"><Delete /></el-icon>
+									</div>
+								</div>
+							</el-descriptions-item>
+						</el-descriptions>
 					</div>
 				</template>
 			</el-table-column>
@@ -335,7 +419,7 @@ const handleColumnUpdate = newColumns => {
 						v-if="column.prop === 'order_number'"
 					>
 						<span>{{ row.order_number }}</span>
-						<div class="cursor-pointer">
+						<div class="cursor-pointer hover:text-blue-500 transition">
 							<el-icon @click="copyText(row.order_number)"
 								><CopyDocument
 							/></el-icon>
@@ -344,6 +428,28 @@ const handleColumnUpdate = newColumns => {
 
 					<div v-else-if="column.prop === 'source'">
 						<img class="w-12" :src="row.source" alt="source" />
+					</div>
+					<div v-else-if="column.prop === 'status.order_status'">
+						<div v-if="row.status.order_status === 'Новий'">
+							<el-button type="primary" size="small" style="width: 70px">{{
+								row.status.order_status
+							}}</el-button>
+						</div>
+						<div v-else-if="row.status.order_status === 'Доставка'">
+							<el-button type="warning" size="small" style="width: 70px">{{
+								row.status.order_status
+							}}</el-button>
+						</div>
+						<div v-else-if="row.status.order_status === 'Виконано'">
+							<el-button type="success" size="small" style="width: 70px">{{
+								row.status.order_status
+							}}</el-button>
+						</div>
+						<div v-else-if="row.status.order_status === 'Скасовано'">
+							<el-button type="danger" size="small" style="width: 70px">{{
+								row.status.order_status
+							}}</el-button>
+						</div>
 					</div>
 					<div
 						v-else-if="column.prop === 'manager'"
@@ -357,7 +463,7 @@ const handleColumnUpdate = newColumns => {
 						v-else-if="column.prop === 'customer.phone'"
 					>
 						<span>{{ row.customer.phone }}</span>
-						<div class="cursor-pointer">
+						<div class="cursor-pointer hover:text-blue-500 transition">
 							<el-icon @click="copyText(row.customer.phone)"
 								><CopyDocument
 							/></el-icon>
@@ -371,18 +477,21 @@ const handleColumnUpdate = newColumns => {
 						v-else-if="column.prop === 'delivery.ttn'"
 					>
 						<span>{{ row.delivery.ttn }}</span>
-						<div class="cursor-pointer">
+						<div class="cursor-pointer hover:text-blue-500 transition">
 							<el-icon @click="copyText(row.delivery.ttn)"
 								><CopyDocument
 							/></el-icon>
 						</div>
+					</div>
+					<div v-else-if="column.prop === 'products.price'">
+						{{ row.products.price * row.products.count }} <span>&#8372;</span>
 					</div>
 					<div
 						class="flex items-center gap-2"
 						v-else-if="column.prop === 'recipient.phone'"
 					>
 						<span>{{ row.recipient.phone }}</span>
-						<div class="cursor-pointer">
+						<div class="cursor-pointer hover:text-blue-500 transition">
 							<el-icon @click="copyText(row.recipient.phone)"
 								><CopyDocument
 							/></el-icon>

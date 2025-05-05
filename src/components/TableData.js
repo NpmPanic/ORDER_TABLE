@@ -4,7 +4,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 1,
 		isActive: true,
-		order_number: '1001',
+		order_number: '345286913',
 		customer: {
 			id: '1',
 			name: 'Іван Іванович',
@@ -19,8 +19,9 @@ export const TABLE_DATA = ref([
 		products: {
 			id: 'p2',
 			name: 'Ноутбук Lenovo IdeaPad 3',
-			count: 1,
+			count: 2,
 			price: 21000,
+			img: './orders/1.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -30,7 +31,7 @@ export const TABLE_DATA = ref([
 			status: 'В дорозі',
 		},
 		status: {
-			order_status: 'Відправлено',
+			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
 		},
 		created_at: '2025-04-16 09:15:00',
@@ -41,7 +42,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 2,
 		isActive: true,
-		order_number: '1002',
+		order_number: '341978450',
 		customer: {
 			id: '2',
 			name: 'Олег Сидоров',
@@ -58,6 +59,7 @@ export const TABLE_DATA = ref([
 			name: 'Планшет Apple iPad 9',
 			count: 2,
 			price: 15000,
+			img: './orders/2.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -67,7 +69,7 @@ export const TABLE_DATA = ref([
 			status: 'В обробці',
 		},
 		status: {
-			order_status: 'Очікує відправку',
+			order_status: 'Новий',
 			contact_status: 'Зв’язалися',
 		},
 		created_at: '2025-04-15 14:00:00',
@@ -78,7 +80,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 3,
 		isActive: true,
-		order_number: '1003',
+		order_number: '346239081',
 		customer: {
 			id: '3',
 			name: 'Марина Коваль',
@@ -95,16 +97,17 @@ export const TABLE_DATA = ref([
 			name: 'Розумні годинники Xiaomi Mi Band 7',
 			count: 3,
 			price: 2200,
+			img: './orders/3.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
 			ttn: '98765432101234',
 			adress: 'Відділення №55',
 			city: 'м. Одеса',
-			status: 'Видано',
+			status: 'Доставка',
 		},
 		status: {
-			order_status: 'Доставлено',
+			order_status: 'Доставка',
 			contact_status: 'Підтверджено',
 		},
 		created_at: '2025-04-14 12:45:00',
@@ -115,7 +118,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 4,
 		isActive: true,
-		order_number: '1004',
+		order_number: '347091346',
 		customer: {
 			id: '4',
 			name: 'Василь Петров',
@@ -132,6 +135,7 @@ export const TABLE_DATA = ref([
 			name: 'Смартфон Samsung Galaxy S22',
 			count: 1,
 			price: 25000,
+			img: './orders/4.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -141,7 +145,7 @@ export const TABLE_DATA = ref([
 			status: 'В доставці',
 		},
 		status: {
-			order_status: 'Відправлено',
+			order_status: 'Доставка',
 			contact_status: 'Не вдалося зв’язатися',
 		},
 		created_at: '2025-04-13 16:20:00',
@@ -152,7 +156,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 5,
 		isActive: true,
-		order_number: '1005',
+		order_number: '348547269',
 		customer: {
 			id: '5',
 			name: 'Анатолій Гречаник',
@@ -169,6 +173,7 @@ export const TABLE_DATA = ref([
 			name: 'Ноутбук Asus VivoBook',
 			count: 1,
 			price: 18000,
+			img: './orders/5.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -178,7 +183,7 @@ export const TABLE_DATA = ref([
 			status: 'Обробка',
 		},
 		status: {
-			order_status: 'Очікує відправку',
+			order_status: 'Виконано',
 			contact_status: 'Не вдалося зв’язатися',
 		},
 		created_at: '2025-04-12 11:10:00',
@@ -189,7 +194,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 6,
 		isActive: true,
-		order_number: '1006',
+		order_number: '343810204',
 		customer: {
 			id: '6',
 			name: 'Ярослав Іванов',
@@ -206,6 +211,7 @@ export const TABLE_DATA = ref([
 			name: 'Фотоапарат Canon EOS 90D',
 			count: 1,
 			price: 50000,
+			img: './orders/6.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -215,7 +221,7 @@ export const TABLE_DATA = ref([
 			status: 'В обробці',
 		},
 		status: {
-			order_status: 'Очікує відправку',
+			order_status: 'Виконано',
 			contact_status: 'Зв’язалися',
 		},
 		created_at: '2025-04-11 15:40:00',
@@ -226,7 +232,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 7,
 		isActive: true,
-		order_number: '1007',
+		order_number: '349154732',
 		customer: {
 			id: '7',
 			name: 'Тетяна Петренко',
@@ -243,6 +249,7 @@ export const TABLE_DATA = ref([
 			name: 'Планшет Samsung Galaxy Tab S8',
 			count: 1,
 			price: 22000,
+			img: './orders/7.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -252,7 +259,7 @@ export const TABLE_DATA = ref([
 			status: 'В дорозі',
 		},
 		status: {
-			order_status: 'Відправлено',
+			order_status: 'Новий',
 			contact_status: 'Зв’язалися',
 		},
 		created_at: '2025-04-10 13:25:00',
@@ -263,7 +270,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 8,
 		isActive: true,
-		order_number: '1008',
+		order_number: '342603897',
 		customer: {
 			id: '8',
 			name: 'Наталя Левченко',
@@ -280,6 +287,7 @@ export const TABLE_DATA = ref([
 			name: 'Телевізор LG OLED',
 			count: 1,
 			price: 60000,
+			img: './orders/8.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -289,7 +297,7 @@ export const TABLE_DATA = ref([
 			status: 'Відправлено',
 		},
 		status: {
-			order_status: 'Доставлено',
+			order_status: 'Скасовано',
 			contact_status: 'Підтверджено',
 		},
 		created_at: '2025-04-09 14:50:00',
@@ -300,7 +308,7 @@ export const TABLE_DATA = ref([
 	{
 		id: 9,
 		isActive: true,
-		order_number: '1009',
+		order_number: '347965021',
 		customer: {
 			id: '9',
 			name: 'Микола Печенко',
@@ -317,6 +325,7 @@ export const TABLE_DATA = ref([
 			name: 'Смартфон Huawei P40 Pro',
 			count: 1,
 			price: 15000,
+			img: './orders/9.jpg',
 		},
 		delivery: {
 			service: './delivery.png',
@@ -326,7 +335,7 @@ export const TABLE_DATA = ref([
 			status: 'В обробці',
 		},
 		status: {
-			order_status: 'Очікує відправку',
+			order_status: 'Скасовано',
 			contact_status: 'Не вдалося зв’язатися',
 		},
 		created_at: '2025-04-08 11:30:00',
