@@ -11,19 +11,20 @@ import { ElMessage } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref, watch } from 'vue'
 import TableEditDrawer from './components/TableEditDrawer.vue'
-import TextEditDialog from './components/TextEditDialog.vue'
+import TextEditArea from './components/TextEditArea.vue'
 
 const inputQuerySearch = ref('')
 const valueQuerySelect = ref('')
 const isDrawer = ref(false)
 
 // Переменные хранения состояния и значения для модалки добавления комментария
-const isTextEditDialog = ref(false)
-const TextEditDialogValue = ref('')
+const isTextEditArea = ref(false)
+const TextEditAreaValue = ref('')
 
-// Записываем значение input из TextEditDialog.vue в TextEditDialogValue
+// Записываем значение input из TextEditArea.vue в TextEditAreaValue
 const handleTextUpdate = value => {
-	TextEditDialogValue.value = value
+	TextEditAreaValue.value = value
+	isTextEditArea.value = false
 }
 
 // Функция копирования текста по клику
@@ -75,92 +76,92 @@ const tableColumns = ref({
 	'№ замовлення': {
 		visible: true,
 		prop: 'order_number',
-		width: '150',
+		sortable: true,
 	},
 	Джерело: {
 		visible: true,
 		prop: 'source',
-		width: '120',
+		sortable: true,
 	},
 	'Час створення': {
-		visible: true,
+		visible: false,
 		prop: 'created_at',
-		width: '150',
+		sortable: true,
 	},
 	'Дата доставки': {
 		visible: false,
 		prop: 'delivery_date',
-		width: '150',
+		sortable: true,
 	},
 	Статус: {
 		visible: true,
 		prop: 'status.order_status',
-		width: '120',
+		sortable: false,
 	},
 	Менеджер: {
-		visible: true,
+		visible: false,
 		prop: 'manager',
-		width: '120',
+		sortable: true,
 	},
 	Покупець: {
 		visible: true,
 		prop: 'customer.name',
-		width: '150',
+		sortable: true,
 	},
 	'Телефон покупця': {
 		visible: true,
 		prop: 'customer.phone',
-		width: '170',
+		sortable: true,
 	},
 	'E-mail покупця': {
 		visible: false,
 		prop: 'customer.email',
-		width: '170',
+		sortable: true,
 	},
 	'Служба доставки': {
 		visible: true,
 		prop: 'delivery.service',
-		width: '170',
+		sortable: true,
 	},
 	'Трекінг код': {
 		visible: true,
 		prop: 'delivery.ttn',
-		width: '170',
+		sortable: false,
 	},
 	'Статус доставки': {
 		visible: false,
 		prop: 'delivery.status',
-		width: '170',
+		sortable: false,
 	},
 	Товари: {
 		visible: true,
 		prop: 'products.name',
-		width: '120',
+		sortable: false,
 	},
 	Вартість: {
 		visible: true,
 		prop: 'products.price',
-		width: '110',
+		sortable: true,
 	},
 	Отримувач: {
 		visible: false,
 		prop: 'recipient.name',
-		width: '150',
+		sortable: true,
 	},
 	'Телефон отримувача': {
 		visible: false,
 		prop: 'recipient.phone',
-		width: '190',
+		sortable: true,
 	},
-	'Адреса відділення': {
+	Відділення: {
 		visible: true,
 		prop: 'delivery.adress',
-		width: '180',
+		sortable: true,
 	},
 	Місто: {
 		visible: true,
 		prop: 'delivery.city',
-		width: '120',
+		sortable: true,
 	},
 })
 
@@ -174,6 +175,7 @@ const visibleColumns = computed(() => {
 			prop: settings.prop,
 			width: settings.width,
 			key: settings.prop,
+			sortable: settings.sortable,
 		}))
 })
 
@@ -223,47 +225,45 @@ const handleColumnUpdate = newColumns => {
 		:columns="tableColumns"
 		@update:columns="handleColumnUpdate"
 	/>
-	<TextEditDialog
-		v-model="isTextEditDialog"
-		@update:textValue="handleTextUpdate"
-	/>
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
 		<el-table
 			:data="resultData"
-			:default-sort="{ prop: 'status.order_status', order: 'descending' }"
+			:default-sort="{ prop: 'created_at', order: 'descending' }"
 			height="100%"
 			style="width: 100%"
 		>
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
 				<template #default="props">
-					<div class="w-full flex gap-5">
-						<div class="w-1/2">
+					<div class="w-full flex">
+						<div class="w-1/3">
 							<el-descriptions
-								direction="vertical"
+								direction="horisontal"
 								border
 								style="margin: 0px"
 								size="large"
-								column="4"
+								column="1"
 							>
-								<el-descriptions-item
-									:rowspan="2"
-									:width="200"
-									label="ЗАМОВЛЕННЯ"
-									align="center"
-								>
-									<el-image style="width: 120px" src="./order.png" />
+								<el-descriptions-item label="№ замовлення">
+									<div class="flex items-center gap-2">
+										<span>{{ props.row.order_number }}</span>
+										<div class="cursor-pointer hover:text-blue-500 transition">
+											<el-icon @click="copyText(props.row.order_number)"
+												><CopyDocument
+											/></el-icon>
+										</div>
+									</div>
 								</el-descriptions-item>
-								<el-descriptions-item label="№ замовлення">{{
-									props.row.order_number
-								}}</el-descriptions-item>
 								<el-descriptions-item label="Джерело">
 									<img class="w-10" :src="props.row.source" alt="" />
 								</el-descriptions-item>
 								<el-descriptions-item label="Час створення">{{
 									props.row.created_at
+								}}</el-descriptions-item>
+								<el-descriptions-item label="Менеджер">{{
+									props.row.manager
 								}}</el-descriptions-item>
 								<el-descriptions-item label="Статус">
 									<div v-if="props.row.status.order_status === 'Новий'">
@@ -298,64 +298,82 @@ const handleColumnUpdate = newColumns => {
 										}}</el-button>
 									</div>
 								</el-descriptions-item>
-								<el-descriptions-item label="Менеджер">{{
-									props.row.manager
-								}}</el-descriptions-item>
-								<el-descriptions-item label="Трекінг код">{{
-									props.row.delivery.ttn
-								}}</el-descriptions-item>
-							</el-descriptions>
-						</div>
-						<div class="w-1/2">
-							<el-descriptions
-								direction="vertical"
-								border
-								style="margin: 0px"
-								size="large"
-								column="3"
-							>
-								<el-descriptions-item
-									:rowspan="2"
-									:width="200"
-									label="ПОКУПЕЦЬ"
-									align="center"
-								>
-									<el-image style="width: 122px" src="./customer.png" />
-								</el-descriptions-item>
-								<el-descriptions-item label="Ім'я покупця">{{
-									props.row.customer.name
-								}}</el-descriptions-item>
-								<el-descriptions-item label="Телефон покупця">{{
-									props.row.customer.phone
-								}}</el-descriptions-item>
-								<el-descriptions-item label="E-mail покупця">{{
-									props.row.customer.email
-								}}</el-descriptions-item>
-								<el-descriptions-item label="Коментар менеджера">
-									<div class="flex gap-2 max-w-35">
-										<div>
-											<p>{{ TextEditDialogValue }}</p>
-										</div>
-										<div class="cursor-pointer hover:text-blue-500 transition">
-											<el-icon @click="isTextEditDialog = true" size="large"
-												><Edit
-											/></el-icon>
-										</div>
+								<el-descriptions-item label="Статус оплати">
+									<div v-if="props.row.status.pay_status === 'Оплачено'">
+										<el-button
+											type="success"
+											size="small"
+											style="width: 70px"
+											>{{ props.row.status.pay_status }}</el-button
+										>
+									</div>
+									<div
+										v-else-if="props.row.status.pay_status === 'Не оплачено'"
+									>
+										<el-button type="danger" size="small" plain>{{
+											props.row.status.pay_status
+										}}</el-button>
 									</div>
 								</el-descriptions-item>
 							</el-descriptions>
 						</div>
+						<div class="w-1/3">
+							<el-descriptions
+								direction="horisontal"
+								border
+								style="margin: 0px"
+								size="large"
+								column="1"
+							>
+								<el-descriptions-item label="Ім'я покупця">{{
+									props.row.customer.name
+								}}</el-descriptions-item>
+								<el-descriptions-item label="Телефон покупця"
+									><div class="flex items-center gap-2">
+										<span>{{ props.row.customer.phone }}</span>
+										<div class="cursor-pointer hover:text-blue-500 transition">
+											<el-icon @click="copyText(props.row.customer.phone)"
+												><CopyDocument
+											/></el-icon>
+										</div></div
+								></el-descriptions-item>
+								<el-descriptions-item label="E-mail покупця">{{
+									props.row.customer.email
+								}}</el-descriptions-item>
+								<el-descriptions-item label="Коментар менеджера">
+									<div class="flex items-center justify-between min-w-full">
+										<TextEditArea
+											v-model="isTextEditArea"
+											:initial-text="TextEditAreaValue"
+											@update:textValue="handleTextUpdate"
+										/>
+
+										<div v-if="!isTextEditArea" class="flex items-center gap-2">
+											<p>{{ TextEditAreaValue || 'Коментар відсутній' }}</p>
+											<div
+												class="flex gap-2 cursor-pointer hover:text-blue-500"
+											>
+												<el-icon @click="isTextEditArea = true">
+													<Edit />
+												</el-icon>
+											</div>
+										</div>
+									</div>
+								</el-descriptions-item>
+								<el-descriptions-item label="Трекінг код"
+									><div class="flex items-center gap-2">
+										<span>{{ props.row.delivery.ttn }}</span>
+										<div class="cursor-pointer hover:text-blue-500 transition">
+											<el-icon @click="copyText(props.row.delivery.ttn)"
+												><CopyDocument
+											/></el-icon>
+										</div></div
+								></el-descriptions-item>
+							</el-descriptions>
+						</div>
 					</div>
-					<div class="w-full flex items-center font-bold uppercase mt-5">
-						<el-badge
-							:value="props.row.products.count"
-							:offset="[15, 10]"
-							type="primary"
-						>
-							<h1 class="pl-15">Товари</h1>
-						</el-badge>
-					</div>
-					<div class="w-full mt-5">
+
+					<div class="w-full mt-15">
 						<el-descriptions
 							direction="vertical"
 							border
@@ -363,12 +381,16 @@ const handleColumnUpdate = newColumns => {
 							size="large"
 							column="7"
 						>
-							<el-descriptions-item
-								:rowspan="2"
-								:width="200"
-								label="Зображення"
-								align="center"
-							>
+							<el-descriptions-item :rowspan="2" :width="200" align="center">
+								<template #label>
+									<el-badge
+										:value="props.row.products.count"
+										:offset="[15, 10]"
+										type="primary"
+									>
+										<h1 class="">Товари</h1>
+									</el-badge>
+								</template>
 								<el-image style="width: 70px" :src="props.row.products.img" />
 							</el-descriptions-item>
 							<el-descriptions-item label="Артикуль" align="center">{{
@@ -409,8 +431,7 @@ const handleColumnUpdate = newColumns => {
 				:key="column.key"
 				:prop="column.prop"
 				:label="column.label"
-				:width="column.width"
-				sortable
+				:sortable="column.sortable === true"
 			>
 				<!-- Кастомные шаблоны для определенных колонок -->
 				<template #default="{ row }">

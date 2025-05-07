@@ -33,6 +33,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
+			pay_status: 'Не оплачено',
 		},
 		created_at: '2025-04-16 09:15:00',
 		delivery_date: '2025-04-18 15:00:00',
@@ -71,6 +72,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Новий',
 			contact_status: 'Зв’язалися',
+			pay_status: 'Не оплачено',
 		},
 		created_at: '2025-04-15 14:00:00',
 		delivery_date: '2025-04-19 10:00:00',
@@ -109,6 +111,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Доставка',
 			contact_status: 'Підтверджено',
+			pay_status: 'Не оплачено',
 		},
 		created_at: '2025-04-14 12:45:00',
 		delivery_date: '2025-04-16 11:00:00',
@@ -147,6 +150,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Доставка',
 			contact_status: 'Не вдалося зв’язатися',
+			pay_status: 'Не оплачено',
 		},
 		created_at: '2025-04-13 16:20:00',
 		delivery_date: '2025-04-17 13:30:00',
@@ -185,6 +189,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Виконано',
 			contact_status: 'Не вдалося зв’язатися',
+			pay_status: 'Оплачено',
 		},
 		created_at: '2025-04-12 11:10:00',
 		delivery_date: '2025-04-15 14:00:00',
@@ -223,6 +228,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Виконано',
 			contact_status: 'Зв’язалися',
+			pay_status: 'Оплачено',
 		},
 		created_at: '2025-04-11 15:40:00',
 		delivery_date: '2025-04-14 09:00:00',
@@ -259,8 +265,9 @@ export const TABLE_DATA = ref([
 			status: 'В дорозі',
 		},
 		status: {
-			order_status: 'Новий',
+			order_status: 'Виконано',
 			contact_status: 'Зв’язалися',
+			pay_status: 'Не оплачено',
 		},
 		created_at: '2025-04-10 13:25:00',
 		delivery_date: '2025-04-12 17:00:00',
@@ -299,6 +306,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Скасовано',
 			contact_status: 'Підтверджено',
+			pay_status: 'Не оплачено',
 		},
 		created_at: '2025-04-09 14:50:00',
 		delivery_date: '2025-04-11 12:00:00',
@@ -337,6 +345,7 @@ export const TABLE_DATA = ref([
 		status: {
 			order_status: 'Скасовано',
 			contact_status: 'Не вдалося зв’язатися',
+			pay_status: 'Не оплачено',
 		},
 		created_at: '2025-04-08 11:30:00',
 		delivery_date: '2025-04-10 14:30:00',
