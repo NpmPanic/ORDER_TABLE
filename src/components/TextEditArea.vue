@@ -31,7 +31,7 @@ const cancelEdit = () => {
 			v-model="textValue"
 			style="width: 100%"
 			:rows="2"
-			maxlength="40"
+			maxlength="30"
 			show-word-limit
 			type="textarea"
 			placeholder="Введіть коментар"
