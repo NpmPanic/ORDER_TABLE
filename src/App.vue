@@ -3,27 +3,29 @@ import {
 	Search,
 	User,
 	Switch,
-	CopyDocument,
 	Edit,
 	Delete,
 	ChatRound,
 	Phone,
 	CirclePlus,
 	EditPen,
+	DocumentAdd,
+	DocumentCopy,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref } from 'vue'
 import TableEditDrawer from './components/TableEditDrawer.vue'
-import TextEditArea from './components/TextEditArea.vue'
+import CommentEditArea from './components/CommentEditArea.vue'
+import ValueEditArea from './components/ValueEditArea.vue'
 
 const inputQuerySearch = ref('')
 const valueQuerySelect = ref('')
 const isDrawer = ref(false)
 
-// Переменные хранения состояния и значения для добавления комментариев
-const isTextEditAreaManager = ref(false)
-const isTextEditAreaCustomer = ref(false)
+// Переменные хранения состояния для добавления комментариев
+const isCommentEditManager = ref(false)
+const isCommentEditCustomer = ref(false)
 
 // Записываем значение input комментария менеджера из TextEditArea.vue в TABLE_DATA
 const updateManagerComment = (row, newComment) => {
@@ -55,7 +57,7 @@ const copyText = async text => {
 }
 
 // Опции для выпадающего списка полей поиска
-const options = [
+const optionsSearch = [
 	{ value: 'order.order_number', label: '№ замовлення' },
 	{ value: 'customer.name', label: 'Покупець' },
 	{ value: 'customer.phone', label: 'Телефон покупця' },
@@ -63,9 +65,50 @@ const options = [
 	{ value: 'order.manager', label: 'Менеджер' },
 ]
 
+// Опции для выпадающего списка служб доставки
+const optionsOrderManager = [
+	{ value: 'Андрій', label: 'Андрій' },
+	{ value: 'Марина', label: 'Марина' },
+	{ value: 'Тетяна', label: 'Тетяна' },
+	{ value: 'Богдан', label: 'Богдан' },
+	{ value: 'Оксана', label: 'Оксана' },
+]
+
+// Опции для выпадающего списка служб доставки
+const optionsDeliveryService = [
+	{ value: 'Нова пошта', label: 'Нова пошта' },
+	{ value: 'Самовивіз Київ', label: 'Самовивіз Київ' },
+	{ value: 'Самовивіз Львів', label: 'Самовивіз Львів' },
+	{ value: 'Самовивіз Ізюм', label: 'Самовивіз Ізюм' },
+	{ value: 'Самовивіз Харків', label: 'Самовивіз Харків' },
+]
+
+// Опции для выпадающего списка служб доставки
+const optionsDeliveryAdress = [
+	{ value: 'Відділення №1', label: 'Відділення №1' },
+	{ value: 'Відділення №2', label: 'Відділення №2' },
+	{ value: 'Відділення №3', label: 'Відділення №3' },
+	{ value: 'Відділення №4', label: 'Відділення №4' },
+]
+
 // Функция для получения значения из объекта по пути
 const getValueByPath = (obj, path) => {
 	return path.split('.').reduce((acc, key) => acc?.[key], obj)
+}
+
+// Функция генерации номера ТТН
+const generatedNumber = ref(null)
+
+function generateNumber(row) {
+	const prefix = '204'
+	let remainingDigits = ''
+
+	for (let i = 0; i < 11; i++) {
+		remainingDigits += Math.floor(Math.random() * 10)
+	}
+
+	const newNumber = prefix + remainingDigits
+	row.delivery.ttn = newNumber
 }
 
 // Фильтрация данных таблицы по поисковому запросу
@@ -87,17 +130,17 @@ const tableColumns = ref({
 		sortable: true,
 	},
 	Джерело: {
-		visible: true,
+		visible: false,
 		prop: 'order.source',
 		sortable: true,
 	},
 	'Час створення': {
-		visible: false,
+		visible: true,
 		prop: 'order.created_at',
 		sortable: true,
 	},
-	'Дата доставки': {
-		visible: false,
+	'Дата відправки': {
+		visible: true,
 		prop: 'delivery.delivery_date',
 		sortable: true,
 	},
@@ -107,17 +150,17 @@ const tableColumns = ref({
 		sortable: false,
 	},
 	Менеджер: {
-		visible: false,
+		visible: true,
 		prop: 'order.manager',
 		sortable: true,
 	},
 	Покупець: {
-		visible: true,
+		visible: false,
 		prop: 'customer.name',
 		sortable: true,
 	},
 	'Телефон покупця': {
-		visible: true,
+		visible: false,
 		prop: 'customer.phone',
 		sortable: true,
 	},
@@ -213,7 +256,7 @@ const handleColumnUpdate = newColumns => {
 				clearable
 			>
 				<el-option
-					v-for="item in options"
+					v-for="item in optionsSearch"
 					:key="item.value"
 					:label="item.label"
 					:value="item.value"
@@ -260,9 +303,11 @@ const handleColumnUpdate = newColumns => {
 								<el-descriptions-item label="№ замовлення">
 									<div class="flex items-center gap-2">
 										<span>{{ props.row.order.order_number }}</span>
-										<div class="cursor-pointer hover:text-blue-500 transition">
+										<div
+											class="cursor-pointer hover:text-blue-500 transition pt-1"
+										>
 											<el-icon @click="copyText(props.row.order.order_number)"
-												><CopyDocument
+												><DocumentCopy
 											/></el-icon>
 										</div>
 									</div>
@@ -277,9 +322,22 @@ const handleColumnUpdate = newColumns => {
 								<el-descriptions-item label="Час створення">{{
 									props.row.order.created_at
 								}}</el-descriptions-item>
-								<el-descriptions-item label="Менеджер">{{
-									props.row.order.manager
-								}}</el-descriptions-item>
+								<el-descriptions-item label="Менеджер">
+									<el-select
+										v-model="props.row.order.manager"
+										clearable
+										placeholder="Обрати"
+										style="width: 220px"
+										size="small"
+									>
+										<el-option
+											v-for="item in optionsOrderManager"
+											:key="item.value"
+											:label="item.label"
+											:value="item.value"
+										/>
+									</el-select>
+								</el-descriptions-item>
 								<el-descriptions-item label="Статус">
 									<div v-if="props.row.order.order_status === 'Новий'">
 										<el-button
@@ -338,26 +396,31 @@ const handleColumnUpdate = newColumns => {
 								size="large"
 								column="1"
 							>
-								<el-descriptions-item label="Ім'я покупця">{{
-									props.row.customer.name
-								}}</el-descriptions-item>
-								<el-descriptions-item label="Телефон покупця"
-									><div class="flex items-center gap-2">
-										<span>{{ props.row.customer.phone }}</span>
-										<div class="cursor-pointer hover:text-blue-500 transition">
-											<el-icon @click="copyText(props.row.customer.phone)"
-												><CopyDocument
-											/></el-icon>
-										</div></div
-								></el-descriptions-item>
-								<el-descriptions-item label="E-mail покупця">{{
-									props.row.customer.email
-								}}</el-descriptions-item>
+								<el-descriptions-item label="Телефон покупця">
+									<div class="flex items-center gap-2">
+										<ValueEditArea
+											:initialText="props.row.customer.phone"
+											@update:textValue="
+												newValue => (props.row.customer.phone = newValue)
+											"
+										/>
+									</div>
+								</el-descriptions-item>
+								<el-descriptions-item label="E-mail покупця">
+									<div class="flex items-center gap-2">
+										<ValueEditArea
+											:initialText="props.row.customer.email"
+											@update:textValue="
+												newValue => (props.row.customer.email = newValue)
+											"
+										/>
+									</div>
+								</el-descriptions-item>
 
 								<el-descriptions-item label="Коментар покупця">
-									<div class="flex items-center justify-between min-w-full">
-										<TextEditArea
-											v-model="isTextEditAreaCustomer"
+									<div class="flex items-center justify-between w-full">
+										<CommentEditArea
+											v-model="isCommentEditCustomer"
 											:initial-text="props.row.customer.comment"
 											@update:textValue="
 												value => updateCustomerComment(props.row, value)
@@ -365,7 +428,7 @@ const handleColumnUpdate = newColumns => {
 										/>
 
 										<div
-											v-if="!isTextEditAreaCustomer"
+											v-if="!isCommentEditCustomer"
 											class="flex items-center gap-2"
 										>
 											<p>
@@ -374,7 +437,7 @@ const handleColumnUpdate = newColumns => {
 											<div
 												class="flex gap-2 cursor-pointer hover:text-blue-500"
 											>
-												<el-icon @click="isTextEditAreaCustomer = true">
+												<el-icon @click="isCommentEditCustomer = true">
 													<EditPen />
 												</el-icon>
 											</div>
@@ -384,8 +447,8 @@ const handleColumnUpdate = newColumns => {
 
 								<el-descriptions-item label="Коментар менеджера">
 									<div class="flex items-center justify-between min-w-full">
-										<TextEditArea
-											v-model="isTextEditAreaManager"
+										<CommentEditArea
+											v-model="isCommentEditManager"
 											:initial-text="props.row.order.manager_comment || ''"
 											@update:textValue="
 												value => updateManagerComment(props.row, value)
@@ -393,7 +456,7 @@ const handleColumnUpdate = newColumns => {
 										/>
 
 										<div
-											v-if="!isTextEditAreaManager"
+											v-if="!isCommentEditManager"
 											class="flex items-center gap-2"
 										>
 											<p>
@@ -405,7 +468,7 @@ const handleColumnUpdate = newColumns => {
 											<div
 												class="flex gap-2 cursor-pointer hover:text-blue-500"
 											>
-												<el-icon @click="isTextEditAreaManager = true">
+												<el-icon @click="isCommentEditManager = true">
 													<EditPen />
 												</el-icon>
 											</div>
@@ -413,21 +476,9 @@ const handleColumnUpdate = newColumns => {
 									</div>
 								</el-descriptions-item>
 								<el-descriptions-item label="Комунікації">
-									<div class="flex items-center gap-4">
-										<div>
-											<el-button
-												type="success"
-												:icon="Phone"
-												circle
-											></el-button>
-										</div>
-										<div>
-											<el-button
-												type="primary"
-												:icon="ChatRound"
-												circle
-											></el-button>
-										</div>
+									<div class="flex items-center gap-2">
+										<el-button type="success" :icon="Phone" circle />
+										<el-button type="primary" :icon="ChatRound" circle />
 									</div>
 								</el-descriptions-item>
 							</el-descriptions>
@@ -442,173 +493,175 @@ const handleColumnUpdate = newColumns => {
 								size="large"
 								column="1"
 							>
-								<el-descriptions-item label="Дата доставки">{{
-									props.row.delivery.delivery_date
-								}}</el-descriptions-item>
-								<el-descriptions-item label="Отримувач">{{
-									props.row.recipient.name
-								}}</el-descriptions-item>
-								<el-descriptions-item label="Телефон отримувача"
-									><div class="flex items-center gap-2">
-										<span>{{ props.row.recipient.phone }}</span>
-										<div class="cursor-pointer hover:text-blue-500 transition">
-											<el-icon @click="copyText(props.row.recipient.phone)"
-												><CopyDocument
-											/></el-icon>
-										</div></div
-								></el-descriptions-item>
-								<el-descriptions-item label="Служба доставки"
-									><img
-										class="w-10"
-										:src="props.row.delivery.service"
-										alt="source"
-								/></el-descriptions-item>
-								<el-descriptions-item label="Адреса доставки"
-									>{{ props.row.delivery.adress }},
-									{{ props.row.delivery.city }}</el-descriptions-item
-								>
-								<el-descriptions-item label="Трекінг код"
-									><div class="flex items-center gap-2">
-										<span>{{ props.row.delivery.ttn }}</span>
-										<div class="cursor-pointer hover:text-blue-500 transition">
-											<el-icon @click="copyText(props.row.delivery.ttn)"
-												><CopyDocument
-											/></el-icon>
-										</div></div
-								></el-descriptions-item>
+								<el-descriptions-item label="Дата відправки">
+									<el-date-picker
+										v-model="props.row.delivery.delivery_date"
+										type="date"
+										placeholder="Обрати"
+										format="DD/MM/YYYY"
+										value-format="DD/MM/YYYY"
+										style="width: 220px"
+										size="small"
+									/>
+								</el-descriptions-item>
+								<el-descriptions-item label="Отримувач">
+									<div class="flex items-center gap-2">
+										<ValueEditArea
+											:initialText="props.row.recipient.name"
+											@update:textValue="
+												newValue => (props.row.recipient.name = newValue)
+											"
+										/>
+									</div>
+								</el-descriptions-item>
+								<el-descriptions-item label="Телефон отримувача">
+									<div class="flex items-center gap-2">
+										<ValueEditArea
+											:initialText="props.row.recipient.phone"
+											@update:textValue="
+												newValue => (props.row.recipient.phone = newValue)
+											"
+										/>
+									</div>
+								</el-descriptions-item>
+								<el-descriptions-item label="Служба доставки">
+									<el-select
+										v-model="props.row.delivery.service"
+										clearable
+										placeholder="Обрати"
+										style="width: 220px"
+										size="small"
+									>
+										<el-option
+											v-for="item in optionsDeliveryService"
+											:key="item.value"
+											:label="item.label"
+											:value="item.value"
+										/>
+									</el-select>
+								</el-descriptions-item>
+								<el-descriptions-item label="Адреса доставки">
+									<el-select
+										v-model="props.row.delivery.adress"
+										clearable
+										placeholder="Обрати"
+										style="width: 220px"
+										size="small"
+									>
+										<el-option
+											v-for="item in optionsDeliveryAdress"
+											:key="item.value"
+											:label="item.label"
+											:value="item.value"
+										/>
+									</el-select>
+								</el-descriptions-item>
+								<el-descriptions-item label="Трекінг код">
+									<div class="flex items-center gap-4">
+										<span class="min-w-40">{{
+											props.row.delivery.ttn || 'Не задано'
+										}}</span>
+										<div class="flex items-center gap-3 pt-2">
+											<div
+												@click="generateNumber(props.row)"
+												class="cursor-pointer hover:text-green-500 transition"
+											>
+												<el-icon size="large"><DocumentAdd /></el-icon>
+											</div>
+											<div
+												@click="props.row.delivery.ttn = null"
+												class="cursor-pointer hover:text-red-500 transition"
+											>
+												<el-icon size="large"><Delete /></el-icon>
+											</div>
+										</div>
+									</div>
+								</el-descriptions-item>
 							</el-descriptions>
 						</div>
 					</div>
 
 					<!-- Товари -->
-					<div class="w-full mt-10">
-						<el-descriptions
-							direction="vertical"
-							border
-							style="margin: 0px"
-							size="large"
-							column="7"
-						>
-							<el-descriptions-item :rowspan="2" :width="200" align="center">
-								<template #label>
-									<el-badge
-										:value="props.row.products.count"
-										:offset="[15, 10]"
-										type="primary"
-									>
-										<h1 class="">Товари</h1>
-									</el-badge>
-								</template>
-								<el-image style="width: 70px" :src="props.row.products.img" />
-							</el-descriptions-item>
-							<el-descriptions-item label="Артикуль" align="center">{{
-								props.row.products.id
-							}}</el-descriptions-item>
-							<el-descriptions-item label="Назва товару" align="center">{{
-								props.row.products.name
-							}}</el-descriptions-item>
-							<el-descriptions-item label="Кількість" align="center">
-								{{ props.row.products.count }} <span>шт.</span>
-							</el-descriptions-item>
-							<el-descriptions-item label="Ціна товару" align="center"
-								>{{ props.row.products.price }} <span>&#8372;</span>
-							</el-descriptions-item>
-							<el-descriptions-item label="Ціна продажу" align="center"
-								>{{ props.row.products.price * props.row.products.count }}
-								<span>&#8372;</span>
-							</el-descriptions-item>
-
-							<el-descriptions-item label="Дії" align="center">
-								<div class="flex items-center gap-5 justify-center">
-									<div class="cursor-pointer hover:text-green-500 transition">
-										<el-tooltip content="Додати товар" placement="top">
-											<el-icon size="large"><CirclePlus /></el-icon>
-										</el-tooltip>
-									</div>
-									<div class="cursor-pointer hover:text-blue-500 transition">
-										<el-tooltip content="Редагувати товар" placement="top">
-											<el-icon size="large"><Edit /></el-icon>
-										</el-tooltip>
-									</div>
-									<div class="cursor-pointer hover:text-red-500 transition">
-										<el-tooltip content="Видалити товар" placement="top">
-											<el-icon size="large"><Delete /></el-icon>
-										</el-tooltip>
-									</div>
-								</div>
-							</el-descriptions-item>
-						</el-descriptions>
-					</div>
-
-					<!-- Оплаты -->
-					<div class="w-full mt-10">
-						<el-descriptions
-							direction="vertical"
-							border
-							style="margin: 0px"
-							size="large"
-							column="7"
-						>
-							<el-descriptions-item
-								:rowspan="2"
-								:width="200"
-								label="Оплати"
+					<div class="w-full mt-5">
+						<div class=""></div>
+						<el-table :data="props.row.products" style="width: 100%" border>
+							<el-table-column
+								label="Зображення"
+								header-align="center"
 								align="center"
 							>
-								<div v-if="props.row.order.pay_status === 'Оплачено'">
-									<el-button type="success" size="small" style="width: 70px">{{
-										props.row.order.pay_status
-									}}</el-button>
-								</div>
-								<div v-else-if="props.row.order.pay_status === 'Не оплачено'">
-									<el-button type="danger" size="small" plain>{{
-										props.row.order.pay_status
-									}}</el-button>
-								</div>
-							</el-descriptions-item>
-							<el-descriptions-item label="Дата та час" align="center"
-								>-</el-descriptions-item
+								<template #default="{ row }">
+									<el-image
+										style="width: 60px"
+										:src="row.img"
+										:zoom-rate="1.2"
+										:max-scale="7"
+										:min-scale="0.2"
+										:preview-src-list="[row.img]"
+										show-progress
+										fit="cover"
+										preview-teleported="true"
+									/>
+								</template>
+							</el-table-column>
+							<el-table-column
+								prop="id"
+								label="Артикуль"
+								header-align="center"
+								align="center"
+							/>
+							<el-table-column
+								prop="name"
+								label="Назва товару"
+								header-align="center"
+								align="center"
+							/>
+							<el-table-column
+								prop="count"
+								label="Кількість"
+								header-align="center"
+								align="center"
 							>
-							<el-descriptions-item label="Ти платежу" align="center"
-								>-</el-descriptions-item
+							</el-table-column>
+							<el-table-column
+								label="Ціна товару"
+								header-align="center"
+								align="center"
 							>
-							<el-descriptions-item label="Сума за товар" align="center">
-								{{ props.row.products.price * props.row.products.count }}
-								<span>&#8372;</span>
-							</el-descriptions-item>
-							<el-descriptions-item label="Вартість доставки" align="center">
-								{{ props.row.delivery.delivery_price }}
-								<span>&#8372;</span>
-							</el-descriptions-item>
-							<el-descriptions-item label="Загальна вартість" align="center">
-								{{
-									props.row.products.price * props.row.products.count +
-									props.row.delivery.delivery_price
-								}}
-								<span>&#8372;</span>
-							</el-descriptions-item>
-
-							<el-descriptions-item label="Дії" align="center">
-								<div class="flex items-center gap-5 justify-center">
-									<div class="cursor-pointer hover:text-green-500 transition">
-										<el-tooltip content="Додати оплату" placement="top">
-											<el-icon size="large"><CirclePlus /></el-icon>
-										</el-tooltip>
-									</div>
+								<template #default="{ row }">
+									<span>{{ row.price }} &#8372;</span>
+								</template>
+							</el-table-column>
+							<el-table-column
+								label="Ціна продажу"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<span>{{ row.price * row.count }} &#8372;</span>
+								</template>
+							</el-table-column>
+							<el-table-column
+								prop="count"
+								label="Резерв"
+								header-align="center"
+								align="center"
+							>
+							</el-table-column>
+							<el-table-column label="Дії" header-align="center" align="center">
+								<div class="flex items-center justify-center gap-4">
 									<div class="cursor-pointer hover:text-blue-500 transition">
-										<el-tooltip content="Редагувати оплату" placement="top">
-											<el-icon size="large"><Edit /></el-icon>
-										</el-tooltip>
+										<el-icon size="large"><Edit /></el-icon>
 									</div>
-									<div class="cursor-pointer hover:text-blue-500 transition">
-										<el-tooltip content="Змінити статус" placement="top">
-											<el-icon size="large"><Switch /></el-icon>
-										</el-tooltip>
+									<div class="cursor-pointer hover:text-red-500 transition">
+										<el-icon size="large"><Delete /></el-icon>
 									</div>
 								</div>
-							</el-descriptions-item>
-						</el-descriptions>
+							</el-table-column>
+						</el-table>
 					</div>
+
+					<!-- Допродажи -->
 				</template>
 			</el-table-column>
 
@@ -627,9 +680,9 @@ const handleColumnUpdate = newColumns => {
 						v-if="column.prop === 'order.order_number'"
 					>
 						<span>{{ row.order.order_number }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition">
+						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
 							<el-icon @click="copyText(row.order.order_number)"
-								><CopyDocument
+								><DocumentCopy
 							/></el-icon>
 						</div>
 					</div>
@@ -637,6 +690,11 @@ const handleColumnUpdate = newColumns => {
 					<div v-else-if="column.prop === 'order.source'">
 						<img class="w-12" :src="row.order.source" alt="source" />
 					</div>
+
+					<div v-else-if="column.prop === 'delivery.delivery_date'">
+						{{ row.delivery.delivery_date || 'Не задано' }}
+					</div>
+
 					<div v-else-if="column.prop === 'order.order_status'">
 						<div v-if="row.order.order_status === 'Новий'">
 							<el-button type="primary" size="small" style="width: 70px">{{
@@ -664,46 +722,60 @@ const handleColumnUpdate = newColumns => {
 						class="flex items-center gap-4"
 					>
 						<el-icon><User /></el-icon>
-						<span>{{ row.order.manager }}</span>
+						<span>{{ row.order.manager || 'Не задано' }}</span>
 					</div>
 					<div
 						class="flex items-center gap-2"
 						v-else-if="column.prop === 'customer.phone'"
 					>
 						<span>{{ row.customer.phone }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition">
+						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
 							<el-icon @click="copyText(row.customer.phone)"
-								><CopyDocument
+								><DocumentCopy
 							/></el-icon>
 						</div>
 					</div>
 					<div v-else-if="column.prop === 'delivery.service'">
-						<img class="w-12 ml-5" :src="row.delivery.service" alt="source" />
+						{{ row.delivery.service || 'Не задано' }}
 					</div>
 					<div
 						class="flex items-center gap-2"
 						v-else-if="column.prop === 'delivery.ttn'"
 					>
-						<span>{{ row.delivery.ttn }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition">
+						<span>{{ row.delivery.ttn || 'Не задано' }}</span>
+						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
 							<el-icon @click="copyText(row.delivery.ttn)"
-								><CopyDocument
+								><DocumentCopy
 							/></el-icon>
 						</div>
 					</div>
+					<div v-else-if="column.prop === 'products.name'">
+						<div v-for="product in row.products" :key="product.id">
+							{{ product.name }} ({{ product.count }} шт.)
+						</div>
+					</div>
 					<div v-else-if="column.prop === 'products.price'">
-						{{ row.products.price * row.products.count }} <span>&#8372;</span>
+						{{
+							row.products.reduce(
+								(sum, product) => sum + product.price * product.count,
+								0
+							)
+						}}
+						<span>&#8372;</span>
 					</div>
 					<div
 						class="flex items-center gap-2"
 						v-else-if="column.prop === 'recipient.phone'"
 					>
 						<span>{{ row.recipient.phone }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition">
+						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
 							<el-icon @click="copyText(row.recipient.phone)"
-								><CopyDocument
+								><DocumentCopy
 							/></el-icon>
 						</div>
+					</div>
+					<div v-else-if="column.prop === 'delivery.adress'">
+						{{ row.delivery.adress || 'Не задано' }}
 					</div>
 				</template>
 			</el-table-column>
