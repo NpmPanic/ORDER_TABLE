@@ -16,26 +16,14 @@ import { ElMessage } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref } from 'vue'
 import TableEditDrawer from './components/TableEditDrawer.vue'
-import CommentEditArea from './components/CommentEditArea.vue'
-import ValueEditArea from './components/ValueEditArea.vue'
+import EditCountPopover from './components/EditCountPopover.vue'
+import EditTextPopover from './components/EditTextPopover.vue'
+import EditCommentPopover from './components/EditCommentPopover.vue'
+import EditPricePopover from './components/EditPricePopover.vue'
 
 const inputQuerySearch = ref('')
 const valueQuerySelect = ref('')
 const isDrawer = ref(false)
-
-// Переменные хранения состояния для добавления комментариев
-const isCommentEditManager = ref(false)
-const isCommentEditCustomer = ref(false)
-
-// Записываем значение input комментария менеджера из TextEditArea.vue в TABLE_DATA
-const updateManagerComment = (row, newComment) => {
-	row.order.manager_comment = newComment // Обновляем комментарий в TABLE_DATA
-}
-
-// Записываем значение input комментария покупателя из TextEditArea.vue в TABLE_DATA
-const updateCustomerComment = (row, newComment) => {
-	row.customer.comment = newComment // Обновляем комментарий в TABLE_DATA
-}
 
 // Функция копирования текста по клику
 const copyText = async text => {
@@ -91,13 +79,23 @@ const optionsDeliveryAdress = [
 	{ value: 'Відділення №4', label: 'Відділення №4' },
 ]
 
+// Опции для выпадающего списка служб доставки
+const optionsWarehouseReserve = [
+	{ value: 'Постачальник 1', label: 'Постачальник 1' },
+	{ value: 'Постачальник 2', label: 'Постачальник 2' },
+	{ value: 'Магазин 1', label: 'Магазин 1' },
+	{ value: 'Магазин 2', label: 'Магазин 2' },
+	{ value: 'Магазин 3', label: 'Магазин 3' },
+	{ value: 'Магазин 4', label: 'Магазин 4' },
+	{ value: 'Магазин 5', label: 'Магазин 5' },
+]
+
 // Функция для получения значения из объекта по пути
 const getValueByPath = (obj, path) => {
 	return path.split('.').reduce((acc, key) => acc?.[key], obj)
 }
 
 // Функция генерации номера ТТН
-const generatedNumber = ref(null)
 
 function generateNumber(row) {
 	const prefix = '204'
@@ -297,7 +295,7 @@ const handleColumnUpdate = newColumns => {
 								direction="horisontal"
 								border
 								style="margin: 0px"
-								size="large"
+								size="small"
 								column="1"
 							>
 								<el-descriptions-item label="№ замовлення">
@@ -393,92 +391,77 @@ const handleColumnUpdate = newColumns => {
 								direction="horisontal"
 								border
 								style="margin: 0px"
-								size="large"
+								size="small"
 								column="1"
 							>
+								<el-descriptions-item label="Покупець">
+									<div class="flex items-center gap-2">
+										<EditTextPopover
+											:initialText="props.row.customer.name"
+											@update:textValue="
+												newValue =>
+													(props.row.customer.name = newValue || 'Не задано')
+											"
+										/>
+									</div>
+								</el-descriptions-item>
 								<el-descriptions-item label="Телефон покупця">
 									<div class="flex items-center gap-2">
-										<ValueEditArea
+										<EditTextPopover
 											:initialText="props.row.customer.phone"
 											@update:textValue="
-												newValue => (props.row.customer.phone = newValue)
+												newValue =>
+													(props.row.customer.phone = newValue || 'Не задано')
 											"
 										/>
 									</div>
 								</el-descriptions-item>
 								<el-descriptions-item label="E-mail покупця">
 									<div class="flex items-center gap-2">
-										<ValueEditArea
+										<EditTextPopover
 											:initialText="props.row.customer.email"
 											@update:textValue="
-												newValue => (props.row.customer.email = newValue)
+												newValue =>
+													(props.row.customer.email = newValue || 'Не задано')
 											"
 										/>
 									</div>
 								</el-descriptions-item>
 
 								<el-descriptions-item label="Коментар покупця">
-									<div class="flex items-center justify-between w-full">
-										<CommentEditArea
-											v-model="isCommentEditCustomer"
-											:initial-text="props.row.customer.comment"
-											@update:textValue="
-												value => updateCustomerComment(props.row, value)
-											"
-										/>
-
-										<div
-											v-if="!isCommentEditCustomer"
-											class="flex items-center gap-2"
-										>
-											<p>
-												{{ props.row.customer.comment || 'Коментар відсутній' }}
-											</p>
-											<div
-												class="flex gap-2 cursor-pointer hover:text-blue-500"
-											>
-												<el-icon @click="isCommentEditCustomer = true">
-													<EditPen />
-												</el-icon>
-											</div>
-										</div>
-									</div>
+									<EditCommentPopover
+										:initialText="props.row.customer.comment"
+										@update:textValue="
+											newValue =>
+												(props.row.customer.comment = newValue || 'Не задано')
+										"
+									/>
 								</el-descriptions-item>
 
 								<el-descriptions-item label="Коментар менеджера">
-									<div class="flex items-center justify-between min-w-full">
-										<CommentEditArea
-											v-model="isCommentEditManager"
-											:initial-text="props.row.order.manager_comment || ''"
-											@update:textValue="
-												value => updateManagerComment(props.row, value)
-											"
-										/>
-
-										<div
-											v-if="!isCommentEditManager"
-											class="flex items-center gap-2"
-										>
-											<p>
-												{{
-													props.row.order.manager_comment ||
-													'Коментар відсутній'
-												}}
-											</p>
-											<div
-												class="flex gap-2 cursor-pointer hover:text-blue-500"
-											>
-												<el-icon @click="isCommentEditManager = true">
-													<EditPen />
-												</el-icon>
-											</div>
-										</div>
-									</div>
+									<EditCommentPopover
+										:initialText="props.row.order.manager_comment"
+										@update:textValue="
+											newValue =>
+												(props.row.order.manager_comment =
+													newValue || 'Не задано')
+										"
+									/>
 								</el-descriptions-item>
 								<el-descriptions-item label="Комунікації">
 									<div class="flex items-center gap-2">
-										<el-button type="success" :icon="Phone" circle />
-										<el-button type="primary" :icon="ChatRound" circle />
+										<el-button
+											type="success"
+											:icon="Phone"
+											circle
+											size="small"
+										/>
+										<el-button
+											type="primary"
+											:icon="ChatRound"
+											circle
+											size="small"
+										/>
 									</div>
 								</el-descriptions-item>
 							</el-descriptions>
@@ -490,7 +473,7 @@ const handleColumnUpdate = newColumns => {
 								direction="horisontal"
 								border
 								style="margin: 0px"
-								size="large"
+								size="small"
 								column="1"
 							>
 								<el-descriptions-item label="Дата відправки">
@@ -506,20 +489,22 @@ const handleColumnUpdate = newColumns => {
 								</el-descriptions-item>
 								<el-descriptions-item label="Отримувач">
 									<div class="flex items-center gap-2">
-										<ValueEditArea
+										<EditTextPopover
 											:initialText="props.row.recipient.name"
 											@update:textValue="
-												newValue => (props.row.recipient.name = newValue)
+												newValue =>
+													(props.row.recipient.name = newValue || 'Не задано')
 											"
 										/>
 									</div>
 								</el-descriptions-item>
 								<el-descriptions-item label="Телефон отримувача">
 									<div class="flex items-center gap-2">
-										<ValueEditArea
+										<EditTextPopover
 											:initialText="props.row.recipient.phone"
 											@update:textValue="
-												newValue => (props.row.recipient.phone = newValue)
+												newValue =>
+													(props.row.recipient.phone = newValue || 'Не задано')
 											"
 										/>
 									</div>
@@ -564,15 +549,15 @@ const handleColumnUpdate = newColumns => {
 										<div class="flex items-center gap-3 pt-2">
 											<div
 												@click="generateNumber(props.row)"
-												class="cursor-pointer hover:text-green-500 transition"
+												class="text-sm cursor-pointer hover:text-green-500 transition"
 											>
-												<el-icon size="large"><DocumentAdd /></el-icon>
+												<el-icon><DocumentAdd /></el-icon>
 											</div>
 											<div
 												@click="props.row.delivery.ttn = null"
-												class="cursor-pointer hover:text-red-500 transition"
+												class="text-sm cursor-pointer hover:text-red-500 transition"
 											>
-												<el-icon size="large"><Delete /></el-icon>
+												<el-icon><Delete /></el-icon>
 											</div>
 										</div>
 									</div>
@@ -584,7 +569,12 @@ const handleColumnUpdate = newColumns => {
 					<!-- Товари -->
 					<div class="w-full mt-5">
 						<div class=""></div>
-						<el-table :data="props.row.products" style="width: 100%" border>
+						<el-table
+							:data="props.row.products"
+							style="width: 100%"
+							border
+							size="small"
+						>
 							<el-table-column
 								label="Зображення"
 								header-align="center"
@@ -592,7 +582,7 @@ const handleColumnUpdate = newColumns => {
 							>
 								<template #default="{ row }">
 									<el-image
-										style="width: 60px"
+										style="width: 50px"
 										:src="row.img"
 										:zoom-rate="1.2"
 										:max-scale="7"
@@ -617,11 +607,16 @@ const handleColumnUpdate = newColumns => {
 								align="center"
 							/>
 							<el-table-column
-								prop="count"
 								label="Кількість"
 								header-align="center"
 								align="center"
 							>
+								<template #default="{ row }">
+									<EditCountPopover
+										:initialCount="row.count"
+										@update:countValue="newValue => (row.count = newValue)"
+									/>
+								</template>
 							</el-table-column>
 							<el-table-column
 								label="Ціна товару"
@@ -629,9 +624,13 @@ const handleColumnUpdate = newColumns => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<span>{{ row.price }} &#8372;</span>
+									<EditPricePopover
+										:initialPrice="row.price"
+										@update:priceValue="newValue => (row.price = newValue)"
+									/>
 								</template>
 							</el-table-column>
+
 							<el-table-column
 								label="Ціна продажу"
 								header-align="center"
@@ -642,19 +641,55 @@ const handleColumnUpdate = newColumns => {
 								</template>
 							</el-table-column>
 							<el-table-column
-								prop="count"
+								prop="warehouse_reserve"
 								label="Резерв"
 								header-align="center"
 								align="center"
 							>
+								<template #default="{ row }">
+									<el-select
+										v-if="row.count > 1"
+										v-model="row.warehouse_reserve"
+										clearable
+										multiple
+										placeholder="Обрати"
+										size="small"
+									>
+										<el-option
+											v-for="item in optionsWarehouseReserve"
+											:key="item.value"
+											:label="item.label"
+											:value="item.value"
+										/>
+									</el-select>
+
+									<el-select
+										v-else
+										v-model="row.warehouse_reserve"
+										clearable
+										placeholder="Обрати"
+										size="small"
+									>
+										<el-option
+											v-for="item in optionsWarehouseReserve"
+											:key="item.value"
+											:label="item.label"
+											:value="item.value"
+										/>
+									</el-select>
+								</template>
 							</el-table-column>
 							<el-table-column label="Дії" header-align="center" align="center">
 								<div class="flex items-center justify-center gap-4">
-									<div class="cursor-pointer hover:text-blue-500 transition">
-										<el-icon size="large"><Edit /></el-icon>
+									<div
+										class="text-sm cursor-pointer hover:text-blue-500 transition"
+									>
+										<el-icon><Edit /></el-icon>
 									</div>
-									<div class="cursor-pointer hover:text-red-500 transition">
-										<el-icon size="large"><Delete /></el-icon>
+									<div
+										class="text-sm cursor-pointer hover:text-red-500 transition"
+									>
+										<el-icon><Delete /></el-icon>
 									</div>
 								</div>
 							</el-table-column>
@@ -782,3 +817,12 @@ const handleColumnUpdate = newColumns => {
 		</el-table>
 	</div>
 </template>
+
+<style scoped>
+.el-link {
+	font-size: 12px;
+}
+.el-link :hover {
+	color: orange;
+}
+</style>

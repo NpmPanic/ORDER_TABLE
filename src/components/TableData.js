@@ -32,6 +32,7 @@ export const TABLE_DATA = ref([
 				count: 1,
 				price: 20999,
 				img: './orders/1.jpg',
+				warehouse_reserve: [],
 			},
 			{
 				id: 'p3',
@@ -39,6 +40,7 @@ export const TABLE_DATA = ref([
 				count: 1,
 				price: 11999,
 				img: './orders/2.jpg',
+				warehouse_reserve: [],
 			},
 		],
 
@@ -80,9 +82,10 @@ export const TABLE_DATA = ref([
 			{
 				id: 'p4',
 				name: 'Iphone 15 Pro',
-				count: 1,
+				count: 2,
 				price: 39999,
 				img: './orders/3.jpg',
+				warehouse_reserve: [],
 			},
 			{
 				id: 'p5',
@@ -90,6 +93,7 @@ export const TABLE_DATA = ref([
 				count: 1,
 				price: 37999,
 				img: './orders/4.jpg',
+				warehouse_reserve: [],
 			},
 		],
 
