@@ -11,6 +11,7 @@ import {
 	EditPen,
 	DocumentAdd,
 	DocumentCopy,
+	Goods,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -20,10 +21,12 @@ import EditCountPopover from './components/EditCountPopover.vue'
 import EditTextPopover from './components/EditTextPopover.vue'
 import EditCommentPopover from './components/EditCommentPopover.vue'
 import EditPricePopover from './components/EditPricePopover.vue'
+import AddProductDrawer from './components/AddProductDrawer.vue'
 
 const inputQuerySearch = ref('')
 const valueQuerySelect = ref('')
-const isDrawer = ref(false)
+const isTableEditDrawer = ref(false)
+const isProductsAddDrawer = ref(false)
 
 // Функция копирования текста по клику
 const copyText = async text => {
@@ -125,7 +128,7 @@ const tableColumns = ref({
 	'№ замовлення': {
 		visible: true,
 		prop: 'order.order_number',
-		sortable: true,
+		sortable: false,
 	},
 	Джерело: {
 		visible: false,
@@ -138,7 +141,7 @@ const tableColumns = ref({
 		sortable: true,
 	},
 	'Дата відправки': {
-		visible: true,
+		visible: false,
 		prop: 'delivery.delivery_date',
 		sortable: true,
 	},
@@ -153,24 +156,24 @@ const tableColumns = ref({
 		sortable: true,
 	},
 	Покупець: {
-		visible: false,
+		visible: true,
 		prop: 'customer.name',
-		sortable: true,
+		sortable: false,
 	},
 	'Телефон покупця': {
-		visible: false,
+		visible: true,
 		prop: 'customer.phone',
-		sortable: true,
+		sortable: false,
 	},
 	'E-mail покупця': {
 		visible: false,
 		prop: 'customer.email',
-		sortable: true,
+		sortable: false,
 	},
 	'Служба доставки': {
 		visible: true,
 		prop: 'delivery.service',
-		sortable: true,
+		sortable: false,
 	},
 	'Трекінг код': {
 		visible: true,
@@ -180,7 +183,7 @@ const tableColumns = ref({
 	'Статус доставки': {
 		visible: false,
 		prop: 'delivery.delivery_status',
-		sortable: false,
+		sortable: true,
 	},
 	Товари: {
 		visible: true,
@@ -195,22 +198,22 @@ const tableColumns = ref({
 	Отримувач: {
 		visible: false,
 		prop: 'recipient.name',
-		sortable: true,
+		sortable: false,
 	},
 	'Телефон отримувача': {
 		visible: false,
 		prop: 'recipient.phone',
-		sortable: true,
+		sortable: false,
 	},
 	Відділення: {
 		visible: true,
 		prop: 'delivery.adress',
-		sortable: true,
+		sortable: false,
 	},
 	Місто: {
 		visible: true,
 		prop: 'delivery.city',
-		sortable: true,
+		sortable: false,
 	},
 })
 
@@ -263,17 +266,18 @@ const handleColumnUpdate = newColumns => {
 		</div>
 		<div>
 			<el-button type="success" plain>Додати замовлення</el-button>
-			<el-button @click="isDrawer = true" type="primary" plain>
+			<el-button @click="isTableEditDrawer = true" type="primary" plain>
 				Редагувати таблицю
 			</el-button>
 		</div>
 	</div>
 
 	<TableEditDrawer
-		v-model="isDrawer"
+		v-model="isTableEditDrawer"
 		:columns="tableColumns"
 		@update:columns="handleColumnUpdate"
 	/>
+	<AddProductDrawer v-model="isProductsAddDrawer" />
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -567,8 +571,28 @@ const handleColumnUpdate = newColumns => {
 					</div>
 
 					<!-- Товари -->
-					<div class="w-full mt-5">
-						<div class=""></div>
+					<el-card class="mt-5">
+						<template #header>
+							<div class="flex items-center justify-between">
+								<div class="flex items-center gap-2">
+									<el-icon><Goods /></el-icon>
+									<span class="font-medium">Товари в замовленні</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-sm">
+										{{ props.row.products.length }} позиції
+									</span>
+
+									<el-button
+										type="primary"
+										size="small"
+										@click="isProductsAddDrawer = true"
+									>
+										Додати
+									</el-button>
+								</div>
+							</div>
+						</template>
 						<el-table
 							:data="props.row.products"
 							style="width: 100%"
@@ -648,23 +672,6 @@ const handleColumnUpdate = newColumns => {
 							>
 								<template #default="{ row }">
 									<el-select
-										v-if="row.count > 1"
-										v-model="row.warehouse_reserve"
-										clearable
-										multiple
-										placeholder="Обрати"
-										size="small"
-									>
-										<el-option
-											v-for="item in optionsWarehouseReserve"
-											:key="item.value"
-											:label="item.label"
-											:value="item.value"
-										/>
-									</el-select>
-
-									<el-select
-										v-else
 										v-model="row.warehouse_reserve"
 										clearable
 										placeholder="Обрати"
@@ -694,7 +701,7 @@ const handleColumnUpdate = newColumns => {
 								</div>
 							</el-table-column>
 						</el-table>
-					</div>
+					</el-card>
 
 					<!-- Допродажи -->
 				</template>

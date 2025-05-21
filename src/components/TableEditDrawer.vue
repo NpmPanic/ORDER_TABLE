@@ -35,45 +35,40 @@ const closeDrawer = () => {
 </script>
 
 <template>
-	<el-drawer
-		:model-value="props.modelValue"
-		@close="closeDrawer"
-		:with-header="false"
-	>
-		<div class="flex flex-col h-full">
-			<div class="flex-1 overflow-y-auto px-8">
-				<div
-					class="flex items-center gap-3 text-2xl mb-10 border-b border-gray-200"
-				>
-					<p class="pb-2">Налаштування</p>
-					<el-icon><Setting /></el-icon>
-				</div>
+	<el-drawer :model-value="props.modelValue" @close="closeDrawer">
+		<template #header>
+			<div class="flex items-center gap-3 text-2xl px-4">
+				<span class="pb-2">Налаштування</span>
 
+				<el-icon><Setting /></el-icon>
+			</div>
+		</template>
+		<template #default>
+			<div
+				v-for="(settings, columnName) in localColumns"
+				:key="columnName"
+				class="w-full flex items-center justify-between mb-5 mt-5 border-b border-gray-200"
+			>
 				<div
-					v-for="(settings, columnName) in localColumns"
-					:key="columnName"
-					class="w-full flex items-center justify-between mb-6 border-b border-gray-200"
+					class="flex items-center gap-4 px-4 text-md pb-4"
+					:class="{ 'text-gray-400': !settings.visible }"
 				>
-					<div
-						class="flex items-center gap-3"
-						:class="{ 'text-gray-400': !settings.visible }"
-					>
-						<el-icon v-if="settings.visible"><Unlock /></el-icon>
-						<el-icon v-else><Lock /></el-icon>
-						<p>{{ columnName }}</p>
-					</div>
+					<el-icon v-if="settings.visible"><Unlock /></el-icon>
+					<el-icon v-else><Lock /></el-icon>
+					<span>{{ columnName }}</span>
+				</div>
+				<div class="pb-2">
 					<el-switch v-model="settings.visible" />
 				</div>
 			</div>
-
-			<div class="pt-5 bg-white z-10 border-t border-slate-200">
-				<div class="flex justify-center gap-15">
-					<el-button @click="closeDrawer" size="large">Закрити</el-button>
-					<el-button @click="saveSettings" type="primary" size="large">
-						Зберегти
-					</el-button>
-				</div>
+		</template>
+		<template #footer>
+			<div class="flex justify-end gap-4">
+				<el-button @click="closeDrawer" size="large">Закрити</el-button>
+				<el-button @click="saveSettings" type="primary" size="large"
+					>Зберегти</el-button
+				>
 			</div>
-		</div>
+		</template>
 	</el-drawer>
 </template>
