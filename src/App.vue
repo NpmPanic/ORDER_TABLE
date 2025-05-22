@@ -7,11 +7,11 @@ import {
 	Delete,
 	ChatRound,
 	Phone,
-	CirclePlus,
 	EditPen,
 	DocumentAdd,
 	DocumentCopy,
 	Goods,
+	Sell,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -27,6 +27,8 @@ const inputQuerySearch = ref('')
 const valueQuerySelect = ref('')
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
+const isAdditionalProducts = ref(false)
+const additionalProducts = ref([])
 
 // Функция копирования текста по клику
 const copyText = async text => {
@@ -237,6 +239,14 @@ const handleColumnUpdate = newColumns => {
 		tableColumns.value[key].visible = newColumns[key].visible
 	})
 }
+
+// Обработчик сохранения выбранных товаров
+const handleSaveAdditionalProducts = products => {
+	additionalProducts.value = [
+		...additionalProducts.value,
+		...products.map(p => ({ ...p })), // Создаем копии объектов
+	]
+}
 </script>
 
 <template>
@@ -277,7 +287,10 @@ const handleColumnUpdate = newColumns => {
 		:columns="tableColumns"
 		@update:columns="handleColumnUpdate"
 	/>
-	<AddProductDrawer v-model="isProductsAddDrawer" />
+	<AddProductDrawer
+		v-model="isProductsAddDrawer"
+		@save="handleSaveAdditionalProducts"
+	/>
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -571,28 +584,19 @@ const handleColumnUpdate = newColumns => {
 					</div>
 
 					<!-- Товари -->
-					<el-card class="mt-5">
-						<template #header>
-							<div class="flex items-center justify-between">
-								<div class="flex items-center gap-2">
-									<el-icon><Goods /></el-icon>
-									<span class="font-medium">Товари в замовленні</span>
-								</div>
-								<div class="flex items-center gap-2">
-									<span class="text-sm">
-										{{ props.row.products.length }} позиції
-									</span>
 
-									<el-button
-										type="primary"
-										size="small"
-										@click="isProductsAddDrawer = true"
-									>
-										Додати
-									</el-button>
-								</div>
+					<div>
+						<div class="flex items-center justify-between m-5">
+							<div class="flex items-center gap-2">
+								<el-icon><Goods /></el-icon>
+								<span class="font-medium">Товари замовлення</span>
 							</div>
-						</template>
+							<div class="flex items-center gap-4">
+								<span class="text-sm"> Додаткові товари </span>
+
+								<el-switch v-model="isAdditionalProducts" size="small" />
+							</div>
+						</div>
 						<el-table
 							:data="props.row.products"
 							style="width: 100%"
@@ -625,11 +629,21 @@ const handleColumnUpdate = newColumns => {
 								align="center"
 							/>
 							<el-table-column
-								prop="name"
 								label="Назва товару"
 								header-align="center"
 								align="center"
-							/>
+							>
+								<template #default="{ row }">
+									<div>
+										<span>{{ row.name }}</span>
+									</div>
+									<div>
+										<span class="text-gray-400 font-mono">{{
+											row.second_name
+										}}</span>
+									</div>
+								</template>
+							</el-table-column>
 							<el-table-column
 								label="Кількість"
 								header-align="center"
@@ -701,9 +715,148 @@ const handleColumnUpdate = newColumns => {
 								</div>
 							</el-table-column>
 						</el-table>
-					</el-card>
+					</div>
 
 					<!-- Допродажи -->
+					<div v-if="isAdditionalProducts">
+						<div class="flex items-center justify-between m-5">
+							<div class="flex items-center gap-2">
+								<el-icon><Sell /></el-icon>
+								<span class="font-medium">Додаткові товари</span>
+							</div>
+							<div class="flex items-center gap-4">
+								<span class="text-sm">
+									{{ additionalProducts.length }} позиції
+								</span>
+
+								<el-button
+									type="primary"
+									size="small"
+									@click="isProductsAddDrawer = true"
+								>
+									Додати
+								</el-button>
+							</div>
+						</div>
+						<el-table
+							:data="additionalProducts"
+							style="width: 100%"
+							border
+							size="small"
+						>
+							<el-table-column
+								label="Зображення"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<el-image
+										style="width: 50px"
+										:src="row.img"
+										:zoom-rate="1.2"
+										:max-scale="7"
+										:min-scale="0.2"
+										:preview-src-list="[row.img]"
+										show-progress
+										fit="cover"
+										preview-teleported="true"
+									/>
+								</template>
+							</el-table-column>
+							<el-table-column
+								prop="id"
+								label="Артикуль"
+								header-align="center"
+								align="center"
+							/>
+							<el-table-column
+								label="Назва товару"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<div>
+										<span>{{ row.name }}</span>
+									</div>
+									<div>
+										<span class="text-gray-400 font-mono">{{
+											row.second_name
+										}}</span>
+									</div>
+								</template>
+							</el-table-column>
+							<el-table-column
+								label="Кількість"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<EditCountPopover
+										:initialCount="row.count"
+										@update:countValue="newValue => (row.count = newValue)"
+									/>
+								</template>
+							</el-table-column>
+							<el-table-column
+								label="Ціна товару"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<EditPricePopover
+										:initialPrice="row.price"
+										@update:priceValue="newValue => (row.price = newValue)"
+									/>
+								</template>
+							</el-table-column>
+
+							<el-table-column
+								label="Ціна продажу"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<span>{{ row.price * row.count }} &#8372;</span>
+								</template>
+							</el-table-column>
+							<el-table-column
+								prop="warehouse_reserve"
+								label="Резерв"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<el-select
+										v-model="row.warehouse_reserve"
+										clearable
+										placeholder="Обрати"
+										size="small"
+									>
+										<el-option
+											v-for="item in optionsWarehouseReserve"
+											:key="item.value"
+											:label="item.label"
+											:value="item.value"
+										/>
+									</el-select>
+								</template>
+							</el-table-column>
+							<el-table-column label="Дії" header-align="center" align="center">
+								<div class="flex items-center justify-center gap-4">
+									<div
+										class="text-sm cursor-pointer hover:text-blue-500 transition"
+									>
+										<el-icon><Edit /></el-icon>
+									</div>
+									<div
+										class="text-sm cursor-pointer hover:text-red-500 transition"
+									>
+										<el-icon><Delete /></el-icon>
+									</div>
+								</div>
+							</el-table-column>
+						</el-table>
+					</div>
 				</template>
 			</el-table-column>
 

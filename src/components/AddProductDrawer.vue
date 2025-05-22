@@ -1,20 +1,43 @@
 <script setup>
 import { Search } from '@element-plus/icons-vue'
 import { PRODUCTS_DATA } from './ProductsData'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
-const num = ref(0)
 const searchInput = ref()
 const productSelect = ref('Товари')
+const selectedRows = ref([])
 
 const props = defineProps({
 	modelValue: Boolean,
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'save'])
+
+// Вычисляемое свойство для данных таблицы
+const tableData = computed(() => {
+	const data = PRODUCTS_DATA.value[0]
+	return productSelect.value === 'Товари' ? data.products : data.services
+})
+
+// Фильтрация данных по поисковому запросу
+const filteredData = computed(() => {
+	if (!searchInput.value) return tableData.value
+	const searchTerm = searchInput.value.toLowerCase()
+	return tableData.value.filter(
+		item =>
+			item.name.toLowerCase().includes(searchTerm) ||
+			item.id.toLowerCase().includes(searchTerm)
+	)
+})
 
 // Отмена изменений при закрытии
 const closeDrawer = () => {
 	emit('update:modelValue', false)
+}
+const saveSelection = () => {
+	// Фильтруем только товары с count > 0
+	const selected = tableData.value.filter(item => item.count > 0)
+	emit('save', selected) // Отправляем выбранные товары
+	closeDrawer()
 }
 </script>
 <template>
@@ -39,17 +62,21 @@ const closeDrawer = () => {
 			</div>
 		</template>
 		<template #default>
-			<el-table :data="PRODUCTS_DATA" style="width: 100%">
+			<el-table
+				:data="filteredData"
+				style="width: 100%"
+				@selection-change="selectedRows = $event"
+			>
 				<el-table-column type="selection" width="30px" />
 				<el-table-column width="100px">
-					<template #default="scope">
+					<template #default="{ row }">
 						<el-image
 							style="width: 60px"
-							:src="scope.row.img"
+							:src="row.img"
 							:zoom-rate="1.2"
 							:max-scale="7"
 							:min-scale="0.2"
-							:preview-src-list="[scope.row.img]"
+							:preview-src-list="[row.img]"
 							show-progress
 							fit="cover"
 							preview-teleported="true"
@@ -57,31 +84,39 @@ const closeDrawer = () => {
 					</template>
 				</el-table-column>
 				<el-table-column property="name" width="250px">
-					<template #default="scope">
+					<template #default="{ row }">
 						<div>
-							<span>{{ scope.row.name }}</span>
+							<span>{{ row.name }}</span>
 						</div>
 
-						<span class="text-slate-400">{{ scope.row.id }}</span></template
+						<span class="text-slate-400">{{ row.id }}</span></template
 					>
 				</el-table-column>
 
 				<el-table-column property="price" width="100px">
-					<template #default="scope">
-						<span>{{ scope.row.price }}</span>
+					<template #default="{ row }">
+						<span>{{ row.price }}</span>
 
 						<span> &#8372;</span></template
 					>
 				</el-table-column>
 				<el-table-column>
-					<el-input-number v-model="num" :min="0" :max="100" size="small" />
+					<template #default="{ row }">
+						<el-input-number
+							v-model="row.count"
+							:min="0"
+							:max="100"
+							size="small"
+							:disabled="!selectedRows.includes(row)"
+						/>
+					</template>
 				</el-table-column>
 			</el-table>
 		</template>
 		<template #footer>
 			<div class="flex justify-end gap-4">
 				<el-button @click="closeDrawer" size="large">Закрити</el-button>
-				<el-button @click="closeDrawer" type="primary" size="large"
+				<el-button @click="saveSelection" type="primary" size="large"
 					>Зберегти</el-button
 				>
 			</div>
