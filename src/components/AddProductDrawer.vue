@@ -5,14 +5,17 @@ import { ref, computed } from 'vue'
 
 const searchInput = ref()
 const productSelect = ref('Товари')
+// Переменная хранения массива выбраных товаров
 const selectedRows = ref([])
+// Переменная доступа к таблице допродаж
+const tableRef = ref()
 
 const props = defineProps({
 	modelValue: Boolean,
 })
 const emit = defineEmits(['update:modelValue', 'save'])
 
-// Вычисляемое свойство для данных таблицы
+// Отображаем список товаров либо услуг
 const tableData = computed(() => {
 	const data = PRODUCTS_DATA.value[0]
 	return productSelect.value === 'Товари' ? data.products : data.services
@@ -29,6 +32,18 @@ const filteredData = computed(() => {
 	)
 })
 
+// Сбрасываем выделение и количество
+const resetSelection = () => {
+	// Очищаем выбраный товар
+	tableRef.value?.clearSelection()
+	// Очищаем массив выбранных товаров
+	selectedRows.value = []
+	// Обнуляем счетчик
+	tableData.value.forEach(item => {
+		item.count = 0
+	})
+}
+
 // Отмена изменений при закрытии
 const closeDrawer = () => {
 	emit('update:modelValue', false)
@@ -37,6 +52,7 @@ const saveSelection = () => {
 	// Фильтруем только товары с count > 0
 	const selected = tableData.value.filter(item => item.count > 0)
 	emit('save', selected) // Отправляем выбранные товары
+	resetSelection()
 	closeDrawer()
 }
 </script>
@@ -66,6 +82,7 @@ const saveSelection = () => {
 				:data="filteredData"
 				style="width: 100%"
 				@selection-change="selectedRows = $event"
+				ref="tableRef"
 			>
 				<el-table-column type="selection" width="30px" />
 				<el-table-column width="100px">
