@@ -4,7 +4,6 @@ import { PRODUCTS_DATA } from './ProductsData'
 import { ref, computed } from 'vue'
 
 const searchInput = ref()
-const productSelect = ref('Товари')
 // Переменная хранения массива выбраных товаров
 const selectedRows = ref([])
 // Переменная доступа к таблице допродаж
@@ -13,19 +12,14 @@ const tableRef = ref()
 const props = defineProps({
 	modelValue: Boolean,
 })
-const emit = defineEmits(['update:modelValue', 'save'])
 
-// Отображаем список товаров либо услуг
-const tableData = computed(() => {
-	const data = PRODUCTS_DATA.value[0]
-	return productSelect.value === 'Товари' ? data.products : data.services
-})
+const emit = defineEmits(['update:modelValue', 'save'])
 
 // Фильтрация данных по поисковому запросу
 const filteredData = computed(() => {
-	if (!searchInput.value) return tableData.value
+	if (!searchInput.value) return PRODUCTS_DATA.value
 	const searchTerm = searchInput.value.toLowerCase()
-	return tableData.value.filter(
+	return PRODUCTS_DATA.value.filter(
 		item =>
 			item.name.toLowerCase().includes(searchTerm) ||
 			item.id.toLowerCase().includes(searchTerm)
@@ -38,8 +32,8 @@ const resetSelection = () => {
 	tableRef.value?.clearSelection()
 	// Очищаем массив выбранных товаров
 	selectedRows.value = []
-	// Обнуляем счетчик
-	tableData.value.forEach(item => {
+	// Обнуляем счетчик количества
+	PRODUCTS_DATA.value.forEach(item => {
 		item.count = 0
 	})
 }
@@ -50,8 +44,8 @@ const closeDrawer = () => {
 }
 const saveSelection = () => {
 	// Фильтруем только товары с count > 0
-	const selected = tableData.value.filter(item => item.count > 0)
-	emit('save', selected) // Отправляем выбранные товары
+	const selected = PRODUCTS_DATA.value.filter(item => item.count > 0)
+	emit('save', selected)
 	resetSelection()
 	closeDrawer()
 }
@@ -59,7 +53,7 @@ const saveSelection = () => {
 <template>
 	<el-drawer :model-value="props.modelValue" @close="closeDrawer" size="35%">
 		<template #header>
-			<div class="flex px-4 justify-between gap-2">
+			<div class="px-4">
 				<div class="flex-grow">
 					<el-input
 						v-model="searchInput"
@@ -68,12 +62,6 @@ const saveSelection = () => {
 						:prefix-icon="Search"
 						clearable
 					/>
-				</div>
-				<div>
-					<el-radio-group v-model="productSelect" size="large">
-						<el-radio-button label="Товари" value="Товари" />
-						<el-radio-button label="Послуги" value="Послуги" />
-					</el-radio-group>
 				</div>
 			</div>
 		</template>
@@ -110,7 +98,7 @@ const saveSelection = () => {
 					>
 				</el-table-column>
 
-				<el-table-column property="price" width="100px">
+				<el-table-column property="price" width="90px">
 					<template #default="{ row }">
 						<span>{{ row.price }}</span>
 
@@ -144,6 +132,5 @@ const saveSelection = () => {
 <style scoped>
 :global(.el-drawer__header) {
 	margin-bottom: 0 !important;
-	padding-bottom: 0 !important;
 }
 </style>

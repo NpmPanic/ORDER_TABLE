@@ -13,7 +13,7 @@ import {
 	Goods,
 	Sell,
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref } from 'vue'
 import TableEditDrawer from './components/TableEditDrawer.vue'
@@ -240,12 +240,81 @@ const handleColumnUpdate = newColumns => {
 	})
 }
 
-// Обработчик сохранения выбранных товаров
+// Обработчик сохранения выбранных товаров c проверкой уже добавленных
 const handleSaveAdditionalProducts = products => {
-	additionalProducts.value = [
-		...additionalProducts.value,
-		...products.map(p => ({ ...p })), // Создаем копии объектов
-	]
+	products.forEach(newProduct => {
+		// Ищем товар с таким же id в additionalProducts
+		const existingProductIndex = additionalProducts.value.findIndex(
+			p => p.id === newProduct.id
+		)
+
+		if (existingProductIndex !== -1) {
+			// Если товар уже есть - обновляем количество
+			additionalProducts.value[existingProductIndex].count += newProduct.count
+		} else {
+			// Если товара нет - добавляем новый
+			additionalProducts.value.push({ ...newProduct })
+		}
+	})
+}
+
+// Удаление товара из основного заказа
+const removeProductFromOrder = (order, productIndex) => {
+	order.products.splice(productIndex, 1)
+}
+
+// Удаление дополнительного товара
+const removeAdditionalProduct = productIndex => {
+	additionalProducts.value.splice(productIndex, 1)
+}
+
+// Подтверждение удаления заказа
+const removeOrderConfirm = (row, productIndex) => {
+	ElMessageBox.confirm('Ви дійсно бажаєте видалити замовлення', 'Увага!', {
+		confirmButtonText: 'Так',
+		cancelButtonText: 'Ні',
+		type: 'warning',
+	})
+		.then(() => {
+			removeProductFromOrder(row, productIndex)
+
+			ElNotification({
+				title: 'Успішно',
+				message: 'Видалення завершено',
+				type: 'success',
+			})
+		})
+		.catch(() => {
+			ElNotification({
+				title: 'Скасовано',
+				message: 'Видалення скасовано',
+				type: 'error',
+			})
+		})
+}
+// Подтверждение удаления дозаказа
+const removeAdditionalConfirm = productIndex => {
+	ElMessageBox.confirm('Ви дійсно бажаєте видалити замовлення', 'Увага!', {
+		confirmButtonText: 'Так',
+		cancelButtonText: 'Ні',
+		type: 'warning',
+	})
+		.then(() => {
+			removeAdditionalProduct(productIndex)
+
+			ElNotification({
+				title: 'Успішно',
+				message: 'Видалення завершено',
+				type: 'success',
+			})
+		})
+		.catch(() => {
+			ElNotification({
+				title: 'Скасовано',
+				message: 'Видалення скасовано',
+				type: 'error',
+			})
+		})
 }
 </script>
 
@@ -710,7 +779,9 @@ const handleSaveAdditionalProducts = products => {
 									<div
 										class="text-sm cursor-pointer hover:text-red-500 transition"
 									>
-										<el-icon><Delete /></el-icon>
+										<el-icon @click="removeOrderConfirm(props.row, $index)"
+											><Delete
+										/></el-icon>
 									</div>
 								</div>
 							</el-table-column>
@@ -851,7 +922,9 @@ const handleSaveAdditionalProducts = products => {
 									<div
 										class="text-sm cursor-pointer hover:text-red-500 transition"
 									>
-										<el-icon><Delete /></el-icon>
+										<el-icon @click="removeAdditionalConfirm($index)"
+											><Delete
+										/></el-icon>
 									</div>
 								</div>
 							</el-table-column>
