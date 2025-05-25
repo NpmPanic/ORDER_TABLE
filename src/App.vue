@@ -7,13 +7,12 @@ import {
 	Delete,
 	ChatRound,
 	Phone,
-	EditPen,
 	DocumentAdd,
 	DocumentCopy,
 	Goods,
 	Sell,
 } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref } from 'vue'
 import TableEditDrawer from './components/TableEditDrawer.vue'
@@ -21,12 +20,14 @@ import EditCountPopover from './components/EditCountPopover.vue'
 import EditTextPopover from './components/EditTextPopover.vue'
 import EditCommentPopover from './components/EditCommentPopover.vue'
 import EditPricePopover from './components/EditPricePopover.vue'
+import EditProductsDrawer from './components/EditProductsDrawer.vue'
 import AddProductDrawer from './components/AddProductDrawer.vue'
 
 const inputQuerySearch = ref('')
 const valueQuerySelect = ref('')
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
+const isEditProductsDrawer = ref(false)
 const isAdditionalProducts = ref(false)
 const additionalProducts = ref([])
 
@@ -37,13 +38,11 @@ const copyText = async text => {
 		ElMessage({
 			message: 'Скопійовано до буферу обміну',
 			type: 'success',
-			plain: true,
 		})
 	} catch (err) {
 		ElMessage({
 			message: 'Помилка копіювання',
 			type: 'error',
-			plain: true,
 		})
 		console.error('Clipboard error:', err)
 	}
@@ -270,49 +269,47 @@ const removeAdditionalProduct = productIndex => {
 
 // Подтверждение удаления заказа
 const removeOrderConfirm = (row, productIndex) => {
-	ElMessageBox.confirm('Ви дійсно бажаєте видалити замовлення', 'Увага!', {
+	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
 		confirmButtonText: 'Так',
 		cancelButtonText: 'Ні',
-		type: 'warning',
+		type: 'error',
+		icon: Delete,
 	})
 		.then(() => {
 			removeProductFromOrder(row, productIndex)
 
-			ElNotification({
-				title: 'Успішно',
-				message: 'Видалення завершено',
+			ElMessage({
 				type: 'success',
+				message: 'Видалення завершено',
 			})
 		})
 		.catch(() => {
-			ElNotification({
-				title: 'Скасовано',
-				message: 'Видалення скасовано',
+			ElMessage({
 				type: 'error',
+				message: 'Видалення скасовано',
 			})
 		})
 }
 // Подтверждение удаления дозаказа
 const removeAdditionalConfirm = productIndex => {
-	ElMessageBox.confirm('Ви дійсно бажаєте видалити замовлення', 'Увага!', {
+	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
 		confirmButtonText: 'Так',
 		cancelButtonText: 'Ні',
-		type: 'warning',
+		type: 'error',
+		icon: Delete,
 	})
 		.then(() => {
 			removeAdditionalProduct(productIndex)
 
-			ElNotification({
-				title: 'Успішно',
-				message: 'Видалення завершено',
+			ElMessage({
 				type: 'success',
+				message: 'Видалення завершено',
 			})
 		})
 		.catch(() => {
-			ElNotification({
-				title: 'Скасовано',
-				message: 'Видалення скасовано',
+			ElMessage({
 				type: 'error',
+				message: 'Видалення скасовано',
 			})
 		})
 }
@@ -359,6 +356,11 @@ const removeAdditionalConfirm = productIndex => {
 	<AddProductDrawer
 		v-model="isProductsAddDrawer"
 		@save="handleSaveAdditionalProducts"
+	/>
+	<EditProductsDrawer
+		v-model="isEditProductsDrawer"
+		:product="currentProduct"
+		@save="handleProductUpdate"
 	/>
 
 	<!-- Основная таблица с данными -->
@@ -774,7 +776,9 @@ const removeAdditionalConfirm = productIndex => {
 									<div
 										class="text-sm cursor-pointer hover:text-blue-500 transition"
 									>
-										<el-icon><Edit /></el-icon>
+										<el-icon @click="isEditProductsDrawer = true"
+											><Edit
+										/></el-icon>
 									</div>
 									<div
 										class="text-sm cursor-pointer hover:text-red-500 transition"
@@ -917,7 +921,9 @@ const removeAdditionalConfirm = productIndex => {
 									<div
 										class="text-sm cursor-pointer hover:text-blue-500 transition"
 									>
-										<el-icon><Edit /></el-icon>
+										<el-icon @click="isEditProductsDrawer = true"
+											><Edit
+										/></el-icon>
 									</div>
 									<div
 										class="text-sm cursor-pointer hover:text-red-500 transition"
