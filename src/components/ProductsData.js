@@ -3,6 +3,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '5432',
 		count: 0,
+		count_name: 'шт',
 		name: 'Apple iPhone 15 Pro Titanium 128 Gb',
 		second_name: 'Iphone 15 Pro Titanium 128 Gb Global',
 		title: '',
@@ -12,6 +13,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '8796',
 		count: 0,
+		count_name: 'шт',
 		name: 'Apple iPhone 16 Pro Titanium 256 Gb',
 		second_name: 'Iphone 16 Pro Titanium 256 Gb Global',
 		title: '',
@@ -21,6 +23,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '2698',
 		count: 0,
+		count_name: 'шт',
 		name: 'Samsung Galaxy S24 Ultra Titanium 256 Gb',
 		second_name: 'Samsung Galaxy S24 Ultra Titanium 256 Gb Global',
 		title: '',
@@ -30,6 +33,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '3564',
 		count: 0,
+		count_name: 'шт',
 		name: 'Xiaomi 13 Ultra 512 Gb',
 		second_name: 'Xiaomi 13 Ultra 512 Gb UA UCRF',
 		title: '',
@@ -39,6 +43,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '8712',
 		count: 0,
+		count_name: 'шт',
 		name: 'Samsung Galaxy A16 SM-A165F',
 		second_name: 'Samsung Galaxy A16 SM-A165F UA UCRF',
 		title: '',
@@ -48,6 +53,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '4365',
 		count: 0,
+		count_name: 'шт',
 		name: 'Power Bank Baseus Bipow Digital Display 10000mAh',
 		second_name: 'Power Bank Baseus Bipow Digital Display 10000mAh UA UCRF',
 		title: '',
@@ -57,6 +63,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '9687',
 		count: 0,
+		count_name: 'шт',
 		name: 'TWS Lenovo LivePods LP60 5.0 black',
 		second_name: 'Lenovo LivePods LP60 5.0 black UA UCRF',
 		title: '',
@@ -66,6 +73,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '2598',
 		count: 0,
+		count_name: 'шт',
 		name: 'Bluetooth Stereo Panasonic RB-HF420BGE-K Black',
 		second_name: 'Panasonic RB-HF420BGE-K Black UA UCRF',
 		title: '',
@@ -76,6 +84,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '1256',
 		count: 0,
+		count_name: 'шт',
 		name: 'Поклейка скла',
 		second_name: 'Поклейка скла до 6 дюймів',
 		title: '',
@@ -85,6 +94,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '1298',
 		count: 0,
+		count_name: 'шт',
 		name: 'Поклейка плівки',
 		second_name: 'Поклейка плівки до 6 дюймів',
 		title: '',
@@ -94,6 +104,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '7500',
 		count: 0,
+		count_name: 'шт',
 		name: 'Налаштування Стандарт',
 		second_name: 'Програмне забезпечення "Стандарт"',
 		title: '',
@@ -103,6 +114,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '7550',
 		count: 0,
+		count_name: 'шт',
 		name: 'Налаштування Преміум',
 		second_name: 'Програмне забезпечення "Преміум"',
 		title: '',
@@ -112,6 +124,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '7580',
 		count: 0,
+		count_name: 'шт',
 		name: 'Налаштування Ультра',
 		second_name: 'Програмне забезпечення "Ультра"',
 		title: '',
@@ -121,6 +134,7 @@ export const PRODUCTS_DATA = ref([
 	{
 		id: '9000',
 		count: 0,
+		count_name: 'шт',
 		name: 'Упаковка товару',
 		second_name: 'Упаковка',
 		title: '',

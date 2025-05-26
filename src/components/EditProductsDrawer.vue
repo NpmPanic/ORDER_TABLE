@@ -15,7 +15,7 @@ const closeDrawer = () => {
 }
 
 const saveChanges = () => {
-	emit('save', editedProduct.value)
+	emit('save', props.product.value)
 	closeDrawer()
 }
 </script>
@@ -31,7 +31,7 @@ const saveChanges = () => {
 						<span>Артикуль</span>
 					</div>
 					<el-input
-						v-model="input"
+						v-model="props.product.id"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -43,7 +43,7 @@ const saveChanges = () => {
 						<span>Назва товару</span>
 					</div>
 					<el-input
-						v-model="input"
+						v-model="props.product.name"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -55,7 +55,7 @@ const saveChanges = () => {
 						<span>Ціна товару</span>
 					</div>
 					<el-input
-						v-model="input"
+						v-model="props.product.price"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -67,7 +67,7 @@ const saveChanges = () => {
 						<span>Номер резерву</span>
 					</div>
 					<el-input
-						v-model="input"
+						v-model="props.product.warehouse.number"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -79,7 +79,7 @@ const saveChanges = () => {
 						<span>Склад резерву</span>
 					</div>
 					<el-input
-						v-model="input"
+						v-model="props.product.warehouse.place"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -91,7 +91,7 @@ const saveChanges = () => {
 						<span>Кількість резерву</span>
 					</div>
 					<el-input
-						v-model="input"
+						v-model="props.product.warehouse.count"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -104,7 +104,7 @@ const saveChanges = () => {
 							<span>Кількість товару</span>
 						</div>
 						<el-input-number
-							v-model="input"
+							v-model="props.product.count"
 							:min="1"
 							:max="100"
 							size="large"
@@ -116,7 +116,7 @@ const saveChanges = () => {
 							<span>Одиниці товару</span>
 						</div>
 						<el-input
-							v-model="input"
+							v-model="props.product.count_name"
 							style="width: 100%"
 							size="large"
 							placeholder="Заповніть данні"

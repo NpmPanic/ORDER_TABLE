@@ -28,6 +28,8 @@ const valueQuerySelect = ref('')
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
+// Переменная хранения выбраного для редактирования товара
+const currentEditProduct = ref()
 const isAdditionalProducts = ref(false)
 const additionalProducts = ref([])
 
@@ -313,6 +315,11 @@ const removeAdditionalConfirm = productIndex => {
 			})
 		})
 }
+// Функция получения редактируемого товара
+const takeCurrentEditProduct = product => {
+	currentEditProduct.value = product
+	isEditProductsDrawer.value = true
+}
 </script>
 
 <template>
@@ -359,8 +366,7 @@ const removeAdditionalConfirm = productIndex => {
 	/>
 	<EditProductsDrawer
 		v-model="isEditProductsDrawer"
-		:product="currentProduct"
-		@save="handleProductUpdate"
+		:product="currentEditProduct"
 	/>
 
 	<!-- Основная таблица с данными -->
@@ -721,10 +727,13 @@ const removeAdditionalConfirm = productIndex => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<EditCountPopover
-										:initialCount="row.count"
-										@update:countValue="newValue => (row.count = newValue)"
-									/>
+									<div class="flex gap-1 items-center justify-center">
+										<EditCountPopover
+											:initialCount="row.count"
+											@update:countValue="newValue => (row.count = newValue)"
+										/>
+										<span>{{ row.count_name }}</span>
+									</div>
 								</template>
 							</el-table-column>
 							<el-table-column
@@ -750,44 +759,52 @@ const removeAdditionalConfirm = productIndex => {
 								</template>
 							</el-table-column>
 							<el-table-column
-								prop="warehouse_reserve"
-								label="Резерв"
+								prop="warehouse.place"
+								label="Місце резерву"
 								header-align="center"
 								align="center"
 							>
 								<template #default="{ row }">
-									<el-select
-										v-model="row.warehouse_reserve"
-										clearable
-										placeholder="Обрати"
-										size="small"
-									>
-										<el-option
-											v-for="item in optionsWarehouseReserve"
-											:key="item.value"
-											:label="item.label"
-											:value="item.value"
-										/>
-									</el-select>
-								</template>
-							</el-table-column>
-							<el-table-column label="Дії" header-align="center" align="center">
-								<div class="flex items-center justify-center gap-4">
 									<div
 										class="text-sm cursor-pointer hover:text-blue-500 transition"
 									>
-										<el-icon @click="isEditProductsDrawer = true"
-											><Edit
-										/></el-icon>
+										<el-icon><DocumentAdd /></el-icon>
 									</div>
+								</template>
+							</el-table-column>
+							<el-table-column
+								prop="warehouse.number"
+								label="Номер резерву"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
 									<div
-										class="text-sm cursor-pointer hover:text-red-500 transition"
+										class="text-sm cursor-pointer hover:text-blue-500 transition"
 									>
-										<el-icon @click="removeOrderConfirm(props.row, $index)"
-											><Delete
-										/></el-icon>
+										<el-icon><DocumentAdd /></el-icon>
 									</div>
-								</div>
+								</template>
+							</el-table-column>
+							<el-table-column label="Дії" header-align="center" align="center">
+								<template #default="{ row }">
+									<div class="flex items-center justify-center gap-4">
+										<div
+											class="text-sm cursor-pointer hover:text-blue-500 transition"
+										>
+											<el-icon @click="takeCurrentEditProduct(row)"
+												><Edit
+											/></el-icon>
+										</div>
+										<div
+											class="text-sm cursor-pointer hover:text-red-500 transition"
+										>
+											<el-icon @click="removeOrderConfirm(props.row, $index)"
+												><Delete
+											/></el-icon>
+										</div>
+									</div>
+								</template>
 							</el-table-column>
 						</el-table>
 					</div>
@@ -866,10 +883,13 @@ const removeAdditionalConfirm = productIndex => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<EditCountPopover
-										:initialCount="row.count"
-										@update:countValue="newValue => (row.count = newValue)"
-									/>
+									<div class="flex gap-1 items-center justify-center">
+										<EditCountPopover
+											:initialCount="row.count"
+											@update:countValue="newValue => (row.count = newValue)"
+										/>
+										<span>{{ row.count_name }}</span>
+									</div>
 								</template>
 							</el-table-column>
 							<el-table-column
