@@ -28,9 +28,10 @@ const valueQuerySelect = ref('')
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
-// Переменная хранения выбраного для редактирования товара
-const currentEditProduct = ref()
 const isAdditionalProducts = ref(false)
+// Переменная хранения выбраного для редактирования товара
+const currentEditProduct = ref({})
+// Переменная хранения массива дополнительных товаров
 const additionalProducts = ref([])
 
 // Функция копирования текста по клику
@@ -320,6 +321,11 @@ const takeCurrentEditProduct = product => {
 	currentEditProduct.value = product
 	isEditProductsDrawer.value = true
 }
+// Функция сохранения изменений редактируемого товара
+const handleEditProductSave = updatedProduct => {
+	// Обновляем currentEditProduct
+	Object.assign(currentEditProduct.value, updatedProduct)
+}
 </script>
 
 <template>
@@ -367,6 +373,7 @@ const takeCurrentEditProduct = product => {
 	<EditProductsDrawer
 		v-model="isEditProductsDrawer"
 		:product="currentEditProduct"
+		@save="handleEditProductSave"
 	/>
 
 	<!-- Основная таблица с данными -->
@@ -493,8 +500,7 @@ const takeCurrentEditProduct = product => {
 										<EditTextPopover
 											:initialText="props.row.customer.name"
 											@update:textValue="
-												newValue =>
-													(props.row.customer.name = newValue || 'Не задано')
+												newValue => (props.row.customer.name = newValue)
 											"
 										/>
 									</div>
@@ -504,8 +510,7 @@ const takeCurrentEditProduct = product => {
 										<EditTextPopover
 											:initialText="props.row.customer.phone"
 											@update:textValue="
-												newValue =>
-													(props.row.customer.phone = newValue || 'Не задано')
+												newValue => (props.row.customer.phone = newValue)
 											"
 										/>
 									</div>
@@ -515,8 +520,7 @@ const takeCurrentEditProduct = product => {
 										<EditTextPopover
 											:initialText="props.row.customer.email"
 											@update:textValue="
-												newValue =>
-													(props.row.customer.email = newValue || 'Не задано')
+												newValue => (props.row.customer.email = newValue)
 											"
 										/>
 									</div>
@@ -526,8 +530,7 @@ const takeCurrentEditProduct = product => {
 									<EditCommentPopover
 										:initialText="props.row.customer.comment"
 										@update:textValue="
-											newValue =>
-												(props.row.customer.comment = newValue || 'Не задано')
+											newValue => (props.row.customer.comment = newValue)
 										"
 									/>
 								</el-descriptions-item>
@@ -536,9 +539,7 @@ const takeCurrentEditProduct = product => {
 									<EditCommentPopover
 										:initialText="props.row.order.manager_comment"
 										@update:textValue="
-											newValue =>
-												(props.row.order.manager_comment =
-													newValue || 'Не задано')
+											newValue => (props.row.order.manager_comment = newValue)
 										"
 									/>
 								</el-descriptions-item>
@@ -586,8 +587,7 @@ const takeCurrentEditProduct = product => {
 										<EditTextPopover
 											:initialText="props.row.recipient.name"
 											@update:textValue="
-												newValue =>
-													(props.row.recipient.name = newValue || 'Не задано')
+												newValue => (props.row.recipient.name = newValue)
 											"
 										/>
 									</div>
@@ -597,8 +597,7 @@ const takeCurrentEditProduct = product => {
 										<EditTextPopover
 											:initialText="props.row.recipient.phone"
 											@update:textValue="
-												newValue =>
-													(props.row.recipient.phone = newValue || 'Не задано')
+												newValue => (props.row.recipient.phone = newValue)
 											"
 										/>
 									</div>
@@ -637,9 +636,7 @@ const takeCurrentEditProduct = product => {
 								</el-descriptions-item>
 								<el-descriptions-item label="Трекінг код">
 									<div class="flex items-center gap-4">
-										<span class="min-w-40">{{
-											props.row.delivery.ttn || 'Не задано'
-										}}</span>
+										<span class="min-w-40">{{ props.row.delivery.ttn }}</span>
 										<div class="flex items-center gap-3 pt-2">
 											<div
 												@click="generateNumber(props.row)"
@@ -759,30 +756,56 @@ const takeCurrentEditProduct = product => {
 								</template>
 							</el-table-column>
 							<el-table-column
-								prop="warehouse.place"
 								label="Місце резерву"
 								header-align="center"
 								align="center"
 							>
 								<template #default="{ row }">
-									<div
-										class="text-sm cursor-pointer hover:text-blue-500 transition"
-									>
-										<el-icon><DocumentAdd /></el-icon>
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<el-select
+											v-model="reserve.place"
+											placeholder="Обрати"
+											size="small"
+										>
+											<el-option
+												v-for="item in optionsWarehouseReserve"
+												:key="item.value"
+												:label="item.label"
+												:value="item.value"
+											/>
+										</el-select>
 									</div>
 								</template>
 							</el-table-column>
 							<el-table-column
-								prop="warehouse.number"
+								label="Кількість резерву"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditCountPopover
+											:initialCount="reserve.count"
+											@update:countValue="
+												newValue => (reserve.count = newValue)
+											"
+										/>
+									</div>
+								</template>
+							</el-table-column>
+							<el-table-column
 								label="Номер резерву"
 								header-align="center"
 								align="center"
 							>
 								<template #default="{ row }">
-									<div
-										class="text-sm cursor-pointer hover:text-blue-500 transition"
-									>
-										<el-icon><DocumentAdd /></el-icon>
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditTextPopover
+											:initialText="reserve.number"
+											@update:textValue="
+												newValue => (reserve.number = newValue)
+											"
+										/>
 									</div>
 								</template>
 							</el-table-column>
@@ -915,44 +938,78 @@ const takeCurrentEditProduct = product => {
 								</template>
 							</el-table-column>
 							<el-table-column
-								prop="warehouse_reserve"
-								label="Резерв"
+								label="Місце резерву"
 								header-align="center"
 								align="center"
 							>
 								<template #default="{ row }">
-									<el-select
-										v-model="row.warehouse_reserve"
-										clearable
-										placeholder="Обрати"
-										size="small"
-									>
-										<el-option
-											v-for="item in optionsWarehouseReserve"
-											:key="item.value"
-											:label="item.label"
-											:value="item.value"
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<el-select
+											v-model="reserve.place"
+											placeholder="Обрати"
+											size="small"
+										>
+											<el-option
+												v-for="item in optionsWarehouseReserve"
+												:key="item.value"
+												:label="item.label"
+												:value="item.value"
+											/>
+										</el-select>
+									</div>
+								</template>
+							</el-table-column>
+							<el-table-column
+								label="Кількість резерву"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditCountPopover
+											:initialCount="reserve.count"
+											@update:countValue="
+												newValue => (reserve.count = newValue)
+											"
 										/>
-									</el-select>
+									</div>
+								</template>
+							</el-table-column>
+							<el-table-column
+								label="Номер резерву"
+								header-align="center"
+								align="center"
+							>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditTextPopover
+											:initialText="reserve.number"
+											@update:textValue="
+												newValue => (reserve.number = newValue)
+											"
+										/>
+									</div>
 								</template>
 							</el-table-column>
 							<el-table-column label="Дії" header-align="center" align="center">
-								<div class="flex items-center justify-center gap-4">
-									<div
-										class="text-sm cursor-pointer hover:text-blue-500 transition"
-									>
-										<el-icon @click="isEditProductsDrawer = true"
-											><Edit
-										/></el-icon>
+								<template #default="{ row }">
+									<div class="flex items-center justify-center gap-4">
+										<div
+											class="text-sm cursor-pointer hover:text-blue-500 transition"
+										>
+											<el-icon @click="takeCurrentEditProduct(row)"
+												><Edit
+											/></el-icon>
+										</div>
+										<div
+											class="text-sm cursor-pointer hover:text-red-500 transition"
+										>
+											<el-icon @click="removeAdditionalConfirm($index)"
+												><Delete
+											/></el-icon>
+										</div>
 									</div>
-									<div
-										class="text-sm cursor-pointer hover:text-red-500 transition"
-									>
-										<el-icon @click="removeAdditionalConfirm($index)"
-											><Delete
-										/></el-icon>
-									</div>
-								</div>
+								</template>
 							</el-table-column>
 						</el-table>
 					</div>

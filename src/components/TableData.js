@@ -27,7 +27,7 @@ export const TABLE_DATA = ref([
 		},
 		products: [
 			{
-				id: 'p2',
+				id: '7622',
 				name: 'Ноутбук Lenovo IdeaPad 3',
 				second_name: 'Lenovo IdeaPad 3 12/512 Windows 11',
 				count: 1,
@@ -38,12 +38,12 @@ export const TABLE_DATA = ref([
 					{
 						place: '',
 						count: 0,
-						number: 0,
+						number: '',
 					},
 				],
 			},
 			{
-				id: 'p3',
+				id: '9485',
 				name: 'Смартфон Samsung Galaxy S22',
 				second_name: 'Samsung Galaxy S22 8/256 UA UCRF',
 				count: 1,
@@ -54,7 +54,7 @@ export const TABLE_DATA = ref([
 					{
 						place: '',
 						count: 0,
-						number: 0,
+						number: '',
 					},
 				],
 			},
@@ -96,7 +96,7 @@ export const TABLE_DATA = ref([
 		},
 		products: [
 			{
-				id: 'p4',
+				id: '1354',
 				name: 'Iphone 15 Pro',
 				second_name: 'Iphone 15 Pro Titanium Global',
 				count: 2,
@@ -107,12 +107,12 @@ export const TABLE_DATA = ref([
 					{
 						place: '',
 						count: 0,
-						number: 0,
+						number: '',
 					},
 				],
 			},
 			{
-				id: 'p5',
+				id: '1689',
 				name: 'Samsung S24 Ultra',
 				second_name: 'Samsung Galaxy S24 Ultra 12/512 UA UCRF',
 				count: 1,
@@ -123,7 +123,7 @@ export const TABLE_DATA = ref([
 					{
 						place: '',
 						count: 0,
-						number: 0,
+						number: '',
 					},
 				],
 			},

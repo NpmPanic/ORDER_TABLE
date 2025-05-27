@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 
 const props = defineProps({
-	initialComment: [String],
+	initialComment: [String, Number],
 })
 const emit = defineEmits(['update:commentValue'])
 

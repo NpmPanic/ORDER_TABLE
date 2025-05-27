@@ -1,6 +1,5 @@
 <script setup>
-import { PRODUCTS_DATA } from './ProductsData'
-import { ref, watch } from 'vue'
+import { reactive, watch } from 'vue'
 
 const props = defineProps({
 	modelValue: Boolean,
@@ -9,13 +8,37 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'save'])
 
+// Локальная копия товара
+const localProduct = reactive({
+	id: '',
+	name: '',
+	price: '',
+	count: 1,
+	count_name: '',
+	warehouse: {
+		number: '',
+		place: '',
+		count: '',
+	},
+})
+
+// Копирование значений из props при открытии в localProduct
+watch(
+	() => props.modelValue,
+	val => {
+		if (val && props.product) {
+			Object.assign(localProduct, JSON.parse(JSON.stringify(props.product)))
+		}
+	}
+)
+
 // Отмена изменений при закрытии
 const closeDrawer = () => {
 	emit('update:modelValue', false)
 }
 
 const saveChanges = () => {
-	emit('save', props.product.value)
+	emit('save', JSON.parse(JSON.stringify(localProduct)))
 	closeDrawer()
 }
 </script>
@@ -31,7 +54,7 @@ const saveChanges = () => {
 						<span>Артикуль</span>
 					</div>
 					<el-input
-						v-model="props.product.id"
+						v-model="localProduct.id"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -43,7 +66,7 @@ const saveChanges = () => {
 						<span>Назва товару</span>
 					</div>
 					<el-input
-						v-model="props.product.name"
+						v-model="localProduct.name"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
@@ -55,56 +78,69 @@ const saveChanges = () => {
 						<span>Ціна товару</span>
 					</div>
 					<el-input
-						v-model="props.product.price"
+						v-model="localProduct.price"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
 						clearable
 					/>
 				</div>
-				<div class="mb-5">
+				<div
+					v-for="(reserve, i) in localProduct.warehouse"
+					:key="i"
+					class="mb-5"
+				>
 					<div class="mb-4">
-						<span>Номер резерву</span>
+						<span>Місце резерву</span>
 					</div>
 					<el-input
-						v-model="props.product.warehouse.number"
+						v-model="reserve.place"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
 						clearable
 					/>
 				</div>
-				<div class="mb-5">
-					<div class="mb-4">
-						<span>Склад резерву</span>
-					</div>
-					<el-input
-						v-model="props.product.warehouse.place"
-						style="width: 100%"
-						size="large"
-						placeholder="Заповніть данні"
-						clearable
-					/>
-				</div>
-				<div class="mb-5">
+				<div
+					v-for="(reserve, i) in localProduct.warehouse"
+					:key="i"
+					class="mb-5"
+				>
 					<div class="mb-4">
 						<span>Кількість резерву</span>
 					</div>
 					<el-input
-						v-model="props.product.warehouse.count"
+						v-model="reserve.count"
 						style="width: 100%"
 						size="large"
 						placeholder="Заповніть данні"
 						clearable
 					/>
 				</div>
+				<div
+					v-for="(reserve, i) in localProduct.warehouse"
+					:key="i"
+					class="mb-5"
+				>
+					<div class="mb-4">
+						<span>Номер резерву</span>
+					</div>
+					<el-input
+						v-model="reserve.number"
+						style="width: 100%"
+						size="large"
+						placeholder="Заповніть данні"
+						clearable
+					/>
+				</div>
+
 				<div class="flex mb-5 gap-5">
 					<div class="w-full">
 						<div class="mb-4">
 							<span>Кількість товару</span>
 						</div>
 						<el-input-number
-							v-model="props.product.count"
+							v-model="localProduct.count"
 							:min="1"
 							:max="100"
 							size="large"
@@ -116,7 +152,7 @@ const saveChanges = () => {
 							<span>Одиниці товару</span>
 						</div>
 						<el-input
-							v-model="props.product.count_name"
+							v-model="localProduct.count_name"
 							style="width: 100%"
 							size="large"
 							placeholder="Заповніть данні"

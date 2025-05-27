@@ -30,7 +30,7 @@ const cancelEdit = () => {
 <template>
 	<el-popover :visible="isOpen" placement="bottom" width="200px">
 		<div class="flex justify-center">
-			<el-input-number v-model="countValue" :min="1" :max="500" />
+			<el-input-number v-model="countValue" :min="0" :max="500" />
 		</div>
 
 		<div class="mt-4 flex justify-center">
