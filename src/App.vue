@@ -23,16 +23,24 @@ import EditPricePopover from './components/EditPricePopover.vue'
 import EditProductsDrawer from './components/EditProductsDrawer.vue'
 import AddProductDrawer from './components/AddProductDrawer.vue'
 
+// Переменная глобального поиска таблицы
 const inputQuerySearch = ref('')
+// Переменная глобальной категории поиска таблицы
 const valueQuerySelect = ref('')
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
 const isAdditionalProducts = ref(false)
+// Переменная хранения текущего заказа
+const currentOrder = ref({})
 // Переменная хранения выбраного для редактирования товара
 const currentEditProduct = ref({})
-// Переменная хранения массива дополнительных товаров
-const additionalProducts = ref([])
+
+// Функция передачи текущего заказа в переменную currentOrder
+const addAdditionalProductsToOrder = order => {
+	currentOrder.value = order
+	isProductsAddDrawer.value = true
+}
 
 // Функция копирования текста по клику
 const copyText = async text => {
@@ -245,33 +253,25 @@ const handleColumnUpdate = newColumns => {
 // Обработчик сохранения выбранных товаров c проверкой уже добавленных
 const handleSaveAdditionalProducts = products => {
 	products.forEach(newProduct => {
-		// Ищем товар с таким же id в additionalProducts
-		const existingProductIndex = additionalProducts.value.findIndex(
-			p => p.id === newProduct.id
-		)
+		// Ищем товар с таким же id в currentOrder
+		const existingProductIndex =
+			currentOrder.value.additional_products.findIndex(
+				p => p.id === newProduct.id
+			)
 
 		if (existingProductIndex !== -1) {
 			// Если товар уже есть - обновляем количество
-			additionalProducts.value[existingProductIndex].count += newProduct.count
+			currentOrder.value.additional_products[existingProductIndex].count +=
+				newProduct.count
 		} else {
 			// Если товара нет - добавляем новый
-			additionalProducts.value.push({ ...newProduct })
+			currentOrder.value.additional_products.push({ ...newProduct })
 		}
 	})
 }
 
-// Удаление товара из основного заказа
-const removeProductFromOrder = (order, productIndex) => {
-	order.products.splice(productIndex, 1)
-}
-
-// Удаление дополнительного товара
-const removeAdditionalProduct = productIndex => {
-	additionalProducts.value.splice(productIndex, 1)
-}
-
-// Подтверждение удаления заказа
-const removeOrderConfirm = (row, productIndex) => {
+// Удаления заказа
+const removeOrderConfirm = (order, productIndex) => {
 	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
 		confirmButtonText: 'Так',
 		cancelButtonText: 'Ні',
@@ -279,7 +279,7 @@ const removeOrderConfirm = (row, productIndex) => {
 		icon: Delete,
 	})
 		.then(() => {
-			removeProductFromOrder(row, productIndex)
+			order.products.splice(productIndex, 1)
 
 			ElMessage({
 				type: 'success',
@@ -293,8 +293,8 @@ const removeOrderConfirm = (row, productIndex) => {
 			})
 		})
 }
-// Подтверждение удаления дозаказа
-const removeAdditionalConfirm = productIndex => {
+// Удаления дозаказа
+const removeAdditionalConfirm = (order, productIndex) => {
 	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
 		confirmButtonText: 'Так',
 		cancelButtonText: 'Ні',
@@ -302,7 +302,7 @@ const removeAdditionalConfirm = productIndex => {
 		icon: Delete,
 	})
 		.then(() => {
-			removeAdditionalProduct(productIndex)
+			order.additional_products.splice(productIndex, 1)
 
 			ElMessage({
 				type: 'success',
@@ -368,6 +368,7 @@ const handleEditProductSave = updatedProduct => {
 	/>
 	<AddProductDrawer
 		v-model="isProductsAddDrawer"
+		:order="currentOrder"
 		@save="handleSaveAdditionalProducts"
 	/>
 	<EditProductsDrawer
@@ -840,21 +841,20 @@ const handleEditProductSave = updatedProduct => {
 								<span class="font-medium">Додаткові товари</span>
 							</div>
 							<div class="flex items-center gap-4">
-								<span class="text-sm">
-									{{ additionalProducts.length }} позиції
-								</span>
+								<span class="text-sm"> {{}} позиції </span>
 
 								<el-button
 									type="primary"
 									size="small"
-									@click="isProductsAddDrawer = true"
+									@click="addAdditionalProductsToOrder(props.row)"
 								>
 									Додати
 								</el-button>
 							</div>
 						</div>
+
 						<el-table
-							:data="additionalProducts"
+							:data="props.row.additional_products"
 							style="width: 100%"
 							border
 							size="small"
@@ -1004,7 +1004,8 @@ const handleEditProductSave = updatedProduct => {
 										<div
 											class="text-sm cursor-pointer hover:text-red-500 transition"
 										>
-											<el-icon @click="removeAdditionalConfirm($index)"
+											<el-icon
+												@click="removeAdditionalConfirm(props.row, $index)"
 												><Delete
 											/></el-icon>
 										</div>

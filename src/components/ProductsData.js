@@ -9,13 +9,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 41999,
 		img: './products/p6.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '8796',
@@ -26,13 +19,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 49999,
 		img: './products/p7.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '2698',
@@ -43,13 +29,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 37499,
 		img: './products/p8.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '3564',
@@ -60,13 +39,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 30999,
 		img: './products/p9.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '8712',
@@ -77,13 +49,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 6599,
 		img: './products/p10.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '4365',
@@ -94,13 +59,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 679,
 		img: './products/p11.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '9687',
@@ -111,13 +69,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 890,
 		img: './products/p12.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '2598',
@@ -128,13 +79,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 1289,
 		img: './products/p13.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 
 	{
@@ -146,13 +90,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 199,
 		img: './products/p14.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '1298',
@@ -163,13 +100,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 199,
 		img: './products/p15.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '7500',
@@ -180,13 +110,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 999,
 		img: './products/p16.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '7550',
@@ -197,13 +120,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 1999,
 		img: './products/p16.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '7580',
@@ -214,13 +130,6 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 2999,
 		img: './products/p16.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 	{
 		id: '9000',
@@ -231,12 +140,5 @@ export const PRODUCTS_DATA = ref([
 		title: '',
 		price: 99,
 		img: './products/p17.jpg',
-		warehouse: [
-			{
-				place: '',
-				count: 0,
-				number: '',
-			},
-		],
 	},
 ])

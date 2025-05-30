@@ -30,6 +30,7 @@ export const TABLE_DATA = ref([
 				id: '7622',
 				name: 'Ноутбук Lenovo IdeaPad 3',
 				second_name: 'Lenovo IdeaPad 3 12/512 Windows 11',
+				title: '',
 				count: 1,
 				count_name: 'шт',
 				price: 20999,
@@ -46,6 +47,7 @@ export const TABLE_DATA = ref([
 				id: '9485',
 				name: 'Смартфон Samsung Galaxy S22',
 				second_name: 'Samsung Galaxy S22 8/256 UA UCRF',
+				title: '',
 				count: 1,
 				count_name: 'шт',
 				price: 11999,
@@ -59,6 +61,8 @@ export const TABLE_DATA = ref([
 				],
 			},
 		],
+
+		additional_products: [],
 
 		delivery: {
 			delivery_date: '',
@@ -99,6 +103,7 @@ export const TABLE_DATA = ref([
 				id: '1354',
 				name: 'Iphone 15 Pro',
 				second_name: 'Iphone 15 Pro Titanium Global',
+				title: '',
 				count: 2,
 				count_name: 'шт',
 				price: 39999,
@@ -111,10 +116,12 @@ export const TABLE_DATA = ref([
 					},
 				],
 			},
+
 			{
 				id: '1689',
 				name: 'Samsung S24 Ultra',
 				second_name: 'Samsung Galaxy S24 Ultra 12/512 UA UCRF',
+				title: '',
 				count: 1,
 				count_name: 'шт',
 				price: 37999,
@@ -128,6 +135,8 @@ export const TABLE_DATA = ref([
 				],
 			},
 		],
+
+		additional_products: [],
 
 		delivery: {
 			delivery_date: '',
