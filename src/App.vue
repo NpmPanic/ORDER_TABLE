@@ -22,6 +22,7 @@ import EditCommentPopover from './components/EditCommentPopover.vue'
 import EditPricePopover from './components/EditPricePopover.vue'
 import EditProductsDrawer from './components/EditProductsDrawer.vue'
 import AddProductDrawer from './components/AddProductDrawer.vue'
+import AddReserveModal from './components/AddReserveModal.vue'
 
 // Переменная глобального поиска таблицы
 const inputQuerySearch = ref('')
@@ -30,16 +31,23 @@ const valueQuerySelect = ref('')
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
+const isAddReserve = ref(false)
 const isAdditionalProducts = ref(false)
 // Переменная хранения текущего заказа
 const currentOrder = ref({})
 // Переменная хранения выбраного для редактирования товара
 const currentEditProduct = ref({})
 
-// Функция передачи текущего заказа в переменную currentOrder
+// Функция передачи текущего заказа в переменную currentOrder для добавления доп товаров
 const addAdditionalProductsToOrder = order => {
 	currentOrder.value = order
 	isProductsAddDrawer.value = true
+}
+
+// Функция передачи текущего заказа в переменную currentOrder для добавления резерва
+const addReserveToOrder = order => {
+	currentOrder.value = order
+	isAddReserve.value = true
 }
 
 // Функция копирования текста по клику
@@ -92,17 +100,6 @@ const optionsDeliveryAdress = [
 	{ value: 'Відділення №2', label: 'Відділення №2' },
 	{ value: 'Відділення №3', label: 'Відділення №3' },
 	{ value: 'Відділення №4', label: 'Відділення №4' },
-]
-
-// Опции для выпадающего списка служб доставки
-const optionsWarehouseReserve = [
-	{ value: 'Постачальник 1', label: 'Постачальник 1' },
-	{ value: 'Постачальник 2', label: 'Постачальник 2' },
-	{ value: 'Магазин 1', label: 'Магазин 1' },
-	{ value: 'Магазин 2', label: 'Магазин 2' },
-	{ value: 'Магазин 3', label: 'Магазин 3' },
-	{ value: 'Магазин 4', label: 'Магазин 4' },
-	{ value: 'Магазин 5', label: 'Магазин 5' },
 ]
 
 // Функция для получения значения из объекта по пути
@@ -376,6 +373,7 @@ const handleEditProductSave = updatedProduct => {
 		:product="currentEditProduct"
 		@save="handleEditProductSave"
 	/>
+	<AddReserveModal v-model="isAddReserve" />
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -761,38 +759,14 @@ const handleEditProductSave = updatedProduct => {
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<el-select
-											v-model="reserve.place"
-											placeholder="Обрати"
-											size="small"
-										>
-											<el-option
-												v-for="item in optionsWarehouseReserve"
-												:key="item.value"
-												:label="item.label"
-												:value="item.value"
-											/>
-										</el-select>
-									</div>
-								</template>
+								<template #default="{ row }"> </template>
 							</el-table-column>
 							<el-table-column
 								label="Кількість резерву"
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditCountPopover
-											:initialCount="reserve.count"
-											@update:countValue="
-												newValue => (reserve.count = newValue)
-											"
-										/>
-									</div>
-								</template>
+								<template #default="{ row }"> </template>
 							</el-table-column>
 							<el-table-column
 								label="Номер резерву"
@@ -813,6 +787,13 @@ const handleEditProductSave = updatedProduct => {
 							<el-table-column label="Дії" header-align="center" align="center">
 								<template #default="{ row }">
 									<div class="flex items-center justify-center gap-4">
+										<div
+											class="text-sm cursor-pointer hover:text-blue-500 transition"
+										>
+											<el-icon @click="addReserveToOrder(row)"
+												><DocumentAdd
+											/></el-icon>
+										</div>
 										<div
 											class="text-sm cursor-pointer hover:text-blue-500 transition"
 										>
@@ -942,54 +923,21 @@ const handleEditProductSave = updatedProduct => {
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<el-select
-											v-model="reserve.place"
-											placeholder="Обрати"
-											size="small"
-										>
-											<el-option
-												v-for="item in optionsWarehouseReserve"
-												:key="item.value"
-												:label="item.label"
-												:value="item.value"
-											/>
-										</el-select>
-									</div>
-								</template>
+								<template #default="{ row }"> </template>
 							</el-table-column>
 							<el-table-column
 								label="Кількість резерву"
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditCountPopover
-											:initialCount="reserve.count"
-											@update:countValue="
-												newValue => (reserve.count = newValue)
-											"
-										/>
-									</div>
-								</template>
+								<template #default="{ row }"> </template>
 							</el-table-column>
 							<el-table-column
 								label="Номер резерву"
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditTextPopover
-											:initialText="reserve.number"
-											@update:textValue="
-												newValue => (reserve.number = newValue)
-											"
-										/>
-									</div>
-								</template>
+								<template #default="{ row }"> </template>
 							</el-table-column>
 							<el-table-column label="Дії" header-align="center" align="center">
 								<template #default="{ row }">
