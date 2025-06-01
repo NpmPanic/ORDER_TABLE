@@ -11,7 +11,6 @@ const tableRef = ref()
 
 const props = defineProps({
 	modelValue: Boolean,
-	order: Object,
 })
 
 const emit = defineEmits(['update:modelValue', 'save'])

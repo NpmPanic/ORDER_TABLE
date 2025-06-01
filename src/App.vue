@@ -45,9 +45,23 @@ const addAdditionalProductsToOrder = order => {
 }
 
 // Функция передачи текущего заказа в переменную currentOrder для добавления резерва
-const addReserveToOrder = order => {
-	currentOrder.value = order
+const addReserveToOrder = product => {
+	currentEditProduct.value = product
+	console.dir(currentEditProduct.value)
 	isAddReserve.value = true
+}
+
+// Обработчик добавления резерва к товару
+const handleSaveReserves = reserves => {
+	const validReserves = reserves.filter(
+		reserve => reserve.place && reserve.count > 0 && reserve.number
+	)
+
+	if (validReserves.length > 0) {
+		currentEditProduct.value.warehouse.push(...validReserves)
+	}
+
+	isAddReserve.value = false
 }
 
 // Функция копирования текста по клику
@@ -365,7 +379,6 @@ const handleEditProductSave = updatedProduct => {
 	/>
 	<AddProductDrawer
 		v-model="isProductsAddDrawer"
-		:order="currentOrder"
 		@save="handleSaveAdditionalProducts"
 	/>
 	<EditProductsDrawer
@@ -373,7 +386,11 @@ const handleEditProductSave = updatedProduct => {
 		:product="currentEditProduct"
 		@save="handleEditProductSave"
 	/>
-	<AddReserveModal v-model="isAddReserve" />
+	<AddReserveModal
+		v-model="isAddReserve"
+		:product="currentEditProduct"
+		@save="handleSaveReserves"
+	/>
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -759,14 +776,30 @@ const handleEditProductSave = updatedProduct => {
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }"> </template>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditTextPopover
+											:initialText="reserve.place"
+											@update:textValue="newValue => (reserve.place = newValue)"
+										/>
+									</div>
+								</template>
 							</el-table-column>
 							<el-table-column
 								label="Кількість резерву"
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }"> </template>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditCountPopover
+											:initialCount="reserve.count"
+											@update:countValue="
+												newValue => (reserve.count = newValue)
+											"
+										/>
+									</div>
+								</template>
 							</el-table-column>
 							<el-table-column
 								label="Номер резерву"
@@ -923,25 +956,57 @@ const handleEditProductSave = updatedProduct => {
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }"> </template>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditTextPopover
+											:initialText="reserve.place"
+											@update:textValue="newValue => (reserve.place = newValue)"
+										/>
+									</div>
+								</template>
 							</el-table-column>
 							<el-table-column
 								label="Кількість резерву"
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }"> </template>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditCountPopover
+											:initialCount="reserve.count"
+											@update:countValue="
+												newValue => (reserve.count = newValue)
+											"
+										/>
+									</div>
+								</template>
 							</el-table-column>
 							<el-table-column
 								label="Номер резерву"
 								header-align="center"
 								align="center"
 							>
-								<template #default="{ row }"> </template>
+								<template #default="{ row }">
+									<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<EditTextPopover
+											:initialText="reserve.number"
+											@update:textValue="
+												newValue => (reserve.number = newValue)
+											"
+										/>
+									</div>
+								</template>
 							</el-table-column>
 							<el-table-column label="Дії" header-align="center" align="center">
 								<template #default="{ row }">
 									<div class="flex items-center justify-center gap-4">
+										<div
+											class="text-sm cursor-pointer hover:text-blue-500 transition"
+										>
+											<el-icon @click="addReserveToOrder(row)"
+												><DocumentAdd
+											/></el-icon>
+										</div>
 										<div
 											class="text-sm cursor-pointer hover:text-blue-500 transition"
 										>

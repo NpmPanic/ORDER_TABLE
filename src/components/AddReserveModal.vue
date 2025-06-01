@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import { DocumentAdd, Delete } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 const props = defineProps({
 	modelValue: Boolean,
-	order: Object,
 })
 const emit = defineEmits(['update:modelValue', 'save'])
-const reserves = ref([
+const input_reserves = ref([
 	{
 		place: '',
 		count: 0,
@@ -14,13 +14,14 @@ const reserves = ref([
 	},
 ])
 const addReserve = () => {
-	reserves.value.push({ place: '', count: 0, number: '' })
+	input_reserves.value.push({ place: '', count: 0, number: '' })
 }
 const deleteReserve = index => {
-	if (reserves.value.length > 1) {
-		reserves.value.splice(index, 1)
+	if (input_reserves.value.length > 1) {
+		input_reserves.value.splice(index, 1)
 	}
 }
+
 // Опции для выпадающего списка служб доставки
 const optionsWarehouseReserve = [
 	{ value: 'Постачальник 1', label: 'Постачальник 1' },
@@ -31,6 +32,31 @@ const optionsWarehouseReserve = [
 	{ value: 'Магазин 4', label: 'Магазин 4' },
 	{ value: 'Магазин 5', label: 'Магазин 5' },
 ]
+const saveReserve = () => {
+	let hasErrors = false
+
+	input_reserves.value.forEach((reserve, index) => {
+		if (!reserve.place || reserve.count <= 0 || !reserve.number) {
+			hasErrors = true
+		}
+	})
+
+	if (hasErrors) {
+		ElMessage.error('Заповніть всі поля для кожного резерву')
+		return
+	}
+
+	emit('save', [...input_reserves.value])
+	closeDrawer()
+	input_reserves.value = [
+		{
+			place: '',
+			count: 0,
+			number: '',
+		},
+	]
+}
+
 // Отмена изменений при закрытии
 const closeDrawer = () => {
 	emit('update:modelValue', false)
@@ -44,7 +70,7 @@ const closeDrawer = () => {
 		align-center
 	>
 		<div
-			v-for="(reserve, index) in reserves"
+			v-for="(reserve, index) in input_reserves"
 			:key="index"
 			class="flex items-center gap-5 mt-8 mb-8"
 		>
@@ -68,14 +94,24 @@ const closeDrawer = () => {
 				clearable
 			/>
 			<div class="flex items-center gap-2">
-				<el-button @click="addReserve" :icon="DocumentAdd" circle />
-				<el-button @click="deleteReserve(index)" :icon="Delete" circle />
+				<el-button
+					@click="addReserve"
+					:icon="DocumentAdd"
+					type="success"
+					circle
+				/>
+				<el-button
+					@click="deleteReserve(index)"
+					:icon="Delete"
+					type="danger"
+					circle
+				/>
 			</div>
 		</div>
 		<template #footer>
 			<div class="dialog-footer">
 				<el-button @click="closeDrawer">Скасувати</el-button>
-				<el-button @click="closeDrawer" type="primary"> Зберегти </el-button>
+				<el-button @click="saveReserve" type="primary"> Зберегти </el-button>
 			</div>
 		</template>
 	</el-dialog>

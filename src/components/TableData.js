@@ -35,13 +35,7 @@ export const TABLE_DATA = ref([
 				count_name: 'шт',
 				price: 20999,
 				img: './orders/1.jpg',
-				warehouse: [
-					{
-						place: '',
-						count: 0,
-						number: '',
-					},
-				],
+				warehouse: [],
 			},
 			{
 				id: '9485',
@@ -52,13 +46,7 @@ export const TABLE_DATA = ref([
 				count_name: 'шт',
 				price: 11999,
 				img: './orders/2.jpg',
-				warehouse: [
-					{
-						place: '',
-						count: 0,
-						number: '',
-					},
-				],
+				warehouse: [],
 			},
 		],
 
@@ -108,13 +96,7 @@ export const TABLE_DATA = ref([
 				count_name: 'шт',
 				price: 39999,
 				img: './orders/3.jpg',
-				warehouse: [
-					{
-						place: '',
-						count: 0,
-						number: '',
-					},
-				],
+				warehouse: [],
 			},
 
 			{
@@ -126,13 +108,7 @@ export const TABLE_DATA = ref([
 				count_name: 'шт',
 				price: 37999,
 				img: './orders/4.jpg',
-				warehouse: [
-					{
-						place: '',
-						count: 0,
-						number: '',
-					},
-				],
+				warehouse: [],
 			},
 		],
 
