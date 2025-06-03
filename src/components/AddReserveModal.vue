@@ -1,10 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { DocumentAdd, Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 const props = defineProps({
 	modelValue: Boolean,
 	countProduct: Number,
+	product: Object,
 })
 const emit = defineEmits(['update:modelValue', 'save'])
 const input_reserves = ref([
@@ -33,13 +34,20 @@ const optionsWarehouseReserve = [
 	{ value: 'Магазин 5', label: 'Магазин 5' },
 ]
 
+// Вычисляем текущее количество зарезервированного товара
+const currentReservedCount = computed(() => {
+	if (!props.product || !props.product.warehouse) return 0
+	return props.product.warehouse.reduce((total, item) => total + item.count, 0)
+})
+
 // Функция вычисления максимально допустимого кол резерва согласно сумме товара в заказе
 function getMaxCountForReserve(index) {
 	const totalReserved = input_reserves.value.reduce((sum, reserve, i) => {
 		return sum + (i === index ? 0 : Number(reserve.count))
 	}, 0)
 
-	const remaining = props.countProduct - totalReserved
+	const remaining =
+		props.countProduct - currentReservedCount.value - totalReserved
 	return remaining > 0 ? remaining : 0
 }
 
