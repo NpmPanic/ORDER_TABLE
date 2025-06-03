@@ -4,6 +4,7 @@ import { DocumentAdd, Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 const props = defineProps({
 	modelValue: Boolean,
+	countProduct: Number,
 })
 const emit = defineEmits(['update:modelValue', 'save'])
 const input_reserves = ref([
@@ -22,7 +23,6 @@ const deleteReserve = index => {
 	}
 }
 
-// Опции для выпадающего списка служб доставки
 const optionsWarehouseReserve = [
 	{ value: 'Постачальник 1', label: 'Постачальник 1' },
 	{ value: 'Постачальник 2', label: 'Постачальник 2' },
@@ -32,10 +32,21 @@ const optionsWarehouseReserve = [
 	{ value: 'Магазин 4', label: 'Магазин 4' },
 	{ value: 'Магазин 5', label: 'Магазин 5' },
 ]
+
+// Функция вычисления максимально допустимого кол резерва согласно сумме товара в заказе
+function getMaxCountForReserve(index) {
+	const totalReserved = input_reserves.value.reduce((sum, reserve, i) => {
+		return sum + (i === index ? 0 : Number(reserve.count))
+	}, 0)
+
+	const remaining = props.countProduct - totalReserved
+	return remaining > 0 ? remaining : 0
+}
+
 const saveReserve = () => {
 	let hasErrors = false
 
-	input_reserves.value.forEach((reserve, index) => {
+	input_reserves.value.forEach(reserve => {
 		if (!reserve.place || reserve.count <= 0 || !reserve.number) {
 			hasErrors = true
 		}
@@ -85,7 +96,7 @@ const closeDrawer = () => {
 			<el-input-number
 				v-model="reserve.count"
 				:min="0"
-				:max="100"
+				:max="getMaxCountForReserve(index)"
 				style="width: 60%"
 			/>
 			<el-input

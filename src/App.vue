@@ -28,6 +28,7 @@ import AddReserveModal from './components/AddReserveModal.vue'
 const inputQuerySearch = ref('')
 // Переменная глобальной категории поиска таблицы
 const valueQuerySelect = ref('')
+
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
@@ -47,11 +48,10 @@ const addAdditionalProductsToOrder = order => {
 // Функция передачи текущего заказа в переменную currentOrder для добавления резерва
 const addReserveToOrder = product => {
 	currentEditProduct.value = product
-	console.dir(currentEditProduct.value)
 	isAddReserve.value = true
 }
 
-// Обработчик добавления резерва к товару
+// Обработчик добавления резерва к выбраному товару
 const handleSaveReserves = reserves => {
 	const validReserves = reserves.filter(
 		reserve => reserve.place && reserve.count > 0 && reserve.number
@@ -389,6 +389,7 @@ const handleEditProductSave = updatedProduct => {
 	<AddReserveModal
 		v-model="isAddReserve"
 		:product="currentEditProduct"
+		:countProduct="currentEditProduct.count"
 		@save="handleSaveReserves"
 	/>
 
