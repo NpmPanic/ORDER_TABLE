@@ -6,6 +6,7 @@ const props = defineProps({
 	modelValue: Boolean,
 	countProduct: Number,
 	product: Object,
+	warehouseList: Array,
 })
 const emit = defineEmits(['update:modelValue', 'save'])
 const input_reserves = ref([
@@ -23,16 +24,6 @@ const deleteReserve = index => {
 		input_reserves.value.splice(index, 1)
 	}
 }
-
-const optionsWarehouseReserve = [
-	{ value: 'Постачальник 1', label: 'Постачальник 1' },
-	{ value: 'Постачальник 2', label: 'Постачальник 2' },
-	{ value: 'Магазин 1', label: 'Магазин 1' },
-	{ value: 'Магазин 2', label: 'Магазин 2' },
-	{ value: 'Магазин 3', label: 'Магазин 3' },
-	{ value: 'Магазин 4', label: 'Магазин 4' },
-	{ value: 'Магазин 5', label: 'Магазин 5' },
-]
 
 // Вычисляем текущее количество зарезервированного товара
 const currentReservedCount = computed(() => {
@@ -95,7 +86,7 @@ const closeDrawer = () => {
 		>
 			<el-select v-model="reserve.place" clearable placeholder="Місце резерву">
 				<el-option
-					v-for="item in optionsWarehouseReserve"
+					v-for="item in props.warehouseList"
 					:key="item.value"
 					:label="item.label"
 					:value="item.value"

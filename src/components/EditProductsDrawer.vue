@@ -1,9 +1,11 @@
 <script setup>
 import { reactive, watch } from 'vue'
+import { Delete } from '@element-plus/icons-vue'
 
 const props = defineProps({
 	modelValue: Boolean,
 	product: Object,
+	warehouseList: Array,
 })
 
 const emit = defineEmits(['update:modelValue', 'save'])
@@ -29,10 +31,14 @@ watch(
 		if (val && props.product) {
 			Object.assign(localProduct, JSON.parse(JSON.stringify(props.product)))
 		}
+		console.dir(localProduct)
 	}
 )
 
-// Отмена изменений при закрытии
+const deleteReserve = index => {
+	localProduct.warehouse.splice(index, 1)
+}
+
 const closeDrawer = () => {
 	emit('update:modelValue', false)
 }
@@ -48,7 +54,11 @@ const saveChanges = () => {
 			<span class="text-2xl px-4">Редагування товару</span>
 		</template>
 		<template #default>
-			<div class="px-4 mt-5">
+			<div class="px-4 mt-10">
+				<div class="flex items-center mb-10 gap-2">
+					<img class="w-50" :src="localProduct.img" alt="img" />
+					<p class="leading-loose">{{ localProduct.title }}</p>
+				</div>
 				<div class="mb-5">
 					<div class="mb-4">
 						<span>Артикуль</span>
@@ -91,47 +101,42 @@ const saveChanges = () => {
 					class="mb-5"
 				>
 					<div class="mb-4">
-						<span>Місце резерву</span>
+						<span>Резерв {{ i + 1 }}</span>
 					</div>
-					<el-input
-						v-model="reserve.place"
-						style="width: 100%"
-						size="large"
-						placeholder="Заповніть данні"
-						clearable
-					/>
-				</div>
-				<div
-					v-for="(reserve, i) in localProduct.warehouse"
-					:key="i"
-					class="mb-5"
-				>
-					<div class="mb-4">
-						<span>Кількість резерву</span>
+					<div class="flex items-center gap-4">
+						<el-select
+							v-model="reserve.place"
+							size="large"
+							placeholder="Місце резерву"
+							clearable
+						>
+							<el-option
+								v-for="item in props.warehouseList"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
+							/>
+						</el-select>
+						<el-input-number
+							v-model="reserve.count"
+							:min="1"
+							:max="10"
+							style="width: 100%"
+							size="large"
+						/>
+						<el-input
+							v-model="reserve.number"
+							size="large"
+							placeholder="Заповніть данні"
+							clearable
+						/>
+						<el-button
+							@click="deleteReserve(i)"
+							type="danger"
+							:icon="Delete"
+							circle
+						/>
 					</div>
-					<el-input
-						v-model="reserve.count"
-						style="width: 100%"
-						size="large"
-						placeholder="Заповніть данні"
-						clearable
-					/>
-				</div>
-				<div
-					v-for="(reserve, i) in localProduct.warehouse"
-					:key="i"
-					class="mb-5"
-				>
-					<div class="mb-4">
-						<span>Номер резерву</span>
-					</div>
-					<el-input
-						v-model="reserve.number"
-						style="width: 100%"
-						size="large"
-						placeholder="Заповніть данні"
-						clearable
-					/>
 				</div>
 
 				<div class="flex mb-5 gap-5">

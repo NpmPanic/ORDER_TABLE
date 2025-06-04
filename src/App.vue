@@ -12,6 +12,7 @@ import {
 	Goods,
 	Sell,
 } from '@element-plus/icons-vue'
+import { useTransition } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref } from 'vue'
@@ -24,6 +25,15 @@ import EditProductsDrawer from './components/EditProductsDrawer.vue'
 import AddProductDrawer from './components/AddProductDrawer.vue'
 import AddReserveModal from './components/AddReserveModal.vue'
 
+const source = ref(0)
+const animated = useTransition(source, { duration: 1500 })
+
+const handleExpand = (row, expandedRows) => {
+	if (expandedRows.includes(row)) {
+		source.value = 0 // сбрасываем, если нужно
+		source.value = 20000 // старт анимации
+	}
+}
 // Переменная глобального поиска таблицы
 const inputQuerySearch = ref('')
 // Переменная глобальной категории поиска таблицы
@@ -81,7 +91,7 @@ const copyText = async text => {
 	}
 }
 
-// Опции для выпадающего списка полей поиска
+// Опции для выбора полей поиска
 const optionsSearch = [
 	{ value: 'order.order_number', label: '№ замовлення' },
 	{ value: 'customer.name', label: 'Покупець' },
@@ -90,7 +100,7 @@ const optionsSearch = [
 	{ value: 'order.manager', label: 'Менеджер' },
 ]
 
-// Опции для выпадающего списка служб доставки
+// Опции для выбора служб доставки
 const optionsOrderManager = [
 	{ value: 'Андрій', label: 'Андрій' },
 	{ value: 'Марина', label: 'Марина' },
@@ -99,7 +109,7 @@ const optionsOrderManager = [
 	{ value: 'Оксана', label: 'Оксана' },
 ]
 
-// Опции для выпадающего списка служб доставки
+// Опции для выбора служб доставки
 const optionsDeliveryService = [
 	{ value: 'Нова пошта', label: 'Нова пошта' },
 	{ value: 'Самовивіз Київ', label: 'Самовивіз Київ' },
@@ -108,12 +118,23 @@ const optionsDeliveryService = [
 	{ value: 'Самовивіз Харків', label: 'Самовивіз Харків' },
 ]
 
-// Опции для выпадающего списка служб доставки
+// Опции для выбора служб доставки
 const optionsDeliveryAdress = [
 	{ value: 'Відділення №1', label: 'Відділення №1' },
 	{ value: 'Відділення №2', label: 'Відділення №2' },
 	{ value: 'Відділення №3', label: 'Відділення №3' },
 	{ value: 'Відділення №4', label: 'Відділення №4' },
+]
+
+// Опции для выбора склада резерва
+const optionsWarehouseReserve = [
+	{ value: 'Постачальник 1', label: 'Постачальник 1' },
+	{ value: 'Постачальник 2', label: 'Постачальник 2' },
+	{ value: 'Магазин 1', label: 'Магазин 1' },
+	{ value: 'Магазин 2', label: 'Магазин 2' },
+	{ value: 'Магазин 3', label: 'Магазин 3' },
+	{ value: 'Магазин 4', label: 'Магазин 4' },
+	{ value: 'Магазин 5', label: 'Магазин 5' },
 ]
 
 // Функция для получения значения из объекта по пути
@@ -384,12 +405,14 @@ const handleEditProductSave = updatedProduct => {
 	<EditProductsDrawer
 		v-model="isEditProductsDrawer"
 		:product="currentEditProduct"
+		:warehouseList="optionsWarehouseReserve"
 		@save="handleEditProductSave"
 	/>
 	<AddReserveModal
 		v-model="isAddReserve"
 		:product="currentEditProduct"
 		:countProduct="currentEditProduct.count"
+		:warehouseList="optionsWarehouseReserve"
 		@save="handleSaveReserves"
 	/>
 
@@ -401,6 +424,7 @@ const handleEditProductSave = updatedProduct => {
 			:default-sort="{ prop: 'order.created_at', order: 'descending' }"
 			height="100%"
 			style="width: 100%"
+			@expand-change="handleExpand"
 		>
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
@@ -674,7 +698,7 @@ const handleEditProductSave = updatedProduct => {
 						</div>
 					</div>
 
-					<!-- Товари -->
+					<!--Товары-->
 
 					<div>
 						<div class="flex items-center justify-between m-5">
@@ -700,17 +724,55 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<el-image
-										style="width: 50px"
-										:src="row.img"
-										:zoom-rate="1.2"
-										:max-scale="7"
-										:min-scale="0.2"
-										:preview-src-list="[row.img]"
-										show-progress
-										fit="cover"
-										preview-teleported="true"
-									/>
+									<el-popover
+										:width="300"
+										placement="right"
+										popper-style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;"
+									>
+										<template #reference>
+											<el-image
+												style="width: 50px"
+												:src="row.img"
+												:zoom-rate="1.2"
+												:max-scale="7"
+												:min-scale="0.2"
+												:preview-src-list="[row.img]"
+												show-progress
+												fit="cover"
+												preview-teleported="true"
+											/>
+										</template>
+										<template #default>
+											<div
+												style="display: flex; gap: 16px; flex-direction: column"
+											>
+												<el-avatar
+													shape="square"
+													:size="75"
+													:src="row.img"
+													style="margin-bottom: 8px"
+												/>
+												<div>
+													<p style="margin: 0; font-weight: 500">
+														{{ row.name }}
+													</p>
+													<p
+														style="
+															margin: 0;
+															font-size: 14px;
+															color: var(--el-color-info);
+														"
+													>
+														{{ row.second_name }}
+													</p>
+												</div>
+
+												<p style="margin: 0">
+													{{ row.title }}
+												</p>
+											</div>
+										</template>
+									</el-popover>
 								</template>
 							</el-table-column>
 							<el-table-column
@@ -778,12 +840,17 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditTextPopover
-											:initialText="reserve.place"
-											@update:textValue="newValue => (reserve.place = newValue)"
-										/>
+									<div v-if="row.warehouse && row.warehouse.length > 0">
+										<div v-for="(reserve, i) in row.warehouse" :key="i">
+											<EditTextPopover
+												:initialText="reserve.place"
+												@update:textValue="
+													newValue => (reserve.place = newValue)
+												"
+											/>
+										</div>
 									</div>
+									<span v-else class="text-gray-400">Не задано</span>
 								</template>
 							</el-table-column>
 							<el-table-column
@@ -792,14 +859,17 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditCountPopover
-											:initialCount="reserve.count"
-											@update:countValue="
-												newValue => (reserve.count = newValue)
-											"
-										/>
+									<div v-if="row.warehouse && row.warehouse.length > 0">
+										<div v-for="(reserve, i) in row.warehouse" :key="i">
+											<EditCountPopover
+												:initialCount="reserve.count"
+												@update:countValue="
+													newValue => (reserve.count = newValue)
+												"
+											/>
+										</div>
 									</div>
+									<span v-else class="text-gray-400">Не задано</span>
 								</template>
 							</el-table-column>
 							<el-table-column
@@ -808,14 +878,17 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditTextPopover
-											:initialText="reserve.number"
-											@update:textValue="
-												newValue => (reserve.number = newValue)
-											"
-										/>
+									<div v-if="row.warehouse && row.warehouse.length > 0">
+										<div v-for="(reserve, i) in row.warehouse" :key="i">
+											<EditTextPopover
+												:initialText="reserve.number"
+												@update:textValue="
+													newValue => (reserve.number = newValue)
+												"
+											/>
+										</div>
 									</div>
+									<span v-else class="text-gray-400">Не задано</span>
 								</template>
 							</el-table-column>
 							<el-table-column label="Дії" header-align="center" align="center">
@@ -824,23 +897,29 @@ const handleEditProductSave = updatedProduct => {
 										<div
 											class="text-sm cursor-pointer hover:text-blue-500 transition"
 										>
-											<el-icon @click="addReserveToOrder(row)"
-												><DocumentAdd
-											/></el-icon>
+											<el-tooltip content="Додати резерв" placement="top">
+												<el-icon @click="addReserveToOrder(row)"
+													><DocumentAdd
+												/></el-icon>
+											</el-tooltip>
 										</div>
 										<div
 											class="text-sm cursor-pointer hover:text-blue-500 transition"
 										>
-											<el-icon @click="takeCurrentEditProduct(row)"
-												><Edit
-											/></el-icon>
+											<el-tooltip content="Редагувати товар" placement="top">
+												<el-icon @click="takeCurrentEditProduct(row)"
+													><Edit
+												/></el-icon>
+											</el-tooltip>
 										</div>
 										<div
 											class="text-sm cursor-pointer hover:text-red-500 transition"
 										>
-											<el-icon @click="removeOrderConfirm(props.row, $index)"
-												><Delete
-											/></el-icon>
+											<el-tooltip content="Видалити товар" placement="top">
+												<el-icon @click="removeOrderConfirm(props.row, $index)"
+													><Delete
+												/></el-icon>
+											</el-tooltip>
 										</div>
 									</div>
 								</template>
@@ -848,7 +927,8 @@ const handleEditProductSave = updatedProduct => {
 						</el-table>
 					</div>
 
-					<!-- Допродажи -->
+					<!--Допродажи-->
+
 					<div v-if="isAdditionalProducts">
 						<div class="flex items-center justify-between m-5">
 							<div class="flex items-center gap-2">
@@ -856,7 +936,9 @@ const handleEditProductSave = updatedProduct => {
 								<span class="font-medium">Додаткові товари</span>
 							</div>
 							<div class="flex items-center gap-4">
-								<span class="text-sm"> {{}} позиції </span>
+								<span class="text-sm">
+									{{ props.row.additional_products.length }} позиції
+								</span>
 
 								<el-button
 									type="primary"
@@ -880,17 +962,55 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<el-image
-										style="width: 50px"
-										:src="row.img"
-										:zoom-rate="1.2"
-										:max-scale="7"
-										:min-scale="0.2"
-										:preview-src-list="[row.img]"
-										show-progress
-										fit="cover"
-										preview-teleported="true"
-									/>
+									<el-popover
+										:width="300"
+										placement="right"
+										popper-style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;"
+									>
+										<template #reference>
+											<el-image
+												style="width: 50px"
+												:src="row.img"
+												:zoom-rate="1.2"
+												:max-scale="7"
+												:min-scale="0.2"
+												:preview-src-list="[row.img]"
+												show-progress
+												fit="cover"
+												preview-teleported="true"
+											/>
+										</template>
+										<template #default>
+											<div
+												style="display: flex; gap: 16px; flex-direction: column"
+											>
+												<el-avatar
+													shape="square"
+													:size="75"
+													:src="row.img"
+													style="margin-bottom: 8px"
+												/>
+												<div>
+													<p style="margin: 0; font-weight: 500">
+														{{ row.name }}
+													</p>
+													<p
+														style="
+															margin: 0;
+															font-size: 14px;
+															color: var(--el-color-info);
+														"
+													>
+														{{ row.second_name }}
+													</p>
+												</div>
+
+												<p style="margin: 0">
+													{{ row.title }}
+												</p>
+											</div>
+										</template>
+									</el-popover>
 								</template>
 							</el-table-column>
 							<el-table-column
@@ -958,12 +1078,17 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditTextPopover
-											:initialText="reserve.place"
-											@update:textValue="newValue => (reserve.place = newValue)"
-										/>
+									<div v-if="row.warehouse && row.warehouse.length > 0">
+										<div v-for="(reserve, i) in row.warehouse" :key="i">
+											<EditTextPopover
+												:initialText="reserve.place"
+												@update:textValue="
+													newValue => (reserve.place = newValue)
+												"
+											/>
+										</div>
 									</div>
+									<span v-else class="text-gray-400">Не задано</span>
 								</template>
 							</el-table-column>
 							<el-table-column
@@ -972,14 +1097,17 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditCountPopover
-											:initialCount="reserve.count"
-											@update:countValue="
-												newValue => (reserve.count = newValue)
-											"
-										/>
+									<div v-if="row.warehouse && row.warehouse.length > 0">
+										<div v-for="(reserve, i) in row.warehouse" :key="i">
+											<EditCountPopover
+												:initialCount="reserve.count"
+												@update:countValue="
+													newValue => (reserve.count = newValue)
+												"
+											/>
+										</div>
 									</div>
+									<span v-else class="text-gray-400">Не задано</span>
 								</template>
 							</el-table-column>
 							<el-table-column
@@ -988,14 +1116,17 @@ const handleEditProductSave = updatedProduct => {
 								align="center"
 							>
 								<template #default="{ row }">
-									<div v-for="(reserve, i) in row.warehouse" :key="i">
-										<EditTextPopover
-											:initialText="reserve.number"
-											@update:textValue="
-												newValue => (reserve.number = newValue)
-											"
-										/>
+									<div v-if="row.warehouse && row.warehouse.length > 0">
+										<div v-for="(reserve, i) in row.warehouse" :key="i">
+											<EditTextPopover
+												:initialText="reserve.number"
+												@update:textValue="
+													newValue => (reserve.number = newValue)
+												"
+											/>
+										</div>
 									</div>
+									<span v-else class="text-gray-400">Не задано</span>
 								</template>
 							</el-table-column>
 							<el-table-column label="Дії" header-align="center" align="center">
@@ -1004,30 +1135,38 @@ const handleEditProductSave = updatedProduct => {
 										<div
 											class="text-sm cursor-pointer hover:text-blue-500 transition"
 										>
-											<el-icon @click="addReserveToOrder(row)"
-												><DocumentAdd
-											/></el-icon>
+											<el-tooltip content="Додати резерв" placement="top">
+												<el-icon @click="addReserveToOrder(row)"
+													><DocumentAdd
+												/></el-icon>
+											</el-tooltip>
 										</div>
 										<div
 											class="text-sm cursor-pointer hover:text-blue-500 transition"
 										>
-											<el-icon @click="takeCurrentEditProduct(row)"
-												><Edit
-											/></el-icon>
+											<el-tooltip content="Редагувати товар" placement="top">
+												<el-icon @click="takeCurrentEditProduct(row)"
+													><Edit
+												/></el-icon>
+											</el-tooltip>
 										</div>
 										<div
 											class="text-sm cursor-pointer hover:text-red-500 transition"
 										>
-											<el-icon
-												@click="removeAdditionalConfirm(props.row, $index)"
-												><Delete
-											/></el-icon>
+											<el-tooltip content="Видалити товар" placement="top">
+												<el-icon
+													@click="removeAdditionalConfirm(props.row, $index)"
+													><Delete
+												/></el-icon>
+											</el-tooltip>
 										</div>
 									</div>
 								</template>
 							</el-table-column>
 						</el-table>
 					</div>
+
+					<!--Оплата-->
 				</template>
 			</el-table-column>
 
