@@ -1,11 +1,9 @@
 <script setup>
 import { reactive, watch } from 'vue'
-import { Delete } from '@element-plus/icons-vue'
 
 const props = defineProps({
 	modelValue: Boolean,
 	product: Object,
-	warehouseList: Array,
 })
 
 const emit = defineEmits(['update:modelValue', 'save'])
@@ -34,10 +32,6 @@ watch(
 		console.dir(localProduct)
 	}
 )
-
-const deleteReserve = index => {
-	localProduct.warehouse.splice(index, 1)
-}
 
 const closeDrawer = () => {
 	emit('update:modelValue', false)
@@ -94,49 +88,6 @@ const saveChanges = () => {
 						placeholder="Заповніть данні"
 						clearable
 					/>
-				</div>
-				<div
-					v-for="(reserve, i) in localProduct.warehouse"
-					:key="i"
-					class="mb-5"
-				>
-					<div class="mb-4">
-						<span>Резерв {{ i + 1 }}</span>
-					</div>
-					<div class="flex items-center gap-4">
-						<el-select
-							v-model="reserve.place"
-							size="large"
-							placeholder="Місце резерву"
-							clearable
-						>
-							<el-option
-								v-for="item in props.warehouseList"
-								:key="item.value"
-								:label="item.label"
-								:value="item.value"
-							/>
-						</el-select>
-						<el-input-number
-							v-model="reserve.count"
-							:min="1"
-							:max="10"
-							style="width: 100%"
-							size="large"
-						/>
-						<el-input
-							v-model="reserve.number"
-							size="large"
-							placeholder="Заповніть данні"
-							clearable
-						/>
-						<el-button
-							@click="deleteReserve(i)"
-							type="danger"
-							:icon="Delete"
-							circle
-						/>
-					</div>
 				</div>
 
 				<div class="flex mb-5 gap-5">

@@ -46,13 +46,13 @@ const saveReserve = () => {
 	let hasErrors = false
 
 	input_reserves.value.forEach(reserve => {
-		if (!reserve.place || reserve.count <= 0 || !reserve.number) {
+		if (!reserve.place || reserve.count <= 0) {
 			hasErrors = true
 		}
 	})
 
 	if (hasErrors) {
-		ElMessage.error('Заповніть всі поля для кожного резерву')
+		ElMessage.error('Заповніть місце та кількість резерву')
 		return
 	}
 
@@ -76,7 +76,7 @@ const closeDrawer = () => {
 	<el-dialog
 		v-model="props.modelValue"
 		title="Додати резерв"
-		width="40%"
+		width="35%"
 		align-center
 	>
 		<div

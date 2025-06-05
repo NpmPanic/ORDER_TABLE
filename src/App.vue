@@ -61,10 +61,34 @@ const addReserveToOrder = product => {
 	isAddReserve.value = true
 }
 
+// Удаления резерва из текущего товара
+const deleteReserve = (warehouseArray, index) => {
+	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
+		confirmButtonText: 'Так',
+		cancelButtonText: 'Ні',
+		type: 'error',
+		icon: Delete,
+	})
+		.then(() => {
+			warehouseArray.splice(index, 1)
+
+			ElMessage({
+				type: 'success',
+				message: 'Видалення завершено',
+			})
+		})
+		.catch(() => {
+			ElMessage({
+				type: 'error',
+				message: 'Видалення скасовано',
+			})
+		})
+}
+
 // Обработчик добавления резерва к выбраному товару
 const handleSaveReserves = reserves => {
 	const validReserves = reserves.filter(
-		reserve => reserve.place && reserve.count > 0 && reserve.number
+		reserve => reserve.place && reserve.count > 0
 	)
 
 	if (validReserves.length > 0) {
@@ -405,7 +429,6 @@ const handleEditProductSave = updatedProduct => {
 	<EditProductsDrawer
 		v-model="isEditProductsDrawer"
 		:product="currentEditProduct"
-		:warehouseList="optionsWarehouseReserve"
 		@save="handleEditProductSave"
 	/>
 	<AddReserveModal
@@ -879,23 +902,37 @@ const handleEditProductSave = updatedProduct => {
 							>
 								<template #default="{ row }">
 									<div v-if="row.warehouse && row.warehouse.length > 0">
-										<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<div
+											class="flex items-center justify-center gap-4"
+											v-for="(reserve, i) in row.warehouse"
+											:key="i"
+										>
 											<EditTextPopover
 												:initialText="reserve.number"
 												@update:textValue="
 													newValue => (reserve.number = newValue)
 												"
 											/>
+											<div
+												class="mt-1 cursor-pointer hover:text-red-500 transition"
+											>
+												<el-tooltip content="Видалити резерв" placement="top">
+													<el-icon @click="deleteReserve(row.warehouse, i)"
+														><Delete
+													/></el-icon>
+												</el-tooltip>
+											</div>
 										</div>
 									</div>
 									<span v-else class="text-gray-400">Не задано</span>
 								</template>
 							</el-table-column>
+
 							<el-table-column label="Дії" header-align="center" align="center">
 								<template #default="{ row }">
 									<div class="flex items-center justify-center gap-4">
 										<div
-											class="text-sm cursor-pointer hover:text-blue-500 transition"
+											class="text-sm cursor-pointer hover:text-green-500 transition"
 										>
 											<el-tooltip content="Додати резерв" placement="top">
 												<el-icon @click="addReserveToOrder(row)"
@@ -1117,13 +1154,26 @@ const handleEditProductSave = updatedProduct => {
 							>
 								<template #default="{ row }">
 									<div v-if="row.warehouse && row.warehouse.length > 0">
-										<div v-for="(reserve, i) in row.warehouse" :key="i">
+										<div
+											class="flex items-center justify-center gap-4"
+											v-for="(reserve, i) in row.warehouse"
+											:key="i"
+										>
 											<EditTextPopover
 												:initialText="reserve.number"
 												@update:textValue="
 													newValue => (reserve.number = newValue)
 												"
 											/>
+											<div
+												class="mt-1 cursor-pointer hover:text-red-500 transition"
+											>
+												<el-tooltip content="Видалити резерв" placement="top">
+													<el-icon @click="deleteReserve(row.warehouse, i)"
+														><Delete
+													/></el-icon>
+												</el-tooltip>
+											</div>
 										</div>
 									</div>
 									<span v-else class="text-gray-400">Не задано</span>
@@ -1133,7 +1183,7 @@ const handleEditProductSave = updatedProduct => {
 								<template #default="{ row }">
 									<div class="flex items-center justify-center gap-4">
 										<div
-											class="text-sm cursor-pointer hover:text-blue-500 transition"
+											class="text-sm cursor-pointer hover:text-green-500 transition"
 										>
 											<el-tooltip content="Додати резерв" placement="top">
 												<el-icon @click="addReserveToOrder(row)"

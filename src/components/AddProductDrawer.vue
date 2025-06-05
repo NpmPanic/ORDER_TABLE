@@ -72,60 +72,23 @@ const saveSelection = () => {
 				@selection-change="selectedRows = $event"
 				ref="tableRef"
 			>
-				<el-table-column type="selection" width="30px" />
-				<el-table-column width="100px">
+				<el-table-column type="selection" />
+				<el-table-column>
 					<template #default="{ row }">
-						<el-popover
-							:width="300"
-							placement="right"
-							popper-style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;"
-						>
-							<template #reference>
-								<el-image
-									style="width: 60px"
-									:src="row.img"
-									:zoom-rate="1.2"
-									:max-scale="7"
-									:min-scale="0.2"
-									:preview-src-list="[row.img]"
-									show-progress
-									fit="cover"
-									preview-teleported="true"
-								/>
-							</template>
-							<template #default>
-								<div
-									class="demo-rich-conent"
-									style="display: flex; gap: 16px; flex-direction: column"
-								>
-									<el-avatar
-										shape="square"
-										:size="75"
-										:src="row.img"
-										style="margin-bottom: 8px"
-									/>
-									<div>
-										<p style="margin: 0; font-weight: 500">{{ row.name }}</p>
-										<p
-											style="
-												margin: 0;
-												font-size: 14px;
-												color: var(--el-color-info);
-											"
-										>
-											{{ row.second_name }}
-										</p>
-									</div>
-
-									<p style="margin: 0">
-										{{ row.title }}
-									</p>
-								</div>
-							</template>
-						</el-popover>
+						<el-image
+							style="width: 70px"
+							:src="row.img"
+							:zoom-rate="1.2"
+							:max-scale="7"
+							:min-scale="0.2"
+							:preview-src-list="[row.img]"
+							show-progress
+							fit="cover"
+							preview-teleported="true"
+						/>
 					</template>
 				</el-table-column>
-				<el-table-column property="name" width="250px">
+				<el-table-column property="name">
 					<template #default="{ row }">
 						<div>
 							<span>{{ row.name }}</span>
@@ -135,7 +98,7 @@ const saveSelection = () => {
 					>
 				</el-table-column>
 
-				<el-table-column property="price" width="90px">
+				<el-table-column property="price" align="center">
 					<template #default="{ row }">
 						<span>{{ row.price }}</span>
 
@@ -149,6 +112,7 @@ const saveSelection = () => {
 							:min="0"
 							:max="100"
 							size="small"
+							style="width: 100%"
 							:disabled="!selectedRows.includes(row)"
 						/>
 					</template>
