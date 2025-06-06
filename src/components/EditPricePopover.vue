@@ -36,8 +36,8 @@ const cancelEdit = () => {
 				clearable
 				:formatter="
 					value => {
-						cleanValue = value.replace(/[^\d]/g, '')
-						formatted = cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+						const cleanValue = value.replace(/[^\d]/g, '')
+						const formatted = cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 						return cleanValue ? `₴ ${formatted}` : ''
 					}
 				"

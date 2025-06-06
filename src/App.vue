@@ -11,8 +11,9 @@ import {
 	DocumentCopy,
 	Goods,
 	Sell,
+	Money,
+	Coin,
 } from '@element-plus/icons-vue'
-import { useTransition } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
 import { computed, ref } from 'vue'
@@ -25,15 +26,6 @@ import EditProductsDrawer from './components/EditProductsDrawer.vue'
 import AddProductDrawer from './components/AddProductDrawer.vue'
 import AddReserveModal from './components/AddReserveModal.vue'
 
-const source = ref(0)
-const animated = useTransition(source, { duration: 1500 })
-
-const handleExpand = (row, expandedRows) => {
-	if (expandedRows.includes(row)) {
-		source.value = 0 // сбрасываем, если нужно
-		source.value = 20000 // старт анимации
-	}
-}
 // Переменная глобального поиска таблицы
 const inputQuerySearch = ref('')
 // Переменная глобальной категории поиска таблицы
@@ -48,6 +40,34 @@ const isAdditionalProducts = ref(false)
 const currentOrder = ref({})
 // Переменная хранения выбраного для редактирования товара
 const currentEditProduct = ref({})
+// Переменная хранения цены упаковки
+const packagePrice = 10
+
+// Функция подсчета общей цены за товары в текущем заказе
+const getTotalProductsPrice = order => {
+	const mainProductsSum = order.products.reduce(
+		(sum, p) => sum + p.price * p.count,
+		0
+	)
+	const additionalProductsSum = order.additional_products?.reduce(
+		(sum, p) => sum + p.price * p.count,
+		0
+	)
+	return +mainProductsSum.toFixed(2) + +additionalProductsSum.toFixed(2)
+}
+
+// Функция подсчета цены наложеного платежа к текущему заказу
+const getDeliveryPrice = order => {
+	const mainDeliverySum = getTotalProductsPrice(order) * 0.02 + 20
+	return +mainDeliverySum.toFixed(2)
+}
+
+// Функция подсчета сумарной суммы к текущему заказу
+const getTotalPrice = order => {
+	const mainTotalSum =
+		getTotalProductsPrice(order) + getDeliveryPrice(order) + packagePrice
+	return +mainTotalSum.toFixed(2)
+}
 
 // Функция передачи текущего заказа в переменную currentOrder для добавления доп товаров
 const addAdditionalProductsToOrder = order => {
@@ -59,6 +79,18 @@ const addAdditionalProductsToOrder = order => {
 const addReserveToOrder = product => {
 	currentEditProduct.value = product
 	isAddReserve.value = true
+}
+
+// Вычисления максимального количества резерва для прямого редактирования
+const getMaxReserveCount = (product, currentReserveIndex) => {
+	if (!product.warehouse) return product.count
+
+	const totalOtherReserves = product.warehouse.reduce((total, item, index) => {
+		return index === currentReserveIndex ? total : total + item.count
+	}, 0)
+
+	const remaining = product.count - totalOtherReserves
+	return remaining > 0 ? remaining : 0
 }
 
 // Удаления резерва из текущего товара
@@ -886,6 +918,7 @@ const handleEditProductSave = updatedProduct => {
 										<div v-for="(reserve, i) in row.warehouse" :key="i">
 											<EditCountPopover
 												:initialCount="reserve.count"
+												:maxCount="getMaxReserveCount(row, i)"
 												@update:countValue="
 													newValue => (reserve.count = newValue)
 												"
@@ -1138,6 +1171,7 @@ const handleEditProductSave = updatedProduct => {
 										<div v-for="(reserve, i) in row.warehouse" :key="i">
 											<EditCountPopover
 												:initialCount="reserve.count"
+												:maxCount="getMaxReserveCount(row, i)"
 												@update:countValue="
 													newValue => (reserve.count = newValue)
 												"
@@ -1217,6 +1251,84 @@ const handleEditProductSave = updatedProduct => {
 					</div>
 
 					<!--Оплата-->
+					<div class="m-5 flex justify-end">
+						<el-card style="width: 400px">
+							<template #header>
+								<div class="flex items-center gap-2 font-semibold">
+									<el-icon><Money /></el-icon>
+									<span>До сплати</span>
+								</div>
+							</template>
+							<div class="flex justify-between mb-2">
+								<div class="flex items-center gap-2">
+									<el-icon><Coin /></el-icon>
+									<span class="font-semibold text-gray-400"
+										>Вартість товарів</span
+									>
+								</div>
+								<div class="flex items-center gap-1">
+									<EditPricePopover
+										:initialPrice="getTotalProductsPrice(props.row)"
+										@update:priceValue="
+											newValue => (getTotalProductsPrice = newValue)
+										"
+									/>
+									<span> &#8372;</span>
+								</div>
+							</div>
+
+							<div class="flex justify-between mb-2">
+								<div class="flex items-center gap-2">
+									<el-icon><Coin /></el-icon>
+									<span class="font-semibold text-gray-400"
+										>Накладений платіж (2% + 20 грн)</span
+									>
+								</div>
+
+								<div class="flex items-center gap-1">
+									<EditPricePopover
+										:initialPrice="getDeliveryPrice(props.row)"
+										@update:priceValue="
+											newValue => (getDeliveryPrice = newValue)
+										"
+									/>
+									<span> &#8372;</span>
+								</div>
+							</div>
+							<div class="flex justify-between mb-2">
+								<div class="flex items-center gap-2">
+									<el-icon><Coin /></el-icon>
+									<span class="font-semibold text-gray-400"
+										>Вартість упакування</span
+									>
+								</div>
+
+								<div class="flex items-center gap-1">
+									<EditPricePopover
+										:initialPrice="packagePrice"
+										@update:priceValue="newValue => (packagePrice = newValue)"
+									/>
+									<span> &#8372;</span>
+								</div>
+							</div>
+							<div class="flex justify-between mb-2">
+								<div class="flex items-center gap-2">
+									<el-icon><Coin /></el-icon>
+									<span class="font-semibold text-gray-400"
+										>Загальна вартість</span
+									>
+								</div>
+
+								<div class="flex items-center gap-1">
+									<EditPricePopover
+										:initialPrice="getTotalPrice(props.row)"
+										@update:priceValue="newValue => (getTotalPrice = newValue)"
+									/>
+									<span> &#8372;</span>
+								</div>
+							</div>
+						</el-card>
+					</div>
 				</template>
 			</el-table-column>
 

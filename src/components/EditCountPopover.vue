@@ -3,6 +3,10 @@ import { ref, watch } from 'vue'
 
 const props = defineProps({
 	initialCount: Number,
+	maxCount: {
+		type: Number,
+		default: 500,
+	},
 })
 const emit = defineEmits(['update:countValue'])
 
@@ -30,7 +34,7 @@ const cancelEdit = () => {
 <template>
 	<el-popover :visible="isOpen" placement="bottom" width="200px">
 		<div class="flex justify-center">
-			<el-input-number v-model="countValue" :min="0" :max="500" />
+			<el-input-number v-model="countValue" :min="0" :max="props.maxCount" />
 		</div>
 
 		<div class="mt-4 flex justify-center">
