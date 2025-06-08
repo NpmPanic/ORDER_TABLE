@@ -1,9 +1,10 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
 	initialPrice: Number,
 })
+
 const emit = defineEmits(['update:priceValue'])
 
 const priceValue = ref(props.initialPrice)
@@ -16,8 +17,13 @@ watch(
 	}
 )
 
+// Форматировка в денежный формат
+const formattedNumber = computed(() => {
+	return new Intl.NumberFormat('uk-UA').format(priceValue.value)
+})
+
 const saveResult = () => {
-	emit('update:priceValue', priceValue.value)
+	emit('update:priceValue', Number(priceValue.value))
 	isOpen.value = false
 }
 
@@ -54,7 +60,7 @@ const cancelEdit = () => {
 
 		<template #reference>
 			<el-link @click="isOpen = true" type="primary" :underline="false">
-				<span>{{ priceValue || 0 }}</span>
+				<span>{{ formattedNumber || 0 }}</span>
 			</el-link>
 		</template>
 	</el-popover>
