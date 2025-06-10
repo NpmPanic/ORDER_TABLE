@@ -45,7 +45,7 @@ const saveChanges = () => {
 <template>
 	<el-drawer :model-value="props.modelValue" @close="closeDrawer" size="30%">
 		<template #header>
-			<span class="text-2xl px-4">Редагування товару</span>
+			<span class="text-xl font-semibold px-4">Редагування товару</span>
 		</template>
 		<template #default>
 			<div class="px-4 mt-10">
@@ -129,8 +129,4 @@ const saveChanges = () => {
 	</el-drawer>
 </template>
 
-<style scoped>
-:global(.el-drawer__header) {
-	margin-bottom: 0 !important;
-}
-</style>
+<style scoped></style>

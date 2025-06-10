@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { DocumentAdd, Delete } from '@element-plus/icons-vue'
+import { DocumentAdd, Delete, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 const props = defineProps({
 	modelValue: Boolean,
@@ -57,7 +57,7 @@ const saveReserve = () => {
 	}
 
 	emit('save', [...input_reserves.value])
-	closeDrawer()
+	closeModal()
 	input_reserves.value = [
 		{
 			place: '',
@@ -68,59 +68,76 @@ const saveReserve = () => {
 }
 
 // Отмена изменений при закрытии
-const closeDrawer = () => {
+const closeModal = () => {
 	emit('update:modelValue', false)
 }
 </script>
 <template>
 	<el-dialog
 		v-model="props.modelValue"
-		title="Додати резерв"
+		:show-close="false"
 		width="35%"
 		align-center
 	>
-		<div
-			v-for="(reserve, index) in input_reserves"
-			:key="index"
-			class="flex items-center gap-5 mt-8 mb-8"
-		>
-			<el-select v-model="reserve.place" clearable placeholder="Місце резерву">
-				<el-option
-					v-for="item in props.warehouseList"
-					:key="item.value"
-					:label="item.label"
-					:value="item.value"
-				/>
-			</el-select>
-			<el-input-number
-				v-model="reserve.count"
-				:min="0"
-				:max="getMaxCountForReserve(index)"
-				style="width: 60%"
-			/>
-			<el-input
-				v-model="reserve.number"
-				placeholder="Номер резерву"
-				clearable
-			/>
-			<div class="flex items-center gap-2">
-				<el-button
-					@click="addReserve"
-					:icon="DocumentAdd"
-					type="success"
-					circle
-				/>
-				<el-button
-					@click="deleteReserve(index)"
-					:icon="Delete"
-					type="danger"
-					circle
-				/>
+		<template #header>
+			<div class="flex justify-between items-center w-full">
+				<span class="text-xl font-semibold">Додати резерв</span>
+				<el-button @click="closeModal" link circle>
+					<el-icon size="large"
+						><Close class="text-gray-500 hover:text-blue-500"
+					/></el-icon>
+				</el-button>
 			</div>
-		</div>
+		</template>
+		<template #default>
+			<div
+				v-for="(reserve, index) in input_reserves"
+				:key="index"
+				class="flex items-center gap-5 mt-8 mb-8"
+			>
+				<el-select
+					v-model="reserve.place"
+					clearable
+					placeholder="Місце резерву"
+				>
+					<el-option
+						v-for="item in props.warehouseList"
+						:key="item.value"
+						:label="item.label"
+						:value="item.value"
+					/>
+				</el-select>
+				<el-input-number
+					v-model="reserve.count"
+					:min="0"
+					:max="getMaxCountForReserve(index)"
+					style="width: 60%"
+				/>
+				<el-input
+					v-model="reserve.number"
+					placeholder="Номер резерву"
+					clearable
+				/>
+				<div class="flex items-center gap-2">
+					<el-button
+						@click="addReserve"
+						:icon="DocumentAdd"
+						type="success"
+						circle
+					/>
+					<el-button
+						@click="deleteReserve(index)"
+						:icon="Delete"
+						type="danger"
+						circle
+					/>
+				</div>
+			</div>
+		</template>
+
 		<template #footer>
 			<div class="dialog-footer">
-				<el-button @click="closeDrawer">Скасувати</el-button>
+				<el-button @click="closeModal">Скасувати</el-button>
 				<el-button @click="saveReserve" type="primary"> Зберегти </el-button>
 			</div>
 		</template>

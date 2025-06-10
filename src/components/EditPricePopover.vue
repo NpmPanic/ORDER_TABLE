@@ -40,6 +40,8 @@ const cancelEdit = () => {
 				v-model="priceValue"
 				placeholder="Введіть ціну"
 				clearable
+				:min="0"
+				:max="59999"
 				:formatter="
 					value => {
 						const cleanValue = value.replace(/[^\d]/g, '')

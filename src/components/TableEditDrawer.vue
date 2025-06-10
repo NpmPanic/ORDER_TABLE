@@ -37,11 +37,7 @@ const closeDrawer = () => {
 <template>
 	<el-drawer :model-value="props.modelValue" @close="closeDrawer">
 		<template #header>
-			<div class="flex items-center gap-3 text-2xl px-4">
-				<span class="pb-2">Налаштування</span>
-
-				<el-icon><Setting /></el-icon>
-			</div>
+			<span class="text-xl font-semibold px-4">Налаштування</span>
 		</template>
 		<template #default>
 			<div
@@ -50,7 +46,7 @@ const closeDrawer = () => {
 				class="w-full flex items-center justify-between mb-5 mt-5 border-b border-gray-200"
 			>
 				<div
-					class="flex items-center gap-4 px-4 text-md pb-4"
+					class="flex items-center gap-4 px-4 pb-4"
 					:class="{ 'text-gray-400': !settings.visible }"
 				>
 					<el-icon v-if="settings.visible"><Unlock /></el-icon>
@@ -58,7 +54,7 @@ const closeDrawer = () => {
 					<span>{{ columnName }}</span>
 				</div>
 				<div class="pb-2">
-					<el-switch v-model="settings.visible" />
+					<el-switch v-model="settings.visible" size="small" />
 				</div>
 			</div>
 		</template>

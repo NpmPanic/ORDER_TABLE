@@ -12,7 +12,10 @@ import {
 	Goods,
 	Sell,
 	Money,
-	Coin,
+	PriceTag,
+	Box,
+	ShoppingCart,
+	CreditCard,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -25,6 +28,7 @@ import EditPricePopover from './components/EditPricePopover.vue'
 import EditProductsDrawer from './components/EditProductsDrawer.vue'
 import AddProductDrawer from './components/AddProductDrawer.vue'
 import AddReserveModal from './components/AddReserveModal.vue'
+import AddOrderDialog from './components/AddOrderDialog.vue'
 
 // Переменная глобального поиска таблицы
 const inputQuerySearch = ref('')
@@ -36,6 +40,7 @@ const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
 const isAddReserve = ref(false)
 const isAdditionalProducts = ref(true)
+const isAddOrder = ref(false)
 // Переменная хранения текущего заказа
 const currentOrder = ref({})
 // Переменная хранения выбраного для редактирования товара
@@ -448,7 +453,9 @@ function formatNumber(value) {
 			</el-select>
 		</div>
 		<div>
-			<el-button type="success" plain>Додати замовлення</el-button>
+			<el-button @click="isAddOrder = true" type="success" plain
+				>Додати замовлення</el-button
+			>
 			<el-button @click="isTableEditDrawer = true" type="primary" plain>
 				Редагувати таблицю
 			</el-button>
@@ -476,6 +483,7 @@ function formatNumber(value) {
 		:warehouseList="optionsWarehouseReserve"
 		@save="handleSaveReserves"
 	/>
+	<AddOrderDialog v-model="isAddOrder" />
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -1216,82 +1224,62 @@ function formatNumber(value) {
 						</div>
 
 						<!--Оплата-->
-						<div class="mt-15 flex">
-							<el-card style="width: 400px">
-								<template #header>
-									<div class="flex items-center gap-2 font-semibold text-lg">
+						<div class="flex-1 mt-15 bg-white shadow-sm">
+							<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+								<el-icon><PriceTag /></el-icon>
+								Підсумкова вартість
+							</h2>
+
+							<div class="space-y-3">
+								<div class="flex justify-between items-center text-gray-700">
+									<div class="flex items-center gap-2">
+										<el-icon><ShoppingCart /></el-icon>
+										<span>Вартість товарів</span>
+									</div>
+									<span class="text-lg"
+										>{{
+											formatNumber(getTotalProductsPrice(props.row))
+										}}
+										грн</span
+									>
+								</div>
+
+								<div class="flex justify-between items-center text-gray-700">
+									<div class="flex items-center gap-2">
 										<el-icon><Money /></el-icon>
-										<span>До сплати</span>
+										<span>Накладений платіж (2% + 20 грн)</span>
 									</div>
-								</template>
-								<div class="flex justify-between mb-2">
-									<div class="flex items-center gap-2">
-										<el-icon><Coin /></el-icon>
-										<span class="font-semibold text-gray-400"
-											>Вартість товарів</span
-										>
-									</div>
-									<div class="flex items-center gap-1">
-										<el-link type="primary" :underline="false"
-											><span>{{
-												formatNumber(getTotalProductsPrice(props.row))
-											}}</span></el-link
-										>
-										<span> &#8372;</span>
-									</div>
+									<span class="text-lg"
+										>{{ formatNumber(getDeliveryPrice(props.row)) }} грн</span
+									>
 								</div>
 
-								<div class="flex justify-between mb-2">
+								<div class="flex justify-between items-center text-gray-700">
 									<div class="flex items-center gap-2">
-										<el-icon><Coin /></el-icon>
-										<span class="font-semibold text-gray-400"
-											>Накладений платіж (2% + 20 грн)</span
-										>
+										<el-icon><Box /></el-icon>
+										<span>Вартість упакування</span>
 									</div>
-
-									<div class="flex items-center gap-1">
-										<el-link type="primary" :underline="false"
-											><span>{{
-												formatNumber(getDeliveryPrice(props.row))
-											}}</span></el-link
-										>
-										<span> &#8372;</span>
-									</div>
-								</div>
-								<div class="flex justify-between mb-2">
-									<div class="flex items-center gap-2">
-										<el-icon><Coin /></el-icon>
-										<span class="font-semibold text-gray-400"
-											>Вартість упакування</span
-										>
-									</div>
-
-									<div class="flex items-center gap-1 package-price-link">
+									<div class="package-price-link">
 										<EditPricePopover
 											:initialPrice="packagePrice"
 											@update:priceValue="newValue => (packagePrice = newValue)"
 										/>
-										<span> &#8372;</span>
+										<span class="text-lg"> грн</span>
 									</div>
 								</div>
-								<div class="flex justify-between mb-2">
-									<div class="flex items-center gap-2">
-										<el-icon><Coin /></el-icon>
-										<span class="font-semibold text-gray-400"
-											>Загальна вартість</span
-										>
-									</div>
+							</div>
 
-									<div class="flex items-center gap-1">
-										<el-link type="primary" :underline="false"
-											><span>{{
-												formatNumber(getTotalPrice(props.row))
-											}}</span></el-link
-										>
-										<span> &#8372;</span>
-									</div>
+							<hr class="my-4 border-gray-300" />
+
+							<div
+								class="flex justify-between items-center text-xl font-bold text-blue-600"
+							>
+								<div class="flex items-center gap-2">
+									<el-icon><CreditCard /></el-icon>
+									<span>Загальна вартість</span>
 								</div>
-							</el-card>
+								<span>{{ formatNumber(getTotalPrice(props.row)) }} грн</span>
+							</div>
 						</div>
 					</div>
 				</template>
@@ -1418,13 +1406,10 @@ function formatNumber(value) {
 </template>
 
 <style scoped>
-.el-link {
-	font-size: 20px;
-}
 .el-link :hover {
 	color: orange;
 }
 .package-price-link :deep(.el-link) {
-	font-size: 20px;
+	font-size: 18px;
 }
 </style>
