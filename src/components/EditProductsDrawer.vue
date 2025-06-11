@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, watch } from 'vue'
+import { Close } from '@element-plus/icons-vue'
 
 const props = defineProps({
 	modelValue: Boolean,
@@ -43,12 +44,24 @@ const saveChanges = () => {
 }
 </script>
 <template>
-	<el-drawer :model-value="props.modelValue" @close="closeDrawer" size="30%">
+	<el-drawer
+		:model-value="props.modelValue"
+		@close="closeDrawer"
+		:show-close="false"
+		size="30%"
+	>
 		<template #header>
-			<span class="text-xl font-semibold px-4">Редагування товару</span>
+			<div class="flex items-center justify-between w-full px-4 pb-5">
+				<span class="text-xl font-semibold">Редагування товару</span>
+				<el-button @click="closeDrawer" link circle>
+					<el-icon size="large"
+						><Close class="text-gray-500 hover:text-blue-500"
+					/></el-icon>
+				</el-button>
+			</div>
 		</template>
 		<template #default>
-			<div class="px-4 mt-10">
+			<div class="px-4 mt-5">
 				<div class="flex items-center mb-10 gap-2">
 					<img class="w-50" :src="localProduct.img" alt="img" />
 					<p class="leading-loose">{{ localProduct.title }}</p>
@@ -119,7 +132,7 @@ const saveChanges = () => {
 			</div>
 		</template>
 		<template #footer>
-			<div class="flex justify-end gap-4">
+			<div class="flex justify-end gap-4 px-4 pt-[10px]">
 				<el-button @click="closeDrawer" size="large">Закрити</el-button>
 				<el-button @click="saveChanges" type="primary" size="large"
 					>Зберегти</el-button

@@ -1,5 +1,5 @@
 <script setup>
-import { Search } from '@element-plus/icons-vue'
+import { Search, Close } from '@element-plus/icons-vue'
 import { PRODUCTS_DATA } from './ProductsData'
 import { ref, computed } from 'vue'
 
@@ -51,9 +51,14 @@ const saveSelection = () => {
 }
 </script>
 <template>
-	<el-drawer :model-value="props.modelValue" @close="closeDrawer" size="35%">
+	<el-drawer
+		:model-value="props.modelValue"
+		@close="closeDrawer"
+		:show-close="false"
+		size="35%"
+	>
 		<template #header>
-			<div class="px-4">
+			<div class="flex items-center justify-between w-full gap-4 px-4 pb-5">
 				<div class="flex-grow">
 					<el-input
 						v-model="searchInput"
@@ -63,6 +68,11 @@ const saveSelection = () => {
 						clearable
 					/>
 				</div>
+				<el-button @click="closeDrawer" link circle>
+					<el-icon size="large"
+						><Close class="text-gray-500 hover:text-blue-500"
+					/></el-icon>
+				</el-button>
 			</div>
 		</template>
 		<template #default>
@@ -120,7 +130,7 @@ const saveSelection = () => {
 			</el-table>
 		</template>
 		<template #footer>
-			<div class="flex justify-end gap-4">
+			<div class="flex justify-end gap-4 px-4 pt-[10px]">
 				<el-button @click="closeDrawer" size="large">Закрити</el-button>
 				<el-button @click="saveSelection" type="primary" size="large"
 					>Зберегти</el-button

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import { TABLE_DATA } from '../components/TableData'
+import { TABLE_DATA } from './TableData'
+import AddProductDrawer from './AddProductDrawer.vue'
 import {
 	PriceTag,
 	ShoppingCart,
@@ -10,10 +11,33 @@ import {
 	Box,
 	Sell,
 } from '@element-plus/icons-vue'
+
 const props = defineProps({
 	modelValue: Boolean,
+	managersList: Array,
 })
 const emit = defineEmits(['update:modelValue'])
+
+const isAddProduct = ref(false)
+
+const currentProducts = ref([])
+
+const handleProductSave = products => {
+	products.forEach(newProduct => {
+		// Ищем товар с таким же id в currentOrder
+		const existingProductIndex = currentProducts.value.findIndex(
+			p => p.id === newProduct.id
+		)
+
+		if (existingProductIndex !== -1) {
+			// Если товар уже есть - обновляем количество
+			currentProducts.value[existingProductIndex].count += newProduct.count
+		} else {
+			// Если товара нет - добавляем новый
+			currentProducts.value.push({ ...newProduct })
+		}
+	})
+}
 
 const saveModal = () => {
 	emit('update:modelValue', false)
@@ -24,6 +48,8 @@ const closeModal = () => {
 }
 </script>
 <template>
+	<AddProductDrawer v-model="isAddProduct" @save="handleProductSave" />
+
 	<el-dialog
 		:model-value="props.modelValue"
 		@close="closeModal"
@@ -31,7 +57,7 @@ const closeModal = () => {
 		fullscreen
 	>
 		<template #header>
-			<div class="flex justify-between items-center w-full px-4">
+			<div class="flex justify-between items-center w-full px-4 mb-10">
 				<span class="text-xl font-semibold">Додати замовлення</span>
 				<el-button @click="closeModal" link circle>
 					<el-icon size="large"
@@ -41,45 +67,54 @@ const closeModal = () => {
 			</div>
 		</template>
 		<template #default>
-			<div class="flex gap-4">
+			<div class="flex gap-4 px-4 mb-10">
 				<!-- Блок 1: Основна інформація -->
-				<div class="w-1/3 p-4">
+				<div class="w-1/3">
 					<p class="font-semibold pb-4">Основна інформація</p>
 
-					<div class="pb-4">
-						<el-select
-							v-model="selectedManager"
-							placeholder="Обрати менеджера"
-							clearable
-						>
-							<el-option
-								v-for="manager in managers"
-								:key="manager.value"
-								:label="manager.label"
-								:value="manager.value"
-							/>
-						</el-select>
-					</div>
-
-					<div class="pb-4">
-						<el-input
-							v-model="managerComment"
-							type="textarea"
-							placeholder="Коментар менеджера"
-							rows="4"
+					<el-select
+						v-model="selectedManager"
+						placeholder="Обрати менеджера"
+						clearable
+						class="pb-4"
+					>
+						<el-option
+							v-for="manager in props.managersList"
+							:key="manager.value"
+							:label="manager.label"
+							:value="manager.value"
 						/>
-					</div>
+					</el-select>
+
+					<el-input
+						v-model="managerComment"
+						type="textarea"
+						placeholder="Коментар менеджера"
+						rows="4"
+						class="pb-4"
+					/>
 				</div>
 
 				<!-- Блок 2: Інформація про покупця -->
-				<div class="w-1/3 p-4">
+				<div class="w-1/3">
 					<p class="font-semibold pb-4">Інформація про покупця</p>
 
-					<el-input v-model="buyerName" placeholder="Ім'я покупця" />
+					<el-input
+						v-model="buyerName"
+						placeholder="Ім'я покупця"
+						clearable
+						class="pb-4"
+					/>
+					<el-input
+						v-model="buyerName"
+						placeholder="Телефон покупця"
+						clearable
+						class="pb-4"
+					/>
 				</div>
 
 				<!-- Блок 3: Інформація про вартість -->
-				<div class="w-1/3 p-4">
+				<div class="w-1/3">
 					<p class="font-semibold pb-4">Інформація про вартість</p>
 					<div class="bg-white shadow-md">
 						<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -129,7 +164,7 @@ const closeModal = () => {
 			</div>
 
 			<!-- Блок 4: Товари  -->
-			<div class="my-10 px-4">
+			<div class="px-4">
 				<div class="flex items-center justify-between my-5">
 					<div class="flex items-center gap-2">
 						<el-icon><Sell /></el-icon>
@@ -138,17 +173,18 @@ const closeModal = () => {
 					<div class="flex items-center gap-4">
 						<span class="text-sm"> {{}} позиції </span>
 
-						<el-button
-							type="primary"
-							size="small"
-							@click="addAdditionalProductsToOrder(props.row)"
-						>
+						<el-button type="primary" size="small" @click="isAddProduct = true">
 							Додати
 						</el-button>
 					</div>
 				</div>
 
-				<el-table :data="TABLE_DATA" style="width: 100%" border size="small">
+				<el-table
+					:data="currentProducts"
+					style="width: 100%"
+					border
+					size="small"
+				>
 					<el-table-column
 						label="Зображення"
 						header-align="center"
@@ -198,11 +234,7 @@ const closeModal = () => {
 					>
 						<template #default="{ row }">
 							<div class="flex gap-1 items-center justify-center">
-								<EditCountPopover
-									:initialCount="row.count"
-									@update:countValue="newValue => (row.count = newValue)"
-								/>
-								<span>{{ row.count_name }}</span>
+								<span>{{ row.count }}</span>
 							</div>
 						</template>
 					</el-table-column>
@@ -212,10 +244,7 @@ const closeModal = () => {
 						align="center"
 					>
 						<template #default="{ row }">
-							<EditPricePopover
-								:initialPrice="row.price"
-								@update:priceValue="newValue => (row.price = newValue)"
-							/>
+							<span>{{ row.price }}</span>
 						</template>
 					</el-table-column>
 
@@ -225,116 +254,24 @@ const closeModal = () => {
 						align="center"
 					>
 						<template #default="{ row }">
-							<span>{{ formatNumber(row.price * row.count) }} &#8372;</span>
+							<span>{{ row.price * row.count }}</span>
 						</template>
 					</el-table-column>
-					<el-table-column
-						label="Місце резерву"
-						header-align="center"
-						align="center"
-					>
-						<template #default="{ row }">
-							<div v-if="row.warehouse && row.warehouse.length > 0">
-								<div v-for="(reserve, i) in row.warehouse" :key="i">
-									<EditTextPopover
-										:initialText="reserve.place"
-										@update:textValue="newValue => (reserve.place = newValue)"
-									/>
-								</div>
-							</div>
-							<span v-else class="text-gray-400">Не задано</span>
-						</template>
-					</el-table-column>
-					<el-table-column
-						label="Кількість резерву"
-						header-align="center"
-						align="center"
-					>
-						<template #default="{ row }">
-							<div v-if="row.warehouse && row.warehouse.length > 0">
-								<div v-for="(reserve, i) in row.warehouse" :key="i">
-									<EditCountPopover
-										:initialCount="reserve.count"
-										:maxCount="getMaxReserveCount(row, i)"
-										@update:countValue="newValue => (reserve.count = newValue)"
-									/>
-								</div>
-							</div>
-							<span v-else class="text-gray-400">Не задано</span>
-						</template>
-					</el-table-column>
-					<el-table-column
-						label="Номер резерву"
-						header-align="center"
-						align="center"
-					>
-						<template #default="{ row }">
-							<div v-if="row.warehouse && row.warehouse.length > 0">
-								<div
-									class="flex items-center justify-center gap-4"
-									v-for="(reserve, i) in row.warehouse"
-									:key="i"
-								>
-									<EditTextPopover
-										:initialText="reserve.number"
-										@update:textValue="newValue => (reserve.number = newValue)"
-									/>
-									<div
-										class="mt-1 cursor-pointer hover:text-red-500 transition"
-									>
-										<el-tooltip content="Видалити резерв" placement="top">
-											<el-icon @click="deleteReserve(row.warehouse, i)"
-												><Delete
-											/></el-icon>
-										</el-tooltip>
-									</div>
-								</div>
-							</div>
-							<span v-else class="text-gray-400">Не задано</span>
-						</template>
-					</el-table-column>
+
 					<el-table-column label="Дії" header-align="center" align="center">
-						<template #default="{ row }">
-							<div class="flex items-center justify-center gap-4">
-								<div
-									class="text-sm cursor-pointer hover:text-green-500 transition"
-								>
-									<el-tooltip content="Додати резерв" placement="top">
-										<el-icon @click="addReserveToOrder(row)"
-											><DocumentAdd
-										/></el-icon>
-									</el-tooltip>
-								</div>
-								<div
-									class="text-sm cursor-pointer hover:text-blue-500 transition"
-								>
-									<el-tooltip content="Редагувати товар" placement="top">
-										<el-icon @click="takeCurrentEditProduct(row)"
-											><Edit
-										/></el-icon>
-									</el-tooltip>
-								</div>
-								<div
-									class="text-sm cursor-pointer hover:text-red-500 transition"
-								>
-									<el-tooltip content="Видалити товар" placement="top">
-										<el-icon @click="removeAdditionalConfirm(props.row, $index)"
-											><Delete
-										/></el-icon>
-									</el-tooltip>
-								</div>
-							</div>
-						</template>
+						<template #default="{ row }"> </template>
 					</el-table-column>
 				</el-table>
 			</div>
 		</template>
 		<template #footer>
-			<div class="flex justify-end gap-4 fixed bottom-5 left-0 right-5">
-				<el-button @click="closeModal" size="large">Закрити</el-button>
-				<el-button @click="saveModal" type="primary" size="large"
-					>Зберегти</el-button
-				>
+			<div class="flex justify-end fixed bottom-0 left-0 right-4 bg-white z-50">
+				<div class="flex gap-4 p-4">
+					<el-button @click="closeModal" size="large">Закрити</el-button>
+					<el-button @click="saveModal" type="primary" size="large"
+						>Зберегти</el-button
+					>
+				</div>
 			</div>
 		</template>
 	</el-dialog>
