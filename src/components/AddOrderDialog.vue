@@ -1,7 +1,4 @@
 <script setup>
-import { ref } from 'vue'
-import { TABLE_DATA } from './TableData'
-import AddProductDrawer from './AddProductDrawer.vue'
 import {
 	PriceTag,
 	ShoppingCart,
@@ -10,33 +7,140 @@ import {
 	Close,
 	Box,
 	Sell,
+	DocumentAdd,
+	Delete,
 } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref } from 'vue'
+import AddProductDrawer from './AddProductDrawer.vue'
+import AddReserveModal from './AddReserveModal.vue'
+import EditTextPopover from './EditTextPopover.vue'
+import EditCountPopover from './EditCountPopover.vue'
 
 const props = defineProps({
 	modelValue: Boolean,
 	managersList: Array,
+	deliveryService: Array,
+	deliveryAdress: Array,
+	warehouseList: Array,
 })
 const emit = defineEmits(['update:modelValue'])
 
 const isAddProduct = ref(false)
+const isAddReserve = ref(false)
+const addProducts = ref([])
+const currentEditProduct = ref([])
 
-const currentProducts = ref([])
+const newOrder = ref([
+	{
+		id: '',
+		order: {
+			order_number: '',
+			order_status: 'Новий',
+			contact_status: '',
+			pay_status: 'Не оплачено',
+			created_at: '',
+			source: 'По дзвінку',
+			manager: '',
+			manager_comment: '',
+		},
+		customer: {
+			id: '',
+			name: '',
+			phone: '',
+			email: '',
+			comment: '',
+		},
+		recipient: {
+			id: '',
+			name: '',
+			phone: '',
+		},
+		products: [],
+
+		additional_products: [],
+
+		delivery: {
+			delivery_date: '',
+			service: '',
+			ttn: '',
+			adress: '',
+			city: '',
+			delivery_status: '',
+			delivery_price: '',
+		},
+	},
+])
+
+const takeCurrentEditProduct = product => {
+	currentEditProduct.value = product
+	isAddReserve.value = true
+}
 
 const handleProductSave = products => {
 	products.forEach(newProduct => {
 		// Ищем товар с таким же id в currentOrder
-		const existingProductIndex = currentProducts.value.findIndex(
+		const existingProductIndex = addProducts.value.findIndex(
 			p => p.id === newProduct.id
 		)
 
 		if (existingProductIndex !== -1) {
 			// Если товар уже есть - обновляем количество
-			currentProducts.value[existingProductIndex].count += newProduct.count
+			addProducts.value[existingProductIndex].count += newProduct.count
 		} else {
 			// Если товара нет - добавляем новый
-			currentProducts.value.push({ ...newProduct })
+			addProducts.value.push({ ...newProduct })
 		}
 	})
+}
+
+// Обработчик добавления резерва к выбраному товару
+const handleSaveReserves = reserves => {
+	const validReserves = reserves.filter(
+		reserve => reserve.place && reserve.count > 0
+	)
+
+	if (validReserves.length > 0) {
+		currentEditProduct.value.warehouse.push(...validReserves)
+	}
+
+	isAddReserve.value = false
+}
+
+// Вычисления максимального количества резерва для прямого редактирования
+const getMaxReserveCount = (product, currentReserveIndex) => {
+	if (!product.warehouse) return product.count
+
+	const totalOtherReserves = product.warehouse.reduce((total, item, index) => {
+		return index === currentReserveIndex ? total : total + item.count
+	}, 0)
+
+	const remaining = product.count - totalOtherReserves
+	return remaining > 0 ? remaining : 0
+}
+
+// Удаления резерва из текущего товара
+const deleteReserve = (warehouseArray, index) => {
+	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
+		confirmButtonText: 'Так',
+		cancelButtonText: 'Ні',
+		type: 'error',
+		icon: Delete,
+	})
+		.then(() => {
+			warehouseArray.splice(index, 1)
+
+			ElMessage({
+				type: 'success',
+				message: 'Видалення завершено',
+			})
+		})
+		.catch(() => {
+			ElMessage({
+				type: 'error',
+				message: 'Видалення скасовано',
+			})
+		})
 }
 
 const saveModal = () => {
@@ -49,6 +153,13 @@ const closeModal = () => {
 </script>
 <template>
 	<AddProductDrawer v-model="isAddProduct" @save="handleProductSave" />
+	<AddReserveModal
+		v-model="isAddReserve"
+		:product="currentEditProduct"
+		:countProduct="currentEditProduct.count"
+		:warehouseList="props.warehouseList"
+		@save="handleSaveReserves"
+	/>
 
 	<el-dialog
 		:model-value="props.modelValue"
@@ -111,55 +222,68 @@ const closeModal = () => {
 						clearable
 						class="pb-4"
 					/>
+					<el-input
+						v-model="buyerName"
+						placeholder="E-mail покупця"
+						clearable
+						class="pb-4"
+					/>
+					<el-input
+						v-model="managerComment"
+						type="textarea"
+						placeholder="Коментар покупця"
+						rows="4"
+						class="pb-4"
+					/>
 				</div>
 
-				<!-- Блок 3: Інформація про вартість -->
+				<!-- Блок 3: Інформація про доставку -->
 				<div class="w-1/3">
-					<p class="font-semibold pb-4">Інформація про вартість</p>
-					<div class="bg-white shadow-md">
-						<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-							<el-icon><PriceTag /></el-icon>
-							Підсумкова вартість
-						</h2>
-
-						<div class="space-y-3">
-							<div class="flex justify-between items-center text-gray-700">
-								<div class="flex items-center gap-2">
-									<el-icon><ShoppingCart /></el-icon>
-									<span>Вартість товарів</span>
-								</div>
-								<span>1500 грн</span>
-							</div>
-
-							<div class="flex justify-between items-center text-gray-700">
-								<div class="flex items-center gap-2">
-									<el-icon><Money /></el-icon>
-									<span>Накладений платіж (2% + 20 грн)</span>
-								</div>
-								<span>50 грн</span>
-							</div>
-
-							<div class="flex justify-between items-center text-gray-700">
-								<div class="flex items-center gap-2">
-									<el-icon><Box /></el-icon>
-									<span>Вартість упакування</span>
-								</div>
-								<span>30 грн</span>
-							</div>
-						</div>
-
-						<hr class="my-4 border-gray-300" />
-
-						<div
-							class="flex justify-between items-center text-lg font-bold text-blue-600"
-						>
-							<div class="flex items-center gap-2">
-								<el-icon><CreditCard /></el-icon>
-								<span>Загальна вартість</span>
-							</div>
-							<span>1580 грн</span>
-						</div>
-					</div>
+					<p class="font-semibold pb-4">Інформація про отримувача</p>
+					<el-input
+						v-model="buyerName"
+						placeholder="Ім'я отримувача"
+						clearable
+						class="pb-4"
+					/>
+					<el-input
+						v-model="buyerName"
+						placeholder="Телефон отримувача"
+						clearable
+						class="pb-4"
+					/>
+					<el-select
+						v-model="selectedManager"
+						placeholder="Служба доставки"
+						clearable
+						class="pb-4"
+					>
+						<el-option
+							v-for="manager in props.deliveryService"
+							:key="manager.value"
+							:label="manager.label"
+							:value="manager.value"
+						/>
+					</el-select>
+					<el-input
+						v-model="buyerName"
+						placeholder="Місто доставки"
+						clearable
+						class="pb-4"
+					/>
+					<el-select
+						v-model="selectedManager"
+						placeholder="Адреса доставки"
+						clearable
+						class="pb-4"
+					>
+						<el-option
+							v-for="manager in props.deliveryAdress"
+							:key="manager.value"
+							:label="manager.label"
+							:value="manager.value"
+						/>
+					</el-select>
 				</div>
 			</div>
 
@@ -179,12 +303,7 @@ const closeModal = () => {
 					</div>
 				</div>
 
-				<el-table
-					:data="currentProducts"
-					style="width: 100%"
-					border
-					size="small"
-				>
+				<el-table :data="addProducts" style="width: 100%" border size="small">
 					<el-table-column
 						label="Зображення"
 						header-align="center"
@@ -257,9 +376,94 @@ const closeModal = () => {
 							<span>{{ row.price * row.count }}</span>
 						</template>
 					</el-table-column>
+					<el-table-column
+						label="Місце резерву"
+						header-align="center"
+						align="center"
+					>
+						<template #default="{ row }">
+							<div v-if="row.warehouse && row.warehouse.length > 0">
+								<div v-for="(reserve, i) in row.warehouse" :key="i">
+									<EditTextPopover
+										:initialText="reserve.place"
+										@update:textValue="newValue => (reserve.place = newValue)"
+									/>
+								</div>
+							</div>
+							<span v-else class="text-gray-400">Не задано</span>
+						</template>
+					</el-table-column>
+					<el-table-column
+						label="Кількість резерву"
+						header-align="center"
+						align="center"
+					>
+						<template #default="{ row }">
+							<div v-if="row.warehouse && row.warehouse.length > 0">
+								<div v-for="(reserve, i) in row.warehouse" :key="i">
+									<EditCountPopover
+										:initialCount="reserve.count"
+										:maxCount="getMaxReserveCount(row, i)"
+										@update:countValue="newValue => (reserve.count = newValue)"
+									/>
+								</div>
+							</div>
+							<span v-else class="text-gray-400">Не задано</span>
+						</template>
+					</el-table-column>
+					<el-table-column
+						label="Номер резерву"
+						header-align="center"
+						align="center"
+					>
+						<template #default="{ row }">
+							<div v-if="row.warehouse && row.warehouse.length > 0">
+								<div
+									class="flex items-center justify-center gap-4"
+									v-for="(reserve, i) in row.warehouse"
+									:key="i"
+								>
+									<EditTextPopover
+										:initialText="reserve.number"
+										@update:textValue="newValue => (reserve.number = newValue)"
+									/>
+									<div
+										class="mt-1 cursor-pointer hover:text-red-500 transition"
+									>
+										<el-tooltip content="Видалити резерв" placement="top">
+											<el-icon @click="deleteReserve(row.warehouse, i)"
+												><Delete
+											/></el-icon>
+										</el-tooltip>
+									</div>
+								</div>
+							</div>
+							<span v-else class="text-gray-400">Не задано</span>
+						</template>
+					</el-table-column>
 
 					<el-table-column label="Дії" header-align="center" align="center">
-						<template #default="{ row }"> </template>
+						<template #default="{ row }">
+							<div class="flex items-center justify-center gap-4">
+								<div
+									class="text-sm cursor-pointer hover:text-green-500 transition"
+								>
+									<el-tooltip content="Додати резерв" placement="top">
+										<el-icon @click="takeCurrentEditProduct(row)"
+											><DocumentAdd
+										/></el-icon>
+									</el-tooltip>
+								</div>
+
+								<div
+									class="text-sm cursor-pointer hover:text-red-500 transition"
+								>
+									<el-tooltip content="Видалити товар" placement="top">
+										<el-icon><Delete /></el-icon>
+									</el-tooltip>
+								</div>
+							</div>
+						</template>
 					</el-table-column>
 				</el-table>
 			</div>

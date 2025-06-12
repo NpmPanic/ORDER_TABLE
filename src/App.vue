@@ -483,7 +483,13 @@ function formatNumber(value) {
 		:warehouseList="optionsWarehouseReserve"
 		@save="handleSaveReserves"
 	/>
-	<AddOrderDialog v-model="isAddOrder" :managersList="optionsOrderManager" />
+	<AddOrderDialog
+		v-model="isAddOrder"
+		:managersList="optionsOrderManager"
+		:deliveryService="optionsDeliveryService"
+		:deliveryAdress="optionsDeliveryAdress"
+		:warehouseList="optionsWarehouseReserve"
+	/>
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
