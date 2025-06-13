@@ -2,26 +2,23 @@ import { ref } from 'vue'
 
 export const TABLE_DATA = ref([
 	{
-		id: 1,
+		id: 345286913,
 		order: {
-			order_number: '345286913',
 			order_status: 'Доставка',
 			contact_status: 'Не вдалося зв’язатися',
 			pay_status: 'Не оплачено',
 			created_at: '16-04-2025',
-			source: './prom.png',
+			source: 'Prom',
 			manager: '',
 			manager_comment: '',
 		},
 		customer: {
-			id: '1',
 			name: 'Іван Іванович',
 			phone: '+380671112233',
 			email: 'ivan@example.com',
 			comment: '',
 		},
 		recipient: {
-			id: '2',
 			name: 'Оксана Іванова',
 			phone: '+380671112234',
 		},
@@ -65,26 +62,23 @@ export const TABLE_DATA = ref([
 		},
 	},
 	{
-		id: 2,
+		id: 345286218,
 		order: {
-			order_number: '345286218',
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
 			pay_status: 'Не оплачено',
 			created_at: '18-04-2025',
-			source: './prom.png',
+			source: 'Prom',
 			manager: '',
 			manager_comment: '',
 		},
 		customer: {
-			id: '2',
 			name: 'Петро Петрович',
 			phone: '+380671113322',
 			email: 'petro@example.com',
 			comment: '',
 		},
 		recipient: {
-			id: '2',
 			name: 'Марина Петрівна',
 			phone: '+380671114456',
 		},

@@ -16,6 +16,8 @@ import {
 	Box,
 	ShoppingCart,
 	CreditCard,
+	Message,
+	Service,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -47,6 +49,21 @@ const currentOrder = ref({})
 const currentEditProduct = ref({})
 // Переменная хранения цены упаковки
 const packagePrice = ref(10)
+
+const handleSaveOrder = newOrder => {
+	// Создаем полный объект заказа с ID
+	const completeOrder = {
+		...newOrder,
+	}
+
+	// Добавляем заказ в массив
+	TABLE_DATA.value.push(completeOrder)
+
+	ElMessage({
+		type: 'success',
+		message: 'Замовлення успішно додано',
+	})
+}
 
 // Функция подсчета общей цены за товары в текущем заказе
 const getTotalProductsPrice = order => {
@@ -154,7 +171,7 @@ const copyText = async text => {
 
 // Опции для выбора полей поиска
 const optionsSearch = [
-	{ value: 'order.order_number', label: '№ замовлення' },
+	{ value: 'id', label: '№ замовлення' },
 	{ value: 'customer.name', label: 'Покупець' },
 	{ value: 'customer.phone', label: 'Телефон покупця' },
 	{ value: 'delivery.ttn', label: 'Трекінг код' },
@@ -232,11 +249,11 @@ const resultData = computed(() => {
 const tableColumns = ref({
 	'№ замовлення': {
 		visible: true,
-		prop: 'order.order_number',
+		prop: 'id',
 		sortable: false,
 	},
 	Джерело: {
-		visible: false,
+		visible: true,
 		prop: 'order.source',
 		sortable: true,
 	},
@@ -489,6 +506,7 @@ function formatNumber(value) {
 		:deliveryService="optionsDeliveryService"
 		:deliveryAdress="optionsDeliveryAdress"
 		:warehouseList="optionsWarehouseReserve"
+		@save-order="handleSaveOrder"
 	/>
 
 	<!-- Основная таблица с данными -->
@@ -504,7 +522,7 @@ function formatNumber(value) {
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
 				<template #default="props">
-					<div class="w-full flex gap-2">
+					<div class="w-full flex gap-2 px-4">
 						<!-- Замовлення -->
 
 						<div class="w-1/3">
@@ -517,22 +535,29 @@ function formatNumber(value) {
 							>
 								<el-descriptions-item label="№ замовлення">
 									<div class="flex items-center gap-2">
-										<span>{{ props.row.order.order_number }}</span>
+										<span>{{ props.row.id }}</span>
 										<div
 											class="cursor-pointer hover:text-blue-500 transition pt-1"
 										>
-											<el-icon @click="copyText(props.row.order.order_number)"
+											<el-icon @click="copyText(props.row.id)"
 												><DocumentCopy
 											/></el-icon>
 										</div>
 									</div>
 								</el-descriptions-item>
 								<el-descriptions-item label="Джерело">
-									<img
-										class="w-10"
-										:src="props.row.order.source"
-										alt="source"
-									/>
+									<div v-if="props.row.order.source === 'Prom'">
+										<div class="flex items-center gap-2">
+											<el-icon><Message /></el-icon>
+											<span>Пошта</span>
+										</div>
+									</div>
+									<div v-else-if="props.row.order.source === 'Manager'">
+										<div class="flex items-center gap-2">
+											<el-icon><Service /></el-icon>
+											<span>Менеджер</span>
+										</div>
+									</div>
 								</el-descriptions-item>
 								<el-descriptions-item label="Час створення">{{
 									props.row.order.created_at
@@ -1301,20 +1326,26 @@ function formatNumber(value) {
 			>
 				<!-- Кастомные шаблоны для определенных колонок -->
 				<template #default="{ row }">
-					<div
-						class="flex items-center gap-2"
-						v-if="column.prop === 'order.order_number'"
-					>
-						<span>{{ row.order.order_number }}</span>
+					<div class="flex items-center gap-2" v-if="column.prop === 'id'">
+						<span>{{ row.id }}</span>
 						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
-							<el-icon @click="copyText(row.order.order_number)"
-								><DocumentCopy
-							/></el-icon>
+							<el-icon @click="copyText(row.id)"><DocumentCopy /></el-icon>
 						</div>
 					</div>
 
 					<div v-else-if="column.prop === 'order.source'">
-						<img class="w-12" :src="row.order.source" alt="source" />
+						<div v-if="row.order.source === 'Prom'">
+							<div class="flex items-center gap-2">
+								<el-icon><Message /></el-icon>
+								<span>Пошта</span>
+							</div>
+						</div>
+						<div v-else-if="row.order.source === 'Manager'">
+							<div class="flex items-center gap-2">
+								<el-icon><Service /></el-icon>
+								<span>Менеджер</span>
+							</div>
+						</div>
 					</div>
 
 					<div v-else-if="column.prop === 'delivery.delivery_date'">
@@ -1381,14 +1412,7 @@ function formatNumber(value) {
 						</div>
 					</div>
 					<div v-else-if="column.prop === 'products.price'">
-						{{
-							formatNumber(
-								row.products.reduce(
-									(sum, product) => sum + product.price * product.count,
-									0
-								)
-							)
-						}}
+						{{ formatNumber(getTotalPrice(row)) }}
 						<span>&#8372;</span>
 					</div>
 					<div

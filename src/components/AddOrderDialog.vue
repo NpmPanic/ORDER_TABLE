@@ -35,24 +35,21 @@ const newOrder = ref([
 	{
 		id: '',
 		order: {
-			order_number: '',
 			order_status: 'Новий',
 			contact_status: '',
 			pay_status: 'Не оплачено',
 			created_at: '',
-			source: 'По дзвінку',
+			source: 'Manager',
 			manager: '',
 			manager_comment: '',
 		},
 		customer: {
-			id: '',
 			name: '',
 			phone: '',
 			email: '',
 			comment: '',
 		},
 		recipient: {
-			id: '',
 			name: '',
 			phone: '',
 		},
@@ -143,8 +140,131 @@ const deleteReserve = (warehouseArray, index) => {
 		})
 }
 
+// Удадение товара из списка
+const removeProduct = product => {
+	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
+		confirmButtonText: 'Так',
+		cancelButtonText: 'Ні',
+		type: 'error',
+		icon: Delete,
+	})
+		.then(() => {
+			const index = addProducts.value.findIndex(p => p.id === product.id)
+			if (index !== -1) {
+				addProducts.value.splice(index, 1)
+				ElMessage({
+					type: 'success',
+					message: 'Видалення завершено',
+				})
+			}
+		})
+		.catch(() => {
+			ElMessage({
+				type: 'error',
+				message: 'Видалення скасовано',
+			})
+		})
+}
+
+// Генерация номера заказа
+function generateOrderNumber() {
+	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+	const firstChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+
+	let result = ''
+
+	// Первый символ - только буква
+	result += firstChars.charAt(Math.floor(Math.random() * firstChars.length))
+
+	// Остальные 11 символов - буквы или цифры
+	for (let i = 0; i < 11; i++) {
+		result += chars.charAt(Math.floor(Math.random() * chars.length))
+	}
+
+	return result
+}
+// Генерация даты создания заказа
+function getTodayDate() {
+	const today = new Date()
+	const day = String(today.getDate()).padStart(2, '0')
+	const month = String(today.getMonth() + 1).padStart(2, '0') // Месяцы начинаются с 0
+	const year = today.getFullYear()
+
+	return `${day}/${month}/${year}`
+}
+
+// Функция для сброса формы (опционально)
+const resetForm = () => {
+	newOrder.value = [
+		{
+			id: '',
+			order: {
+				order_status: 'Новий',
+				contact_status: '',
+				pay_status: 'Не оплачено',
+				created_at: '',
+				source: 'Manager',
+				manager: '',
+				manager_comment: '',
+			},
+			customer: {
+				name: '',
+				phone: '',
+				email: '',
+				comment: '',
+			},
+			recipient: {
+				name: '',
+				phone: '',
+			},
+			products: [],
+			additional_products: [],
+			delivery: {
+				delivery_date: '',
+				service: '',
+				ttn: '',
+				adress: '',
+				city: '',
+				delivery_status: '',
+				delivery_price: '',
+			},
+		},
+	]
+	addProducts.value = []
+}
+
 const saveModal = () => {
+	// Проверка заполнения обязательных полей
+	const requiredFields = [
+		newOrder.value[0].order.manager,
+		newOrder.value[0].customer.name,
+		newOrder.value[0].customer.phone,
+		newOrder.value[0].recipient.name,
+		newOrder.value[0].recipient.phone,
+		newOrder.value[0].delivery.service,
+		newOrder.value[0].delivery.city,
+		newOrder.value[0].delivery.adress,
+		addProducts.value.length > 0,
+	]
+
+	if (requiredFields.some(field => !field)) {
+		ElMessage({
+			type: 'error',
+			message:
+				"Заповніть всі обов'язкові поля: менеджер, дані покупця, отримувача, доставки та товару",
+		})
+		return
+	}
+
+	// Генерация данных заказа
+	newOrder.value[0].id = generateOrderNumber()
+	newOrder.value[0].order.created_at = getTodayDate()
+	newOrder.value[0].products = [...addProducts.value]
+
+	// Сохранение и закрытие
 	emit('update:modelValue', false)
+	emit('save-order', newOrder.value[0])
+	resetForm()
 }
 
 const closeModal = () => {
@@ -184,7 +304,7 @@ const closeModal = () => {
 					<p class="font-semibold pb-4">Основна інформація</p>
 
 					<el-select
-						v-model="selectedManager"
+						v-model="newOrder[0].order.manager"
 						placeholder="Обрати менеджера"
 						clearable
 						class="pb-4"
@@ -198,11 +318,12 @@ const closeModal = () => {
 					</el-select>
 
 					<el-input
-						v-model="managerComment"
+						v-model="newOrder[0].order.manager_comment"
 						type="textarea"
+						maxlength="30"
+						show-word-limit
 						placeholder="Коментар менеджера"
 						rows="4"
-						class="pb-4"
 					/>
 				</div>
 
@@ -211,28 +332,21 @@ const closeModal = () => {
 					<p class="font-semibold pb-4">Інформація про покупця</p>
 
 					<el-input
-						v-model="buyerName"
+						v-model="newOrder[0].customer.name"
 						placeholder="Ім'я покупця"
 						clearable
 						class="pb-4"
 					/>
 					<el-input
-						v-model="buyerName"
+						v-model="newOrder[0].customer.phone"
 						placeholder="Телефон покупця"
 						clearable
 						class="pb-4"
 					/>
 					<el-input
-						v-model="buyerName"
+						v-model="newOrder[0].customer.email"
 						placeholder="E-mail покупця"
 						clearable
-						class="pb-4"
-					/>
-					<el-input
-						v-model="managerComment"
-						type="textarea"
-						placeholder="Коментар покупця"
-						rows="4"
 						class="pb-4"
 					/>
 				</div>
@@ -241,19 +355,19 @@ const closeModal = () => {
 				<div class="w-1/3">
 					<p class="font-semibold pb-4">Інформація про отримувача</p>
 					<el-input
-						v-model="buyerName"
+						v-model="newOrder[0].recipient.name"
 						placeholder="Ім'я отримувача"
 						clearable
 						class="pb-4"
 					/>
 					<el-input
-						v-model="buyerName"
+						v-model="newOrder[0].recipient.phone"
 						placeholder="Телефон отримувача"
 						clearable
 						class="pb-4"
 					/>
 					<el-select
-						v-model="selectedManager"
+						v-model="newOrder[0].delivery.service"
 						placeholder="Служба доставки"
 						clearable
 						class="pb-4"
@@ -266,13 +380,13 @@ const closeModal = () => {
 						/>
 					</el-select>
 					<el-input
-						v-model="buyerName"
+						v-model="newOrder[0].delivery.city"
 						placeholder="Місто доставки"
 						clearable
 						class="pb-4"
 					/>
 					<el-select
-						v-model="selectedManager"
+						v-model="newOrder[0].delivery.adress"
 						placeholder="Адреса доставки"
 						clearable
 						class="pb-4"
@@ -295,7 +409,7 @@ const closeModal = () => {
 						<span class="font-medium">Додати товари</span>
 					</div>
 					<div class="flex items-center gap-4">
-						<span class="text-sm"> {{}} позиції </span>
+						<span class="text-sm"> {{ addProducts.length }} позиції </span>
 
 						<el-button type="primary" size="small" @click="isAddProduct = true">
 							Додати
@@ -459,7 +573,7 @@ const closeModal = () => {
 									class="text-sm cursor-pointer hover:text-red-500 transition"
 								>
 									<el-tooltip content="Видалити товар" placement="top">
-										<el-icon><Delete /></el-icon>
+										<el-icon @click="removeProduct(row)"><Delete /></el-icon>
 									</el-tooltip>
 								</div>
 							</div>
