@@ -16,13 +16,15 @@ import AddProductDrawer from './AddProductDrawer.vue'
 import AddReserveModal from './AddReserveModal.vue'
 import EditTextPopover from './EditTextPopover.vue'
 import EditCountPopover from './EditCountPopover.vue'
+import EditPricePopover from './EditPricePopover.vue'
 
 const props = defineProps({
 	modelValue: Boolean,
-	managersList: Array,
-	deliveryService: Array,
-	deliveryAdress: Array,
-	warehouseList: Array,
+	new_orderManagerList: Array,
+	new_orderDeliveryService: Array,
+	new_orderDeliveryAdress: Array,
+	new_orderWarehouseList: Array,
+	new_orderFormatNumber: Function,
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -30,6 +32,7 @@ const isAddProduct = ref(false)
 const isAddReserve = ref(false)
 const addProducts = ref([])
 const currentEditProduct = ref([])
+const packagePrice = ref(10)
 
 const newOrder = ref([
 	{
@@ -193,6 +196,31 @@ function getTodayDate() {
 	return `${day}/${month}/${year}`
 }
 
+const getTotalProductsPrice = products => {
+	const mainProductsSum = products.reduce(
+		(sum, p) => sum + p.price * p.count,
+		0
+	)
+
+	return +mainProductsSum.toFixed(2)
+}
+
+const getDeliveryPrice = products => {
+	if (!products || products.length === 0) {
+		return 0
+	}
+	const mainDeliverySum = getTotalProductsPrice(products) * 0.02 + 20
+	return +mainDeliverySum.toFixed(2)
+}
+
+const getTotalPrice = products => {
+	const mainTotalSum =
+		getTotalProductsPrice(products) +
+		getDeliveryPrice(products) +
+		packagePrice.value
+	return +mainTotalSum.toFixed(2)
+}
+
 // Функция для сброса формы (опционально)
 const resetForm = () => {
 	newOrder.value = [
@@ -277,7 +305,7 @@ const closeModal = () => {
 		v-model="isAddReserve"
 		:product="currentEditProduct"
 		:countProduct="currentEditProduct.count"
-		:warehouseList="props.warehouseList"
+		:warehouseList="props.new_orderWarehouseList"
 		@save="handleSaveReserves"
 	/>
 
@@ -298,9 +326,9 @@ const closeModal = () => {
 			</div>
 		</template>
 		<template #default>
-			<div class="flex gap-4 px-4 mb-10">
+			<div class="flex gap-5 px-4 mb-10">
 				<!-- Блок 1: Основна інформація -->
-				<div class="w-1/3">
+				<div class="w-1/4">
 					<p class="font-semibold pb-4">Основна інформація</p>
 
 					<el-select
@@ -310,7 +338,7 @@ const closeModal = () => {
 						class="pb-4"
 					>
 						<el-option
-							v-for="manager in props.managersList"
+							v-for="manager in props.new_orderManagerList"
 							:key="manager.value"
 							:label="manager.label"
 							:value="manager.value"
@@ -328,7 +356,7 @@ const closeModal = () => {
 				</div>
 
 				<!-- Блок 2: Інформація про покупця -->
-				<div class="w-1/3">
+				<div class="w-1/4">
 					<p class="font-semibold pb-4">Інформація про покупця</p>
 
 					<el-input
@@ -352,7 +380,7 @@ const closeModal = () => {
 				</div>
 
 				<!-- Блок 3: Інформація про доставку -->
-				<div class="w-1/3">
+				<div class="w-1/4">
 					<p class="font-semibold pb-4">Інформація про отримувача</p>
 					<el-input
 						v-model="newOrder[0].recipient.name"
@@ -373,10 +401,10 @@ const closeModal = () => {
 						class="pb-4"
 					>
 						<el-option
-							v-for="manager in props.deliveryService"
-							:key="manager.value"
-							:label="manager.label"
-							:value="manager.value"
+							v-for="service in props.new_orderDeliveryService"
+							:key="service.value"
+							:label="service.label"
+							:value="service.value"
 						/>
 					</el-select>
 					<el-input
@@ -392,12 +420,86 @@ const closeModal = () => {
 						class="pb-4"
 					>
 						<el-option
-							v-for="manager in props.deliveryAdress"
-							:key="manager.value"
-							:label="manager.label"
-							:value="manager.value"
+							v-for="adress in props.new_orderDeliveryAdress"
+							:key="adress.value"
+							:label="adress.label"
+							:value="adress.value"
 						/>
 					</el-select>
+				</div>
+				<!-- Блок 4: Інформація про вартість -->
+				<div class="w-1/4">
+					<p class="font-semibold pb-4">Інформація про вартість</p>
+					<div class="bg-white shadow-md">
+						<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+							<el-icon><PriceTag /></el-icon>
+							Підсумкова вартість
+						</h2>
+
+						<div class="space-y-3">
+							<div class="flex justify-between items-center text-gray-700">
+								<div class="flex items-center gap-2">
+									<el-icon><ShoppingCart /></el-icon>
+									<span>Вартість товарів</span>
+								</div>
+								<span
+									>{{
+										props.new_orderFormatNumber(
+											getTotalProductsPrice(addProducts)
+										)
+									}}
+									грн</span
+								>
+							</div>
+
+							<div class="flex justify-between items-center text-gray-700">
+								<div class="flex items-center gap-2">
+									<el-icon><Money /></el-icon>
+									<span>Накладений платіж (2% + 20 грн)</span>
+								</div>
+
+								<span
+									>{{
+										props.new_orderFormatNumber(getDeliveryPrice(addProducts))
+									}}
+									грн</span
+								>
+							</div>
+
+							<div class="flex justify-between items-center text-gray-700">
+								<div class="flex items-center gap-2">
+									<el-icon><Box /></el-icon>
+									<span>Вартість упакування</span>
+								</div>
+								<div
+									class="flex items-center justify-center gap-1 package-price-link"
+								>
+									<EditPricePopover
+										:initialPrice="packagePrice"
+										@update:priceValue="newValue => (packagePrice = newValue)"
+									/>
+									<span> грн</span>
+								</div>
+							</div>
+						</div>
+
+						<hr class="my-4 border-gray-300" />
+
+						<div
+							class="flex justify-between items-center text-lg font-bold text-blue-600"
+						>
+							<div class="flex items-center gap-2">
+								<el-icon><CreditCard /></el-icon>
+								<span>Загальна вартість</span>
+							</div>
+							<span
+								>{{
+									props.new_orderFormatNumber(getTotalPrice(addProducts))
+								}}
+								грн</span
+							>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -467,7 +569,11 @@ const closeModal = () => {
 					>
 						<template #default="{ row }">
 							<div class="flex gap-1 items-center justify-center">
-								<span>{{ row.count }}</span>
+								<EditCountPopover
+									:initialCount="row.count"
+									@update:countValue="newValue => (row.count = newValue)"
+								/>
+								<span>шт</span>
 							</div>
 						</template>
 					</el-table-column>
@@ -477,7 +583,13 @@ const closeModal = () => {
 						align="center"
 					>
 						<template #default="{ row }">
-							<span>{{ row.price }}</span>
+							<div class="flex items-center justify-center gap-1">
+								<EditPricePopover
+									:initialPrice="row.price"
+									@update:priceValue="newValue => (row.price = newValue)"
+								/>
+								<span> грн</span>
+							</div>
 						</template>
 					</el-table-column>
 
@@ -487,7 +599,12 @@ const closeModal = () => {
 						align="center"
 					>
 						<template #default="{ row }">
-							<span>{{ row.price * row.count }}</span>
+							<span
+								>{{
+									props.new_orderFormatNumber(row.price * row.count)
+								}}
+								грн</span
+							>
 						</template>
 					</el-table-column>
 					<el-table-column
@@ -594,3 +711,9 @@ const closeModal = () => {
 		</template>
 	</el-dialog>
 </template>
+
+<style scoped>
+.package-price-link :deep(.el-link) {
+	font-size: 14px;
+}
+</style>

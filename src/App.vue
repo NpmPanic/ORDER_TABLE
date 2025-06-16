@@ -502,10 +502,11 @@ function formatNumber(value) {
 	/>
 	<AddOrderDialog
 		v-model="isAddOrder"
-		:managersList="optionsOrderManager"
-		:deliveryService="optionsDeliveryService"
-		:deliveryAdress="optionsDeliveryAdress"
-		:warehouseList="optionsWarehouseReserve"
+		:new_orderManagerList="optionsOrderManager"
+		:new_orderDeliveryService="optionsDeliveryService"
+		:new_orderDeliveryAdress="optionsDeliveryAdress"
+		:new_orderWarehouseList="optionsWarehouseReserve"
+		:new_orderFormatNumber="formatNumber"
 		@save-order="handleSaveOrder"
 	/>
 
@@ -678,7 +679,7 @@ function formatNumber(value) {
 
 								<el-descriptions-item label="Коментар менеджера">
 									<EditCommentPopover
-										:initialText="props.row.order.manager_comment"
+										:initialComment="props.row.order.manager_comment"
 										@update:textValue="
 											newValue => (props.row.order.manager_comment = newValue)
 										"
@@ -884,10 +885,15 @@ function formatNumber(value) {
 										align="center"
 									>
 										<template #default="{ row }">
-											<EditPricePopover
-												:initialPrice="row.price"
-												@update:priceValue="newValue => (row.price = newValue)"
-											/>
+											<div class="flex items-center justify-center gap-1">
+												<EditPricePopover
+													:initialPrice="row.price"
+													@update:priceValue="
+														newValue => (row.price = newValue)
+													"
+												/>
+												<span> грн</span>
+											</div>
 										</template>
 									</el-table-column>
 
@@ -897,9 +903,7 @@ function formatNumber(value) {
 										align="center"
 									>
 										<template #default="{ row }">
-											<span
-												>{{ formatNumber(row.price * row.count) }} &#8372;</span
-											>
+											<span>{{ formatNumber(row.price * row.count) }} грн</span>
 										</template>
 									</el-table-column>
 									<el-table-column
@@ -1115,10 +1119,15 @@ function formatNumber(value) {
 										align="center"
 									>
 										<template #default="{ row }">
-											<EditPricePopover
-												:initialPrice="row.price"
-												@update:priceValue="newValue => (row.price = newValue)"
-											/>
+											<div class="flex items-center justify-center gap-1">
+												<EditPricePopover
+													:initialPrice="row.price"
+													@update:priceValue="
+														newValue => (row.price = newValue)
+													"
+												/>
+												<span> грн</span>
+											</div>
 										</template>
 									</el-table-column>
 
@@ -1128,9 +1137,7 @@ function formatNumber(value) {
 										align="center"
 									>
 										<template #default="{ row }">
-											<span
-												>{{ formatNumber(row.price * row.count) }} &#8372;</span
-											>
+											<span>{{ formatNumber(row.price * row.count) }} грн</span>
 										</template>
 									</el-table-column>
 									<el-table-column
@@ -1290,7 +1297,7 @@ function formatNumber(value) {
 										<el-icon><Box /></el-icon>
 										<span>Вартість упакування</span>
 									</div>
-									<div class="package-price-link">
+									<div class="flex items-center gap-1 package-price-link">
 										<EditPricePopover
 											:initialPrice="packagePrice"
 											@update:priceValue="newValue => (packagePrice = newValue)"
