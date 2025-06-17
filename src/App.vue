@@ -18,6 +18,7 @@ import {
 	CreditCard,
 	Message,
 	Service,
+	View,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -29,8 +30,9 @@ import EditCommentPopover from './components/EditCommentPopover.vue'
 import EditPricePopover from './components/EditPricePopover.vue'
 import EditProductsDrawer from './components/EditProductsDrawer.vue'
 import AddProductDrawer from './components/AddProductDrawer.vue'
-import AddReserveModal from './components/AddReserveModal.vue'
+import AddReserveDialog from './components/AddReserveDialog.vue'
 import AddOrderDialog from './components/AddOrderDialog.vue'
+import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
 
 // Переменная глобального поиска таблицы
 const inputQuerySearch = ref('')
@@ -42,6 +44,7 @@ const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
 const isAddReserve = ref(false)
 const isAdditionalProducts = ref(true)
+const isDeliveryStatusDialog = ref(false)
 const isAddOrder = ref(false)
 // Переменная хранения текущего заказа
 const currentOrder = ref({})
@@ -493,7 +496,7 @@ function formatNumber(value) {
 		:product="currentEditProduct"
 		@save="handleEditProductSave"
 	/>
-	<AddReserveModal
+	<AddReserveDialog
 		v-model="isAddReserve"
 		:product="currentEditProduct"
 		:countProduct="currentEditProduct.count"
@@ -509,6 +512,7 @@ function formatNumber(value) {
 		:new_orderFormatNumber="formatNumber"
 		@save-order="handleSaveOrder"
 	/>
+	<DeliveryStatusDialog v-model="isDeliveryStatusDialog" />
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -761,20 +765,36 @@ function formatNumber(value) {
 									</el-select>
 								</el-descriptions-item>
 								<el-descriptions-item label="Адреса доставки">
-									<el-select
-										v-model="props.row.delivery.adress"
-										clearable
-										placeholder="Обрати"
-										style="width: 220px"
-										size="small"
-									>
-										<el-option
-											v-for="item in optionsDeliveryAdress"
-											:key="item.value"
-											:label="item.label"
-											:value="item.value"
-										/>
-									</el-select>
+									<div class="flex items-center gap-2">
+										<el-select
+											v-model="props.row.delivery.adress"
+											clearable
+											placeholder="Обрати"
+											style="width: 220px"
+											size="small"
+										>
+											<el-option
+												v-for="item in optionsDeliveryAdress"
+												:key="item.value"
+												:label="item.label"
+												:value="item.value"
+											/>
+										</el-select>
+										<div
+											class="text-sm cursor-pointer hover:text-blue-500 transition"
+										>
+											<el-tooltip
+												class="box-item"
+												effect="dark"
+												content="Переглянути статус доставки"
+												placement="top"
+											>
+												<el-icon @click="isDeliveryStatusDialog = true"
+													><View
+												/></el-icon>
+											</el-tooltip>
+										</div>
+									</div>
 								</el-descriptions-item>
 								<el-descriptions-item label="Трекінг код">
 									<div class="flex items-center gap-4">
@@ -784,13 +804,27 @@ function formatNumber(value) {
 												@click="generateNumber(props.row)"
 												class="text-sm cursor-pointer hover:text-green-500 transition"
 											>
-												<el-icon><DocumentAdd /></el-icon>
+												<el-tooltip
+													class="box-item"
+													effect="dark"
+													content="Створити номер"
+													placement="top"
+												>
+													<el-icon><DocumentAdd /></el-icon>
+												</el-tooltip>
 											</div>
 											<div
 												@click="props.row.delivery.ttn = null"
 												class="text-sm cursor-pointer hover:text-red-500 transition"
 											>
-												<el-icon><Delete /></el-icon>
+												<el-tooltip
+													class="box-item"
+													effect="dark"
+													content="Видалити номер"
+													placement="top"
+												>
+													<el-icon><Delete /></el-icon>
+												</el-tooltip>
 											</div>
 										</div>
 									</div>

@@ -1,7 +1,7 @@
 <script setup>
 import { Search, Close } from '@element-plus/icons-vue'
 import { PRODUCTS_DATA } from './ProductsData'
-import { ref, computed } from 'vue'
+import { ref, watch } from 'vue'
 
 const searchInput = ref()
 // Переменная хранения массива выбраных товаров
@@ -16,14 +16,19 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'save'])
 
 // Фильтрация данных по поисковому запросу
-const filteredData = computed(() => {
-	if (!searchInput.value) return PRODUCTS_DATA.value
-	const searchTerm = searchInput.value.toLowerCase()
-	return PRODUCTS_DATA.value.filter(
-		item =>
-			item.name.toLowerCase().includes(searchTerm) ||
-			item.id.toLowerCase().includes(searchTerm)
-	)
+const filteredData = ref([...PRODUCTS_DATA.value])
+
+watch(searchInput, val => {
+	if (!val) {
+		filteredData.value = [...PRODUCTS_DATA.value]
+	} else {
+		const searchTerm = val.toLowerCase()
+		filteredData.value = PRODUCTS_DATA.value.filter(
+			item =>
+				item.name.toLowerCase().includes(searchTerm) ||
+				item.id.toLowerCase().includes(searchTerm)
+		)
+	}
 })
 
 // Сбрасываем выделение и количество
@@ -78,6 +83,7 @@ const saveSelection = () => {
 		<template #default>
 			<el-table
 				:data="filteredData"
+				:row-key="row => row.id"
 				style="width: 100%"
 				@selection-change="selectedRows = $event"
 				ref="tableRef"

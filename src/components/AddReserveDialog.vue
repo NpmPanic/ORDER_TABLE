@@ -80,7 +80,7 @@ const closeModal = () => {
 		align-center
 	>
 		<template #header>
-			<div class="flex justify-between items-center w-full">
+			<div class="flex justify-between items-center w-full px-4">
 				<span class="text-xl font-semibold">Додати резерв</span>
 				<el-button @click="closeModal" link circle>
 					<el-icon size="large"
@@ -93,7 +93,7 @@ const closeModal = () => {
 			<div
 				v-for="(reserve, index) in input_reserves"
 				:key="index"
-				class="flex items-center gap-5 mt-8 mb-8"
+				class="flex items-center gap-5 mt-10 mb-10 px-4"
 			>
 				<el-select
 					v-model="reserve.place"
@@ -136,7 +136,7 @@ const closeModal = () => {
 		</template>
 
 		<template #footer>
-			<div class="dialog-footer">
+			<div class="px-4">
 				<el-button @click="closeModal">Скасувати</el-button>
 				<el-button @click="saveReserve" type="primary"> Зберегти </el-button>
 			</div>

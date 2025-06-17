@@ -13,7 +13,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref } from 'vue'
 import AddProductDrawer from './AddProductDrawer.vue'
-import AddReserveModal from './AddReserveModal.vue'
+import AddReserveDialog from './AddReserveDialog.vue'
 import EditTextPopover from './EditTextPopover.vue'
 import EditCountPopover from './EditCountPopover.vue'
 import EditPricePopover from './EditPricePopover.vue'
@@ -301,7 +301,7 @@ const closeModal = () => {
 </script>
 <template>
 	<AddProductDrawer v-model="isAddProduct" @save="handleProductSave" />
-	<AddReserveModal
+	<AddReserveDialog
 		v-model="isAddReserve"
 		:product="currentEditProduct"
 		:countProduct="currentEditProduct.count"
