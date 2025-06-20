@@ -2,7 +2,6 @@
 import {
 	Search,
 	User,
-	Switch,
 	Edit,
 	Delete,
 	ChatRound,
@@ -34,10 +33,192 @@ import AddReserveDialog from './components/AddReserveDialog.vue'
 import AddOrderDialog from './components/AddOrderDialog.vue'
 import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
 
-// Переменная глобального поиска таблицы
+// Опции для выбора полей поиска
+const multiple = { multiple: true, expandTrigger: 'click' }
+const options = [
+	{
+		value: 'id',
+		label: '№ замовлення',
+	},
+	{
+		value: 'order.order_status',
+		label: 'Статус',
+		children: [
+			{
+				value: 'Новий',
+				label: 'Новий',
+			},
+			{
+				value: 'На збір',
+				label: 'На збір',
+			},
+			{
+				value: 'Недозвін - 1',
+				label: 'Недозвін - 1',
+			},
+			{
+				value: 'Недозвін - 2',
+				label: 'Недозвін - 2',
+			},
+			{
+				value: 'Незабрано',
+				label: 'Незабрано',
+			},
+			{
+				value: 'Виїхав банк',
+				label: 'Виїхав банк',
+			},
+			{
+				value: 'Відправлений',
+				label: 'Відправлений',
+			},
+			{
+				value: 'Підтверджений',
+				label: 'Підтверджений',
+			},
+			{
+				value: 'Оплачено',
+				label: 'Оплачено',
+			},
+			{
+				value: 'Кременчук видача',
+				label: 'Кременчук видача',
+			},
+			{
+				value: 'Київ на збір',
+				label: 'Київ на збір',
+			},
+			{
+				value: 'Київ видача',
+				label: 'Київ видача',
+			},
+			{
+				value: 'Харків на збір',
+				label: 'Харків на збір',
+			},
+			{
+				value: 'Харків видача',
+				label: 'Харків видача',
+			},
+			{
+				value: 'Чернівці на збір',
+				label: 'Чернівці на збір',
+			},
+			{
+				value: 'Чернівці видача',
+				label: 'Чернівці видача',
+			},
+			{
+				value: 'Львів Куліша на збір',
+				label: 'Львів Куліша на збір',
+			},
+			{
+				value: 'Львів Куліша видача',
+				label: 'Львів Куліша видача',
+			},
+			{
+				value: 'Львів Маф на збір',
+				label: 'Львів Маф на збір',
+			},
+			{
+				value: 'Львів Маф видача',
+				label: 'Львів Маф видача',
+			},
+			{
+				value: 'Львів Сільпо на збір',
+				label: 'Львів Сільпо на збір',
+			},
+			{
+				value: 'Львів Сільпо видача',
+				label: 'Львів Сільпо видача',
+			},
+			{
+				value: 'Піксель на збір',
+				label: 'Піксель на збір',
+			},
+			{
+				value: 'Піксель видача',
+				label: 'Піксель видача',
+			},
+			{
+				value: 'Ізюм ЖД на збір',
+				label: 'Ізюм ЖД на збір',
+			},
+			{
+				value: 'Ізюм ЖД видача',
+				label: 'Ізюм ЖД видача',
+			},
+			{
+				value: 'Канів на збір',
+				label: 'Канів на збір',
+			},
+			{
+				value: 'Канів видача',
+				label: 'Канів видача',
+			},
+			{
+				value: 'Чортків на збір',
+				label: 'Чортків на збір',
+			},
+			{
+				value: 'Чортків видача',
+				label: 'Чортків видача',
+			},
+			{
+				value: 'Південноукраїнськ на збір',
+				label: 'Південноукраїнськ на збір',
+			},
+			{
+				value: 'Південноукраїнськ видача',
+				label: 'Південноукраїнськ видача',
+			},
+		],
+	},
+
+	{
+		value: 'order.manager',
+		label: 'Менеджер',
+		children: [
+			{
+				value: 'Андрій',
+				label: 'Андрій',
+			},
+			{
+				value: 'Марина',
+				label: 'Марина',
+			},
+			{
+				value: 'Тетяна',
+				label: 'Тетяна',
+			},
+			{
+				value: 'Богдан',
+				label: 'Богдан',
+			},
+			{
+				value: 'Оксана',
+				label: 'Оксана',
+			},
+		],
+	},
+	{
+		value: 'customer.name',
+		label: 'Покупець',
+	},
+	{
+		value: 'customer.phone',
+		label: 'Телефон покупця',
+	},
+	{
+		value: 'delivery.ttn',
+		label: 'Трекінг код',
+	},
+]
+
+// Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
-// Переменная глобальной категории поиска таблицы
-const valueQuerySelect = ref('')
+// Переменная хранения данных категории поиска
+const categoryQuerySearch = ref([])
 
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
@@ -172,15 +353,6 @@ const copyText = async text => {
 	}
 }
 
-// Опции для выбора полей поиска
-const optionsSearch = [
-	{ value: 'id', label: '№ замовлення' },
-	{ value: 'customer.name', label: 'Покупець' },
-	{ value: 'customer.phone', label: 'Телефон покупця' },
-	{ value: 'delivery.ttn', label: 'Трекінг код' },
-	{ value: 'order.manager', label: 'Менеджер' },
-]
-
 // Опции для выбора служб доставки
 const optionsOrderManager = [
 	{ value: 'Андрій', label: 'Андрій' },
@@ -218,11 +390,6 @@ const optionsWarehouseReserve = [
 	{ value: 'Магазин 5', label: 'Магазин 5' },
 ]
 
-// Функция для получения значения из объекта по пути
-const getValueByPath = (obj, path) => {
-	return path.split('.').reduce((acc, key) => acc?.[key], obj)
-}
-
 // Функция генерации номера ТТН
 
 function generateNumber(row) {
@@ -239,13 +406,7 @@ function generateNumber(row) {
 
 // Фильтрация данных таблицы по поисковому запросу
 const resultData = computed(() => {
-	if (!valueQuerySelect.value) return TABLE_DATA.value
-	return TABLE_DATA.value.filter(item => {
-		const fieldValue = getValueByPath(item, valueQuerySelect.value)
-		return String(fieldValue)
-			.toLowerCase()
-			.includes(inputQuerySearch.value.toLowerCase())
-	})
+	return TABLE_DATA.value
 })
 
 // Объект с настройками колонок таблицы
@@ -457,20 +618,24 @@ function formatNumber(value) {
 				:prefix-icon="Search"
 				clearable
 			/>
-			<el-select
-				v-model="valueQuerySelect"
-				style="width: 240px"
-				placeholder="Вибрати"
-				:suffix-icon="Switch"
-				clearable
-			>
-				<el-option
-					v-for="item in optionsSearch"
-					:key="item.value"
-					:label="item.label"
-					:value="item.value"
-				/>
-			</el-select>
+			<div class="flex gap-5">
+				<el-dropdown placement="bottom-start" trigger="click">
+					<el-button type="primary">Фільтри</el-button>
+					<template #dropdown>
+						<div>
+							<el-cascader-panel
+								v-model="categoryQuerySearch"
+								style="width: fit-content"
+								:options="options"
+								:props="multiple"
+							/>
+						</div>
+					</template>
+				</el-dropdown>
+				<div v-for="item in categoryQuerySearch" :key="item.index">
+					<el-tag type="primary" size="large">{{ item }}</el-tag>
+				</div>
+			</div>
 		</div>
 		<div>
 			<el-button @click="isAddOrder = true" type="success" plain
@@ -1454,7 +1619,7 @@ function formatNumber(value) {
 					</div>
 					<div v-else-if="column.prop === 'products.price'">
 						{{ formatNumber(getTotalPrice(row)) }}
-						<span>&#8372;</span>
+						<span> грн</span>
 					</div>
 					<div
 						class="flex items-center gap-2"
