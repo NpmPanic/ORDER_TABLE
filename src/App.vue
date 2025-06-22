@@ -33,187 +33,54 @@ import AddReserveDialog from './components/AddReserveDialog.vue'
 import AddOrderDialog from './components/AddOrderDialog.vue'
 import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
 
-// Опции для выбора полей поиска
-const multiple = { multiple: true, expandTrigger: 'click' }
-const options = [
-	{
-		value: 'id',
-		label: '№ замовлення',
-	},
-	{
-		value: 'order.order_status',
-		label: 'Статус',
-		children: [
-			{
-				value: 'Новий',
-				label: 'Новий',
-			},
-			{
-				value: 'На збір',
-				label: 'На збір',
-			},
-			{
-				value: 'Недозвін - 1',
-				label: 'Недозвін - 1',
-			},
-			{
-				value: 'Недозвін - 2',
-				label: 'Недозвін - 2',
-			},
-			{
-				value: 'Незабрано',
-				label: 'Незабрано',
-			},
-			{
-				value: 'Виїхав банк',
-				label: 'Виїхав банк',
-			},
-			{
-				value: 'Відправлений',
-				label: 'Відправлений',
-			},
-			{
-				value: 'Підтверджений',
-				label: 'Підтверджений',
-			},
-			{
-				value: 'Оплачено',
-				label: 'Оплачено',
-			},
-			{
-				value: 'Кременчук видача',
-				label: 'Кременчук видача',
-			},
-			{
-				value: 'Київ на збір',
-				label: 'Київ на збір',
-			},
-			{
-				value: 'Київ видача',
-				label: 'Київ видача',
-			},
-			{
-				value: 'Харків на збір',
-				label: 'Харків на збір',
-			},
-			{
-				value: 'Харків видача',
-				label: 'Харків видача',
-			},
-			{
-				value: 'Чернівці на збір',
-				label: 'Чернівці на збір',
-			},
-			{
-				value: 'Чернівці видача',
-				label: 'Чернівці видача',
-			},
-			{
-				value: 'Львів Куліша на збір',
-				label: 'Львів Куліша на збір',
-			},
-			{
-				value: 'Львів Куліша видача',
-				label: 'Львів Куліша видача',
-			},
-			{
-				value: 'Львів Маф на збір',
-				label: 'Львів Маф на збір',
-			},
-			{
-				value: 'Львів Маф видача',
-				label: 'Львів Маф видача',
-			},
-			{
-				value: 'Львів Сільпо на збір',
-				label: 'Львів Сільпо на збір',
-			},
-			{
-				value: 'Львів Сільпо видача',
-				label: 'Львів Сільпо видача',
-			},
-			{
-				value: 'Піксель на збір',
-				label: 'Піксель на збір',
-			},
-			{
-				value: 'Піксель видача',
-				label: 'Піксель видача',
-			},
-			{
-				value: 'Ізюм ЖД на збір',
-				label: 'Ізюм ЖД на збір',
-			},
-			{
-				value: 'Ізюм ЖД видача',
-				label: 'Ізюм ЖД видача',
-			},
-			{
-				value: 'Канів на збір',
-				label: 'Канів на збір',
-			},
-			{
-				value: 'Канів видача',
-				label: 'Канів видача',
-			},
-			{
-				value: 'Чортків на збір',
-				label: 'Чортків на збір',
-			},
-			{
-				value: 'Чортків видача',
-				label: 'Чортків видача',
-			},
-			{
-				value: 'Південноукраїнськ на збір',
-				label: 'Південноукраїнськ на збір',
-			},
-			{
-				value: 'Південноукраїнськ видача',
-				label: 'Південноукраїнськ видача',
-			},
-		],
-	},
+const removeTag = index => {
+	categoryQuerySearch.value.splice(index, 1)
+}
 
-	{
-		value: 'order.manager',
-		label: 'Менеджер',
-		children: [
-			{
-				value: 'Андрій',
-				label: 'Андрій',
-			},
-			{
-				value: 'Марина',
-				label: 'Марина',
-			},
-			{
-				value: 'Тетяна',
-				label: 'Тетяна',
-			},
-			{
-				value: 'Богдан',
-				label: 'Богдан',
-			},
-			{
-				value: 'Оксана',
-				label: 'Оксана',
-			},
-		],
-	},
-	{
-		value: 'customer.name',
-		label: 'Покупець',
-	},
-	{
-		value: 'customer.phone',
-		label: 'Телефон покупця',
-	},
-	{
-		value: 'delivery.ttn',
-		label: 'Трекінг код',
-	},
-]
+const selectedCategory = ref('')
+const selectedSubOptions = ref([])
+
+const subOptions = {
+	status: [
+		'Новий',
+		'На збір',
+		'Недозвін - 1',
+		'Недозвін - 2',
+		'Незабрано',
+		'Виїхав банк',
+		'Відправлений',
+		'Підтверджений',
+		'Оплачено',
+		'Кременчук видача',
+		'Київ на збір',
+		'Київ видача',
+		'Харків на збір',
+		'Харків видача',
+		'Чернівці на збір',
+		'Чернівці видача',
+		'Львів Куліша на збір',
+		'Львів Куліша видача',
+		'Львів Маф на збір',
+		'Львів Маф видача',
+		'Львів Сільпо на збір',
+		'Львів Сільпо видача',
+		'Піксель на збір',
+		'Піксель видача',
+		'Ізюм ЖД на збір',
+		'Ізюм ЖД видача',
+		'Канів на збір',
+		'Канів видача',
+		'Чортків на збір',
+		'Чортків видача',
+		'Південноукраїнськ на збір',
+		'Південноукраїнськ видача',
+	],
+	manager: ['Андрій', 'Марина', 'Тетяна', 'Богдан', 'Оксана'],
+}
+
+function selectWithOptions(category) {
+	selectedSubOptions.value = []
+}
 
 // Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
@@ -622,19 +489,62 @@ function formatNumber(value) {
 				<el-dropdown placement="bottom-start" trigger="click">
 					<el-button type="primary">Фільтри</el-button>
 					<template #dropdown>
-						<div>
-							<el-cascader-panel
-								v-model="categoryQuerySearch"
-								style="width: fit-content"
-								:options="options"
-								:props="multiple"
-							/>
+						<div class="w-[600px] h-[350px] flex">
+							<!-- Левая панель 40% -->
+							<div
+								class="w-[40%] p-5 flex flex-col space-y-2 border-r border-slate-200"
+							>
+								<!-- Простые категории -->
+								<el-radio-group v-model="selectedCategory" class="space-y-2">
+									<el-radio label="order">№ замовлення</el-radio>
+									<el-radio label="buyer">Покупець</el-radio>
+									<el-radio label="phone">Телефон покупця</el-radio>
+									<el-radio label="ttn">Номер накладної</el-radio>
+								</el-radio-group>
+
+								<!-- Категория с подсписком: Статус -->
+								<el-radio
+									label="status"
+									v-model="selectedCategory"
+									@change="selectWithOptions('status')"
+								>
+									Статус
+								</el-radio>
+
+								<!-- Категория с подсписком: Менеджер -->
+								<el-radio
+									label="manager"
+									v-model="selectedCategory"
+									@change="selectWithOptions('manager')"
+								>
+									Менеджер
+								</el-radio>
+								<div class="flex items-center justify-center pt-10">
+									<el-button type="primary" size="small">Застосувати</el-button>
+								</div>
+							</div>
+
+							<!-- Правая панель 60% -->
+							<div class="w-[60%] p-5 overflow-y-auto">
+								<!-- Отображение дочернего списка -->
+								<template v-if="subOptions[selectedCategory]">
+									<el-checkbox-group
+										v-model="selectedSubOptions"
+										class="flex flex-col space-y-2"
+									>
+										<el-checkbox
+											v-for="item in subOptions[selectedCategory]"
+											:key="item"
+											:label="item"
+										>
+											{{ item }}
+										</el-checkbox>
+									</el-checkbox-group>
+								</template>
+							</div>
 						</div>
 					</template>
 				</el-dropdown>
-				<div v-for="item in categoryQuerySearch" :key="item.index">
-					<el-tag type="primary" size="large">{{ item }}</el-tag>
-				</div>
 			</div>
 		</div>
 		<div>
