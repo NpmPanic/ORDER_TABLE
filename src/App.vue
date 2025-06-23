@@ -33,12 +33,10 @@ import AddReserveDialog from './components/AddReserveDialog.vue'
 import AddOrderDialog from './components/AddOrderDialog.vue'
 import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
 
-const removeTag = index => {
-	categoryQuerySearch.value.splice(index, 1)
-}
-
+const dropdownRef = ref(null)
 const selectedCategory = ref('')
 const selectedSubOptions = ref([])
+const activeFilters = ref([])
 
 const subOptions = {
 	status: [
@@ -78,15 +76,87 @@ const subOptions = {
 	manager: ['Андрій', 'Марина', 'Тетяна', 'Богдан', 'Оксана'],
 }
 
+// Сброс выбраных значений
 function selectWithOptions(category) {
 	selectedSubOptions.value = []
+	selectedCategory.value = category
+}
+
+function resultSelectedCategory() {
+	// Проверяем, что категория не пустая
+	if (!selectedCategory.value) return
+
+	// Проверяем, что такая категория еще не добавлена (для всех типов категорий)
+	const categoryExists = activeFilters.value.some(
+		f => f.category === selectedCategory.value
+	)
+
+	if (categoryExists) {
+		ElMessage({
+			type: 'warning',
+			message: 'Ця категорія вже додана до фільтрів',
+		})
+		return
+	}
+
+	// Для категорий с подпунктами (status, manager)
+	if (subOptions[selectedCategory.value]) {
+		if (selectedSubOptions.value.length > 0) {
+			activeFilters.value = [
+				...activeFilters.value,
+				...selectedSubOptions.value.map(option => ({
+					category: selectedCategory.value,
+					value: option,
+				})),
+			]
+		}
+	} else {
+		// Для одиночных категорий - сначала удаляем все другие одиночные категории
+		activeFilters.value = activeFilters.value.filter(
+			f => subOptions[f.category] // оставляем только те, которые есть в subOptions (status, manager)
+		)
+
+		// Затем добавляем новую одиночную категорию
+		activeFilters.value.push({
+			category: selectedCategory.value,
+			value: selectedCategory.value,
+		})
+	}
+
+	// Закрываем dropdown только если что-то было добавлено
+	if (
+		(subOptions[selectedCategory.value] &&
+			selectedSubOptions.value.length > 0) ||
+		(!subOptions[selectedCategory.value] && selectedCategory.value)
+	) {
+		if (dropdownRef.value) {
+			dropdownRef.value.handleClose()
+		}
+	}
+}
+
+// Обработчик закрытия тега
+const handleCloseTag = index => {
+	const removedFilter = activeFilters.value[index]
+
+	// Удаляем фильтр из активных
+	activeFilters.value.splice(index, 1)
+
+	// Если это была категория с подпунктами - сбрасываем выбранные подпункты
+	if (subOptions[removedFilter.category]) {
+		selectedSubOptions.value = selectedSubOptions.value.filter(
+			option => option !== removedFilter.value
+		)
+	}
+
+	// Если это была одиночная категория - сбрасываем выбор
+	if (!subOptions[removedFilter.category]) {
+		selectedCategory.value = ''
+	}
 }
 
 // Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
-// Переменная хранения данных категории поиска
-const categoryQuerySearch = ref([])
-
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
@@ -486,65 +556,84 @@ function formatNumber(value) {
 				clearable
 			/>
 			<div class="flex gap-5">
-				<el-dropdown placement="bottom-start" trigger="click">
+				<el-dropdown placement="bottom-start" trigger="click" ref="dropdownRef">
 					<el-button type="primary">Фільтри</el-button>
 					<template #dropdown>
-						<div class="w-[600px] h-[350px] flex">
-							<!-- Левая панель 40% -->
-							<div
-								class="w-[40%] p-5 flex flex-col space-y-2 border-r border-slate-200"
-							>
-								<!-- Простые категории -->
-								<el-radio-group v-model="selectedCategory" class="space-y-2">
-									<el-radio label="order">№ замовлення</el-radio>
-									<el-radio label="buyer">Покупець</el-radio>
-									<el-radio label="phone">Телефон покупця</el-radio>
-									<el-radio label="ttn">Номер накладної</el-radio>
-								</el-radio-group>
-
-								<!-- Категория с подсписком: Статус -->
-								<el-radio
-									label="status"
-									v-model="selectedCategory"
-									@change="selectWithOptions('status')"
+						<div class="w-[600px] py-5">
+							<div class="flex h-[400px] px-10">
+								<!-- Левая панель 40% -->
+								<div
+									class="w-[40%] flex flex-col space-y-2 border-r border-slate-200"
 								>
-									Статус
-								</el-radio>
+									<!-- Простые категории -->
+									<el-radio-group v-model="selectedCategory" class="space-y-2">
+										<el-radio label="№ замовлення">№ замовлення</el-radio>
+										<el-radio label="Покупець">Покупець</el-radio>
+										<el-radio label="Телефон покупця">Телефон покупця</el-radio>
+										<el-radio label="Номер накладної">Номер накладної</el-radio>
+									</el-radio-group>
 
-								<!-- Категория с подсписком: Менеджер -->
-								<el-radio
-									label="manager"
-									v-model="selectedCategory"
-									@change="selectWithOptions('manager')"
-								>
-									Менеджер
-								</el-radio>
-								<div class="flex items-center justify-center pt-10">
-									<el-button type="primary" size="small">Застосувати</el-button>
+									<!-- Категория с подсписком: Статус -->
+									<el-radio
+										label="status"
+										v-model="selectedCategory"
+										@change="selectWithOptions('status')"
+									>
+										Статус
+									</el-radio>
+
+									<!-- Категория с подсписком: Менеджер -->
+									<el-radio
+										label="manager"
+										v-model="selectedCategory"
+										@change="selectWithOptions('manager')"
+									>
+										Менеджер
+									</el-radio>
+								</div>
+
+								<!-- Правая панель 60% -->
+								<div class="w-[60%] px-10 overflow-y-auto">
+									<!-- Отображение дочернего списка -->
+									<template v-if="subOptions[selectedCategory]">
+										<el-checkbox-group
+											v-model="selectedSubOptions"
+											class="flex flex-col space-y-2"
+										>
+											<el-checkbox
+												v-for="item in subOptions[selectedCategory]"
+												:key="item"
+												:label="item"
+											>
+												{{ item }}
+											</el-checkbox>
+										</el-checkbox-group>
+									</template>
 								</div>
 							</div>
 
-							<!-- Правая панель 60% -->
-							<div class="w-[60%] p-5 overflow-y-auto">
-								<!-- Отображение дочернего списка -->
-								<template v-if="subOptions[selectedCategory]">
-									<el-checkbox-group
-										v-model="selectedSubOptions"
-										class="flex flex-col space-y-2"
-									>
-										<el-checkbox
-											v-for="item in subOptions[selectedCategory]"
-											:key="item"
-											:label="item"
-										>
-											{{ item }}
-										</el-checkbox>
-									</el-checkbox-group>
-								</template>
+							<div class="flex justify-center w-[40%] mt-5">
+								<el-button @click="resultSelectedCategory" type="primary"
+									>Застосувати</el-button
+								>
 							</div>
 						</div>
 					</template>
 				</el-dropdown>
+			</div>
+
+			<div class="flex gap-5">
+				<el-tag
+					v-for="(filter, index) in activeFilters"
+					:key="index"
+					type="primary"
+					size="large"
+					closable
+					:disable-transitions="false"
+					@close="() => handleCloseTag(index)"
+				>
+					{{ filter.value }}</el-tag
+				>
 			</div>
 		</div>
 		<div>
