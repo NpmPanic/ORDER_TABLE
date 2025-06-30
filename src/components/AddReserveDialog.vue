@@ -81,7 +81,7 @@ const closeModal = () => {
 	>
 		<template #header>
 			<div class="flex justify-between items-center w-full px-4">
-				<span class="text-xl font-semibold">Додати резерв</span>
+				<span class="text-xl text-gray-700 font-semibold">Додати резерв</span>
 				<el-button @click="closeModal" link circle>
 					<el-icon size="large"
 						><Close class="text-gray-500 hover:text-blue-500"

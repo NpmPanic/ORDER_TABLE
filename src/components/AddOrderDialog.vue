@@ -317,7 +317,9 @@ const closeModal = () => {
 	>
 		<template #header>
 			<div class="flex justify-between items-center w-full px-4 mb-10">
-				<span class="text-xl font-semibold">Додати замовлення</span>
+				<span class="text-xl text-gray-700 font-semibold"
+					>Додати замовлення</span
+				>
 				<el-button @click="closeModal" link circle>
 					<el-icon size="large"
 						><Close class="text-gray-500 hover:text-blue-500"
@@ -339,9 +341,9 @@ const closeModal = () => {
 					>
 						<el-option
 							v-for="manager in props.new_orderManagerList"
-							:key="manager.value"
-							:label="manager.label"
-							:value="manager.value"
+							:key="manager"
+							:label="manager"
+							:value="manager"
 						/>
 					</el-select>
 
@@ -402,9 +404,9 @@ const closeModal = () => {
 					>
 						<el-option
 							v-for="service in props.new_orderDeliveryService"
-							:key="service.value"
-							:label="service.label"
-							:value="service.value"
+							:key="service"
+							:label="service"
+							:value="service"
 						/>
 					</el-select>
 					<el-input
@@ -421,9 +423,9 @@ const closeModal = () => {
 					>
 						<el-option
 							v-for="adress in props.new_orderDeliveryAdress"
-							:key="adress.value"
-							:label="adress.label"
-							:value="adress.value"
+							:key="adress"
+							:label="adress"
+							:value="adress"
 						/>
 					</el-select>
 				</div>

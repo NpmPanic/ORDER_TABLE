@@ -18,10 +18,18 @@ import {
 	Message,
 	Service,
 	View,
+	Menu,
+	Document,
+	Refresh,
+	Location,
+	Van,
+	Check,
+	Switch,
+	LocationInformation,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import TableEditDrawer from './components/TableEditDrawer.vue'
 import EditCountPopover from './components/EditCountPopover.vue'
 import EditTextPopover from './components/EditTextPopover.vue'
@@ -32,131 +40,299 @@ import AddProductDrawer from './components/AddProductDrawer.vue'
 import AddReserveDialog from './components/AddReserveDialog.vue'
 import AddOrderDialog from './components/AddOrderDialog.vue'
 import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
-
-const dropdownRef = ref(null)
-const selectedCategory = ref('')
-const selectedSubOptions = ref([])
-const activeFilters = ref([])
-
-const subOptions = {
-	status: [
-		'Новий',
-		'На збір',
-		'Недозвін - 1',
-		'Недозвін - 2',
-		'Незабрано',
-		'Виїхав банк',
-		'Відправлений',
-		'Підтверджений',
-		'Оплачено',
-		'Кременчук видача',
-		'Київ на збір',
-		'Київ видача',
-		'Харків на збір',
-		'Харків видача',
-		'Чернівці на збір',
-		'Чернівці видача',
-		'Львів Куліша на збір',
-		'Львів Куліша видача',
-		'Львів Маф на збір',
-		'Львів Маф видача',
-		'Львів Сільпо на збір',
-		'Львів Сільпо видача',
-		'Піксель на збір',
-		'Піксель видача',
-		'Ізюм ЖД на збір',
-		'Ізюм ЖД видача',
-		'Канів на збір',
-		'Канів видача',
-		'Чортків на збір',
-		'Чортків видача',
-		'Південноукраїнськ на збір',
-		'Південноукраїнськ видача',
-	],
-	manager: ['Андрій', 'Марина', 'Тетяна', 'Богдан', 'Оксана'],
-}
-
-// Сброс выбраных значений
-function selectWithOptions(category) {
-	selectedSubOptions.value = []
-	selectedCategory.value = category
-}
-
-function resultSelectedCategory() {
-	// Проверяем, что категория не пустая
-	if (!selectedCategory.value) return
-
-	// Проверяем, что такая категория еще не добавлена (для всех типов категорий)
-	const categoryExists = activeFilters.value.some(
-		f => f.category === selectedCategory.value
-	)
-
-	if (categoryExists) {
-		ElMessage({
-			type: 'warning',
-			message: 'Ця категорія вже додана до фільтрів',
-		})
-		return
-	}
-
-	// Для категорий с подпунктами (status, manager)
-	if (subOptions[selectedCategory.value]) {
-		if (selectedSubOptions.value.length > 0) {
-			activeFilters.value = [
-				...activeFilters.value,
-				...selectedSubOptions.value.map(option => ({
-					category: selectedCategory.value,
-					value: option,
-				})),
-			]
-		}
-	} else {
-		// Для одиночных категорий - сначала удаляем все другие одиночные категории
-		activeFilters.value = activeFilters.value.filter(
-			f => subOptions[f.category] // оставляем только те, которые есть в subOptions (status, manager)
-		)
-
-		// Затем добавляем новую одиночную категорию
-		activeFilters.value.push({
-			category: selectedCategory.value,
-			value: selectedCategory.value,
-		})
-	}
-
-	// Закрываем dropdown только если что-то было добавлено
-	if (
-		(subOptions[selectedCategory.value] &&
-			selectedSubOptions.value.length > 0) ||
-		(!subOptions[selectedCategory.value] && selectedCategory.value)
-	) {
-		if (dropdownRef.value) {
-			dropdownRef.value.handleClose()
-		}
-	}
-}
-
-// Обработчик закрытия тега
-const handleCloseTag = index => {
-	const removedFilter = activeFilters.value[index]
-
-	// Удаляем фильтр из активных
-	activeFilters.value.splice(index, 1)
-
-	// Если это была категория с подпунктами - сбрасываем выбранные подпункты
-	if (subOptions[removedFilter.category]) {
-		selectedSubOptions.value = selectedSubOptions.value.filter(
-			option => option !== removedFilter.value
-		)
-	}
-
-	// Если это была одиночная категория - сбрасываем выбор
-	if (!subOptions[removedFilter.category]) {
-		selectedCategory.value = ''
-	}
-}
+import SelectValueDropdown from './components/SelectValueDropdown.vue'
 
 // Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
+// Активная категория и текущие выбранные опции
+const selectedCategory = ref('')
+const selectedSubOptions = ref([])
+// Категории и возможные значения
+const subOptions = {
+	source: ['Пошта', 'Менеджер'],
+	status: [
+		'Новий',
+		'Підтверджений',
+		'Виїхав банк',
+		'Відправлений',
+		'Канів видача',
+		'Канів на збір',
+		'Київ видача',
+		'Київ на збір',
+		'Кременчук видача',
+		'Львів Куліша видача',
+		'Львів Куліша на збір',
+		'Львів Маф видача',
+		'Львів Маф на збір',
+		'Львів Сільпо видача',
+		'Львів Сільпо на збір',
+		'На збір',
+		'Піксель видача',
+		'Піксель на збір',
+		'Південноукраїнськ видача',
+		'Південноукраїнськ на збір',
+		'Чернівці видача',
+		'Чернівці на збір',
+		'Чортків видача',
+		'Чортків на збір',
+		'Харків видача',
+		'Харків на збір',
+		'Ізюм ЖД видача',
+		'Ізюм ЖД на збір',
+		'Оплачено',
+		'Недозвін - 1',
+		'Недозвін - 2',
+		'Незабрано',
+	],
+	manager: ['Андрій', 'Богдан', 'Марина', 'Оксана', 'Тетяна'],
+	delivery_service: [
+		'Нова пошта',
+		'Самовивіз Ізюм ЖД',
+		'Самовивіз Канів',
+		'Самовивіз Київ',
+		'Самовивіз Кременчук',
+		'Самовивіз Львів Куліша',
+		'Самовивіз Львів Маф',
+		'Самовивіз Львів Сільпо',
+		'Самовивіз Піксель',
+		'Самовивіз Південноукраїнськ',
+		'Самовивіз Харків',
+		'Самовивіз Чернівці',
+		'Самовивіз Чортків',
+	],
+	delivery_adress: [
+		'Відділення №1',
+		'Відділення №2',
+		'Відділення №3',
+		'Відділення №4',
+		'Відділення №5',
+	],
+	delivery_status: [
+		'У дорозі',
+		'Доставлено',
+		'Повернення',
+		'Замовлення отримано',
+		'Обробка замовлення',
+		'Прибуло у відділення',
+	],
+	pay_status: ['Оплачено', 'Не оплачено'],
+}
+
+// Отфильтрованные значения, применённые к таблице
+const appliedFilters = ref({
+	source: [],
+	status: [],
+	manager: [],
+	delivery_service: [],
+	delivery_status: [],
+	pay_status: [],
+})
+
+// Редактируемые фильтры, до нажатия "Зберегти"
+const editingFilters = ref({
+	source: [],
+	status: [],
+	manager: [],
+	delivery_service: [],
+	delivery_status: [],
+	pay_status: [],
+})
+
+const dropdownRef = ref(null)
+
+// При открытии фильтров копируем applied -> editing
+const openFilters = () => {
+	editingFilters.value = JSON.parse(JSON.stringify(appliedFilters.value))
+	if (selectedCategory.value) {
+		selectedSubOptions.value = [
+			...(editingFilters.value[selectedCategory.value] || []),
+		]
+	}
+}
+
+// При смене категории — загрузить её подопции
+watch(selectedCategory, newCategory => {
+	if (newCategory) {
+		selectedSubOptions.value = [...(editingFilters.value[newCategory] || [])]
+	}
+})
+
+// При смене подопций — сразу обновлять временное хранилище
+watch(selectedSubOptions, newOptions => {
+	if (selectedCategory.value) {
+		editingFilters.value[selectedCategory.value] = [...newOptions]
+	}
+})
+
+// Сохранить применённые фильтры
+const applyFilters = () => {
+	appliedFilters.value = JSON.parse(JSON.stringify(editingFilters.value))
+	dropdownRef.value?.handleClose?.()
+}
+
+// Функция сброса всех фильтров
+const resetFilters = () => {
+	appliedFilters.value = {
+		source: [],
+		status: [],
+		manager: [],
+		delivery_service: [],
+		delivery_status: [],
+		pay_status: [],
+	}
+
+	editingFilters.value = {
+		source: [],
+		status: [],
+		manager: [],
+		delivery_service: [],
+		delivery_status: [],
+		pay_status: [],
+	}
+
+	selectedSubOptions.value = []
+
+	dropdownRef.value?.handleClose?.()
+}
+
+// Подсчет количества категорий  для фильтра
+const filterCount = computed(() => {
+	return Object.values(appliedFilters.value).reduce(
+		(acc, arr) => acc + arr.length,
+		0
+	)
+})
+
+const isSaveDisabled = computed(() => {
+	return !Object.values(editingFilters.value).some(arr => arr.length > 0)
+})
+
+// Фильтрация данных таблицы на основе appliedFilters
+const resultData = computed(() => {
+	const search = inputQuerySearch.value?.trim() || ''
+	const category = selectedCategory.value
+	const filters = appliedFilters.value
+
+	// Фильтрация по поисковому запросу
+	const searchFiltered = TABLE_DATA.value.filter(item => {
+		if (!search && !category) return true
+
+		const customerName = item.customer?.name?.toLowerCase() || ''
+		const customerPhone = item.customer?.phone?.toLowerCase() || ''
+		const recipientName = item.recipient?.name?.toLowerCase() || ''
+		const recipientPhone = item.recipient?.phone?.toLowerCase() || ''
+		const orderId = String(item.id)
+		const ttn = item.delivery?.ttn?.toLowerCase() || ''
+
+		if (category && search) {
+			switch (category) {
+				case 'order':
+					return orderId.includes(search)
+				case 'customer':
+					return customerName.includes(search)
+				case 'customer_phone':
+					return customerPhone.includes(search)
+				case 'recipient':
+					return recipientName.includes(search)
+				case 'recipient_phone':
+					return recipientPhone.includes(search)
+				case 'ttn':
+					return ttn.includes(search)
+				default:
+					return false
+			}
+		}
+
+		if (!category && search) {
+			return (
+				orderId.includes(search) ||
+				customerName.includes(search) ||
+				customerPhone.includes(search) ||
+				recipientName.includes(search) ||
+				recipientPhone.includes(search) ||
+				ttn.includes(search)
+			)
+		}
+
+		return true
+	})
+
+	// Фильтрация по примененным фильтрам
+	return searchFiltered.filter(item => {
+		// Проверяем каждый тип фильтра
+		const sourceMatch =
+			filters.source.length === 0 ||
+			(item.order.source === 'Mail' && filters.source.includes('Пошта')) ||
+			(item.order.source === 'Manager' && filters.source.includes('Менеджер'))
+
+		const statusMatch =
+			filters.status.length === 0 ||
+			filters.status.includes(item.order.order_status)
+
+		const managerMatch =
+			filters.manager.length === 0 ||
+			filters.manager.includes(item.order.manager)
+
+		const deliveryServiceMatch =
+			filters.delivery_service.length === 0 ||
+			filters.delivery_service.includes(item.delivery.service)
+
+		const deliveryStatusMatch =
+			filters.delivery_status.length === 0 ||
+			filters.delivery_status.includes(item.delivery.delivery_status)
+
+		const payStatusMatch =
+			filters.pay_status.length === 0 ||
+			filters.pay_status.includes(item.order.pay_status)
+
+		return (
+			sourceMatch &&
+			statusMatch &&
+			managerMatch &&
+			deliveryServiceMatch &&
+			deliveryStatusMatch &&
+			payStatusMatch
+		)
+	})
+})
+
+// Функция для генерации steps на основе текущего статуса доставки
+const getDeliverySteps = deliveryStatus => {
+	// Порядок статусов доставки (важен для определения что было до и после)
+	const statusOrder = [
+		'Замовлення отримано',
+		'Обробка замовлення',
+		'У дорозі',
+		'Прибуло у відділення',
+		'Доставлено',
+		'Повернення',
+	]
+
+	// Находим индекс текущего статуса в порядке следования
+	const currentIndex = statusOrder.indexOf(deliveryStatus)
+
+	// Генерируем steps
+	return statusOrder.map((status, index) => ({
+		title: status,
+		icon: getStatusIcon(status),
+		isCurrent: index === currentIndex,
+		isDone: currentIndex >= 0 && index < currentIndex,
+	}))
+}
+
+// Вспомогательная функция для получения иконки по статусу
+const getStatusIcon = status => {
+	const icons = {
+		'Замовлення отримано': Document,
+		'Обробка замовлення': Refresh,
+		'У дорозі': Van,
+		'Прибуло у відділення': Location,
+		Доставлено: Check,
+		Повернення: Switch,
+	}
+	return icons[status] || Document
+}
+
 const isTableEditDrawer = ref(false)
 const isProductsAddDrawer = ref(false)
 const isEditProductsDrawer = ref(false)
@@ -164,6 +340,63 @@ const isAddReserve = ref(false)
 const isAdditionalProducts = ref(true)
 const isDeliveryStatusDialog = ref(false)
 const isAddOrder = ref(false)
+
+const statusGroups = {
+	new: {
+		color: 'primary',
+		items: ['Новий', 'Підтверджений'],
+	},
+	processing: {
+		color: 'warning',
+		items: [
+			'Виїхав банк',
+			'Відправлений',
+			'Канів видача',
+			'Канів на збір',
+			'Київ видача',
+			'Київ на збір',
+			'Кременчук видача',
+			'Львів Куліша видача',
+			'Львів Куліша на збір',
+			'Львів Маф видача',
+			'Львів Маф на збір',
+			'Львів Сільпо видача',
+			'Львів Сільпо на збір',
+			'На збір',
+			'Піксель видача',
+			'Піксель на збір',
+			'Південноукраїнськ видача',
+			'Південноукраїнськ на збір',
+			'Чернівці видача',
+			'Чернівці на збір',
+			'Чортків видача',
+			'Чортків на збір',
+			'Харків видача',
+			'Харків на збір',
+			'Ізюм ЖД видача',
+			'Ізюм ЖД на збір',
+		],
+	},
+	completed: {
+		color: 'success',
+		items: ['Оплачено'],
+	},
+	problem: {
+		color: 'danger',
+		items: ['Недозвін - 1', 'Недозвін - 2', 'Незабрано', 'Не оплачено'],
+	},
+}
+
+// Функция для определения цвета по статусу
+const getStatusColor = status => {
+	for (const group in statusGroups) {
+		if (statusGroups[group].items.includes(status)) {
+			return statusGroups[group].color
+		}
+	}
+	return 'info' // цвет по умолчанию
+}
+
 // Переменная хранения текущего заказа
 const currentOrder = ref({})
 // Переменная хранения выбраного для редактирования товара
@@ -290,32 +523,6 @@ const copyText = async text => {
 	}
 }
 
-// Опции для выбора служб доставки
-const optionsOrderManager = [
-	{ value: 'Андрій', label: 'Андрій' },
-	{ value: 'Марина', label: 'Марина' },
-	{ value: 'Тетяна', label: 'Тетяна' },
-	{ value: 'Богдан', label: 'Богдан' },
-	{ value: 'Оксана', label: 'Оксана' },
-]
-
-// Опции для выбора служб доставки
-const optionsDeliveryService = [
-	{ value: 'Нова пошта', label: 'Нова пошта' },
-	{ value: 'Самовивіз Київ', label: 'Самовивіз Київ' },
-	{ value: 'Самовивіз Львів', label: 'Самовивіз Львів' },
-	{ value: 'Самовивіз Ізюм', label: 'Самовивіз Ізюм' },
-	{ value: 'Самовивіз Харків', label: 'Самовивіз Харків' },
-]
-
-// Опции для выбора служб доставки
-const optionsDeliveryAdress = [
-	{ value: 'Відділення №1', label: 'Відділення №1' },
-	{ value: 'Відділення №2', label: 'Відділення №2' },
-	{ value: 'Відділення №3', label: 'Відділення №3' },
-	{ value: 'Відділення №4', label: 'Відділення №4' },
-]
-
 // Опции для выбора склада резерва
 const optionsWarehouseReserve = [
 	{ value: 'Постачальник 1', label: 'Постачальник 1' },
@@ -340,11 +547,6 @@ function generateNumber(row) {
 	const newNumber = prefix + remainingDigits
 	row.delivery.ttn = newNumber
 }
-
-// Фильтрация данных таблицы по поисковому запросу
-const resultData = computed(() => {
-	return TABLE_DATA.value
-})
 
 // Объект с настройками колонок таблицы
 const tableColumns = ref({
@@ -399,7 +601,7 @@ const tableColumns = ref({
 		sortable: false,
 	},
 	'Трекінг код': {
-		visible: true,
+		visible: false,
 		prop: 'delivery.ttn',
 		sortable: false,
 	},
@@ -546,18 +748,18 @@ function formatNumber(value) {
 </script>
 
 <template>
-	<div class="flex items-center justify-between m-5">
-		<div class="flex gap-5">
-			<el-input
-				v-model="inputQuerySearch"
-				style="width: 240px"
-				placeholder="Пошук"
-				:prefix-icon="Search"
-				clearable
-			/>
+	<div class="flex m-5">
+		<div class="flex gap-5 w-[70%]">
 			<div class="flex gap-5">
-				<el-dropdown placement="bottom-start" trigger="click" ref="dropdownRef">
-					<el-button type="primary">Фільтри</el-button>
+				<el-dropdown
+					placement="bottom-start"
+					trigger="click"
+					ref="dropdownRef"
+					@visible-change="val => val && openFilters()"
+				>
+					<el-badge :value="filterCount" :hidden="filterCount === 0">
+						<el-button :icon="Menu" type="primary" />
+					</el-badge>
 					<template #dropdown>
 						<div class="w-[600px] py-5">
 							<div class="flex h-[400px] px-10">
@@ -565,30 +767,34 @@ function formatNumber(value) {
 								<div
 									class="w-[40%] flex flex-col space-y-2 border-r border-slate-200"
 								>
-									<!-- Простые категории -->
-									<el-radio-group v-model="selectedCategory" class="space-y-2">
-										<el-radio label="№ замовлення">№ замовлення</el-radio>
-										<el-radio label="Покупець">Покупець</el-radio>
-										<el-radio label="Телефон покупця">Телефон покупця</el-radio>
-										<el-radio label="Номер накладної">Номер накладної</el-radio>
-									</el-radio-group>
+									<!-- Категория с подсписком: Джерело -->
+									<el-radio label="source" v-model="selectedCategory">
+										Джерело
+									</el-radio>
 
 									<!-- Категория с подсписком: Статус -->
-									<el-radio
-										label="status"
-										v-model="selectedCategory"
-										@change="selectWithOptions('status')"
-									>
+									<el-radio label="status" v-model="selectedCategory">
 										Статус
 									</el-radio>
 
 									<!-- Категория с подсписком: Менеджер -->
-									<el-radio
-										label="manager"
-										v-model="selectedCategory"
-										@change="selectWithOptions('manager')"
-									>
+									<el-radio label="manager" v-model="selectedCategory">
 										Менеджер
+									</el-radio>
+
+									<!-- Категория с подсписком: Служба доставки -->
+									<el-radio label="delivery_service" v-model="selectedCategory">
+										Служба доставки
+									</el-radio>
+
+									<!-- Категория с подсписком: Статус доставки -->
+									<el-radio label="delivery_status" v-model="selectedCategory">
+										Статус доставки
+									</el-radio>
+
+									<!-- Категория с подсписком: Статус оплаты -->
+									<el-radio label="pay_status" v-model="selectedCategory">
+										Статус оплати
 									</el-radio>
 								</div>
 
@@ -613,8 +819,15 @@ function formatNumber(value) {
 							</div>
 
 							<div class="flex justify-center w-[40%] mt-5">
-								<el-button @click="resultSelectedCategory" type="primary"
-									>Застосувати</el-button
+								<el-button @click="resetFilters" type="default" size="small"
+									>Очистити</el-button
+								>
+								<el-button
+									@click="applyFilters"
+									:disabled="isSaveDisabled"
+									type="primary"
+									size="small"
+									>Прийняти</el-button
 								>
 							</div>
 						</div>
@@ -622,21 +835,15 @@ function formatNumber(value) {
 				</el-dropdown>
 			</div>
 
-			<div class="flex gap-5">
-				<el-tag
-					v-for="(filter, index) in activeFilters"
-					:key="index"
-					type="primary"
-					size="large"
-					closable
-					:disable-transitions="false"
-					@close="() => handleCloseTag(index)"
-				>
-					{{ filter.value }}</el-tag
-				>
-			</div>
+			<el-input
+				v-model="inputQuerySearch"
+				style="width: 40%"
+				placeholder="Пошук"
+				:prefix-icon="Search"
+				clearable
+			/>
 		</div>
-		<div>
+		<div class="flex justify-end gap-2 w-[30%]">
 			<el-button @click="isAddOrder = true" type="success" plain
 				>Додати замовлення</el-button
 			>
@@ -669,14 +876,13 @@ function formatNumber(value) {
 	/>
 	<AddOrderDialog
 		v-model="isAddOrder"
-		:new_orderManagerList="optionsOrderManager"
-		:new_orderDeliveryService="optionsDeliveryService"
-		:new_orderDeliveryAdress="optionsDeliveryAdress"
+		:new_orderManagerList="subOptions.manager"
+		:new_orderDeliveryService="subOptions.delivery_service"
+		:new_orderDeliveryAdress="subOptions.delivery_adress"
 		:new_orderWarehouseList="optionsWarehouseReserve"
 		:new_orderFormatNumber="formatNumber"
 		@save-order="handleSaveOrder"
 	/>
-	<DeliveryStatusDialog v-model="isDeliveryStatusDialog" />
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -686,174 +892,150 @@ function formatNumber(value) {
 			:default-sort="{ prop: 'order.created_at', order: 'descending' }"
 			height="100%"
 			style="width: 100%"
-			@expand-change="handleExpand"
 		>
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
 				<template #default="props">
-					<div class="w-full flex gap-2 px-4">
+					<div class="w-full flex gap-15 px-4">
 						<!-- Замовлення -->
 
-						<div class="w-1/3">
-							<el-descriptions
-								direction="horisontal"
-								border
-								style="margin: 0px"
-								size="small"
-								column="1"
+						<div class="w-[28%] shadow-sm">
+							<div
+								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
 							>
-								<el-descriptions-item label="№ замовлення">
-									<div class="flex items-center gap-2">
-										<span>{{ props.row.id }}</span>
-										<div
-											class="cursor-pointer hover:text-blue-500 transition pt-1"
-										>
-											<el-icon @click="copyText(props.row.id)"
-												><DocumentCopy
-											/></el-icon>
-										</div>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="Джерело">
-									<div v-if="props.row.order.source === 'Prom'">
-										<div class="flex items-center gap-2">
-											<el-icon><Message /></el-icon>
-											<span>Пошта</span>
-										</div>
-									</div>
-									<div v-else-if="props.row.order.source === 'Manager'">
-										<div class="flex items-center gap-2">
-											<el-icon><Service /></el-icon>
-											<span>Менеджер</span>
-										</div>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="Час створення">{{
-									props.row.order.created_at
-								}}</el-descriptions-item>
-								<el-descriptions-item label="Менеджер">
-									<el-select
-										v-model="props.row.order.manager"
-										clearable
-										placeholder="Обрати"
-										style="width: 220px"
-										size="small"
+								<el-icon><Sell /></el-icon>
+								<h3>Замовлення</h3>
+							</div>
+
+							<div class="space-y-6 text-xs">
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold">№ замовлення</span>
+									<span class="text-gray-700">{{ props.row.id }}</span>
+								</div>
+
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold">Джерело</span>
+
+									<span v-if="props.row.order.source === 'Mail'">Пошта</span>
+									<span v-else-if="props.row.order.source === 'Manager'"
+										>Менеджер</span
 									>
-										<el-option
-											v-for="item in optionsOrderManager"
-											:key="item.value"
-											:label="item.label"
-											:value="item.value"
-										/>
-									</el-select>
-								</el-descriptions-item>
-								<el-descriptions-item label="Статус">
-									<div v-if="props.row.order.order_status === 'Новий'">
-										<el-button
-											type="primary"
-											size="small"
-											style="width: 70px"
-											>{{ props.row.order.order_status }}</el-button
-										>
-									</div>
-									<div v-else-if="props.row.order.order_status === 'Доставка'">
-										<el-button
-											type="warning"
-											size="small"
-											style="width: 70px"
-											>{{ props.row.order.order_status }}</el-button
-										>
-									</div>
-									<div v-else-if="props.row.order.order_status === 'Виконано'">
-										<el-button
-											type="success"
-											size="small"
-											style="width: 70px"
-											>{{ props.row.order.order_status }}</el-button
-										>
-									</div>
-									<div v-else-if="props.row.order.order_status === 'Скасовано'">
-										<el-button type="danger" size="small" style="width: 70px">{{
-											props.row.order.order_status
-										}}</el-button>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="Статус оплати">
-									<div v-if="props.row.order.pay_status === 'Оплачено'">
-										<el-button
-											type="success"
-											size="small"
-											style="width: 70px"
-											>{{ props.row.order.pay_status }}</el-button
-										>
-									</div>
-									<div v-else-if="props.row.order.pay_status === 'Не оплачено'">
-										<el-button type="danger" size="small" plain>{{
-											props.row.order.pay_status
-										}}</el-button>
-									</div>
-								</el-descriptions-item>
-							</el-descriptions>
+									<span v-else>Не задано</span>
+								</div>
+
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold">Час створення</span>
+									<span>{{ props.row.order.created_at }}</span>
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold">Менеджер</span>
+									<SelectValueDropdown
+										:initialArray="subOptions.manager"
+										:initialValue="props.row.order.manager"
+										@update:selectedValue="
+											newValue => (props.row.order.manager = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold">Статус</span>
+									<el-tag
+										:type="getStatusColor(props.row.order.order_status)"
+										effect="dark"
+									>
+										{{ props.row.order.order_status }}
+									</el-tag>
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold">Статус оплати</span>
+									<SelectValueDropdown
+										:initialArray="subOptions.pay_status"
+										:initialValue="props.row.order.pay_status"
+										:useTag="true"
+										:statusColor="getStatusColor(props.row.order.pay_status)"
+										:getStatusColor="getStatusColor"
+										@update:selectedValue="
+											newValue => (props.row.order.pay_status = newValue)
+										"
+									/>
+								</div>
+							</div>
 						</div>
 
 						<!-- Покупець -->
-						<div class="w-1/3">
-							<el-descriptions
-								direction="horisontal"
-								border
-								style="margin: 0px"
-								size="small"
-								column="1"
-							>
-								<el-descriptions-item label="Покупець">
-									<div class="flex items-center gap-2">
-										<EditTextPopover
-											:initialText="props.row.customer.name"
-											@update:textValue="
-												newValue => (props.row.customer.name = newValue)
-											"
-										/>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="Телефон покупця">
-									<div class="flex items-center gap-2">
-										<EditTextPopover
-											:initialText="props.row.customer.phone"
-											@update:textValue="
-												newValue => (props.row.customer.phone = newValue)
-											"
-										/>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="E-mail покупця">
-									<div class="flex items-center gap-2">
-										<EditTextPopover
-											:initialText="props.row.customer.email"
-											@update:textValue="
-												newValue => (props.row.customer.email = newValue)
-											"
-										/>
-									</div>
-								</el-descriptions-item>
 
-								<el-descriptions-item label="Коментар покупця">
+						<div class="w-[28%] shadow-sm">
+							<div
+								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
+							>
+								<el-icon><User /></el-icon>
+								<h3>Покупець</h3>
+							</div>
+
+							<div class="space-y-6 text-xs">
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold">Покупець</span>
+									<EditTextPopover
+										:initialText="props.row.customer.name"
+										@update:textValue="
+											newValue => (props.row.customer.name = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold"
+										>Телефон покупця</span
+									>
+									<EditTextPopover
+										:initialText="props.row.customer.phone"
+										@update:textValue="
+											newValue => (props.row.customer.phone = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold"
+										>E-mail покупця</span
+									>
+									<EditTextPopover
+										:initialText="props.row.customer.email"
+										@update:textValue="
+											newValue => (props.row.customer.email = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold"
+										>Коментар покупця</span
+									>
 									<EditCommentPopover
 										:initialText="props.row.customer.comment"
 										@update:textValue="
 											newValue => (props.row.customer.comment = newValue)
 										"
 									/>
-								</el-descriptions-item>
+								</div>
 
-								<el-descriptions-item label="Коментар менеджера">
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold"
+										>Коментар менеджера</span
+									>
 									<EditCommentPopover
 										:initialComment="props.row.order.manager_comment"
 										@update:textValue="
 											newValue => (props.row.order.manager_comment = newValue)
 										"
 									/>
-								</el-descriptions-item>
-								<el-descriptions-item label="Комунікації">
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold">Комунікації</span>
 									<div class="flex items-center gap-2">
 										<el-button
 											type="success"
@@ -868,99 +1050,87 @@ function formatNumber(value) {
 											size="small"
 										/>
 									</div>
-								</el-descriptions-item>
-							</el-descriptions>
+								</div>
+							</div>
 						</div>
 
 						<!-- Отримувач -->
-						<div class="w-1/3">
-							<el-descriptions
-								direction="horisontal"
-								border
-								style="margin: 0px"
-								size="small"
-								column="1"
+
+						<div class="w-[28%] shadow-sm">
+							<div
+								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
 							>
-								<el-descriptions-item label="Дата відправки">
+								<el-icon><User /></el-icon>
+								<h3>Отримувач</h3>
+							</div>
+
+							<div class="space-y-6 text-xs">
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold">Отримувач</span>
+									<EditTextPopover
+										:initialText="props.row.recipient.name"
+										@update:textValue="
+											newValue => (props.row.recipient.name = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold"
+										>Телефон отримувача</span
+									>
+									<EditTextPopover
+										:initialText="props.row.recipient.phone"
+										@update:textValue="
+											newValue => (props.row.recipient.phone = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between">
+									<span class="text-gray-500 font-semibold"
+										>Дата відправки</span
+									>
+
 									<el-date-picker
 										v-model="props.row.delivery.delivery_date"
 										type="date"
 										placeholder="Обрати"
 										format="DD/MM/YYYY"
 										value-format="DD/MM/YYYY"
-										style="width: 220px"
+										style="width: 100px"
 										size="small"
 									/>
-								</el-descriptions-item>
-								<el-descriptions-item label="Отримувач">
-									<div class="flex items-center gap-2">
-										<EditTextPopover
-											:initialText="props.row.recipient.name"
-											@update:textValue="
-												newValue => (props.row.recipient.name = newValue)
-											"
-										/>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="Телефон отримувача">
-									<div class="flex items-center gap-2">
-										<EditTextPopover
-											:initialText="props.row.recipient.phone"
-											@update:textValue="
-												newValue => (props.row.recipient.phone = newValue)
-											"
-										/>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="Служба доставки">
-									<el-select
-										v-model="props.row.delivery.service"
-										clearable
-										placeholder="Обрати"
-										style="width: 220px"
-										size="small"
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold"
+										>Служба доставки</span
 									>
-										<el-option
-											v-for="item in optionsDeliveryService"
-											:key="item.value"
-											:label="item.label"
-											:value="item.value"
-										/>
-									</el-select>
-								</el-descriptions-item>
-								<el-descriptions-item label="Адреса доставки">
-									<div class="flex items-center gap-2">
-										<el-select
-											v-model="props.row.delivery.adress"
-											clearable
-											placeholder="Обрати"
-											style="width: 220px"
-											size="small"
-										>
-											<el-option
-												v-for="item in optionsDeliveryAdress"
-												:key="item.value"
-												:label="item.label"
-												:value="item.value"
-											/>
-										</el-select>
-										<div
-											class="text-sm cursor-pointer hover:text-blue-500 transition"
-										>
-											<el-tooltip
-												class="box-item"
-												effect="dark"
-												content="Переглянути статус доставки"
-												placement="top"
-											>
-												<el-icon @click="isDeliveryStatusDialog = true"
-													><View
-												/></el-icon>
-											</el-tooltip>
-										</div>
-									</div>
-								</el-descriptions-item>
-								<el-descriptions-item label="Трекінг код">
+									<SelectValueDropdown
+										:initialArray="subOptions.delivery_service"
+										:initialValue="props.row.delivery.service"
+										@update:selectedValue="
+											newValue => (props.row.delivery.service = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold"
+										>Адреса доставки</span
+									>
+									<SelectValueDropdown
+										:initialArray="subOptions.delivery_adress"
+										:initialValue="props.row.delivery.adress"
+										@update:selectedValue="
+											newValue => (props.row.delivery.adress = newValue)
+										"
+									/>
+								</div>
+
+								<div class="flex justify-between items-center gap-2">
+									<span class="text-gray-500 font-semibold">Трекінг код</span>
 									<div class="flex items-center gap-4">
 										<span class="min-w-40">{{ props.row.delivery.ttn }}</span>
 										<div class="flex items-center gap-3 pt-2">
@@ -992,8 +1162,49 @@ function formatNumber(value) {
 											</div>
 										</div>
 									</div>
-								</el-descriptions-item>
-							</el-descriptions>
+								</div>
+							</div>
+						</div>
+
+						<!-- Статус доставки -->
+						<div class="w-[16%] shadow-sm">
+							<div
+								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
+							>
+								<el-icon><LocationInformation /></el-icon>
+								<h3>Статус доставки</h3>
+							</div>
+							<div class="pl-1 text-xs">
+								<el-timeline>
+									<el-timeline-item
+										v-for="(step, index) in getDeliverySteps(
+											props.row.delivery.delivery_status
+										)"
+										:key="index"
+										:icon="step.icon"
+										:type="
+											step.isCurrent
+												? 'primary'
+												: step.isDone
+												? 'success'
+												: 'info'
+										"
+										size="large"
+									>
+										<div
+											class="ml-3 pt-1"
+											:class="{
+												'text-blue-500': step.isCurrent,
+												'font-bold': step.isCurrent,
+												'font-semibold': !step.isCurrent,
+												'text-green-600': step.isDone,
+											}"
+										>
+											{{ step.title }}
+										</div>
+									</el-timeline-item>
+								</el-timeline>
+							</div>
 						</div>
 					</div>
 
@@ -1460,7 +1671,7 @@ function formatNumber(value) {
 						</div>
 
 						<!--Оплата-->
-						<div class="flex-1 mt-15 bg-white shadow-sm">
+						<div class="flex-1 px-5 mt-15 bg-white shadow-sm">
 							<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
 								<el-icon><PriceTag /></el-icon>
 								Підсумкова вартість
@@ -1528,10 +1739,16 @@ function formatNumber(value) {
 				:prop="column.prop"
 				:label="column.label"
 				:sortable="column.sortable === true"
+				:width="column.width"
+				header-align="center"
+				align="center"
 			>
 				<!-- Кастомные шаблоны для определенных колонок -->
 				<template #default="{ row }">
-					<div class="flex items-center gap-2" v-if="column.prop === 'id'">
+					<div
+						class="flex items-center justify-center gap-2"
+						v-if="column.prop === 'id'"
+					>
 						<span>{{ row.id }}</span>
 						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
 							<el-icon @click="copyText(row.id)"><DocumentCopy /></el-icon>
@@ -1539,8 +1756,8 @@ function formatNumber(value) {
 					</div>
 
 					<div v-else-if="column.prop === 'order.source'">
-						<div v-if="row.order.source === 'Prom'">
-							<div class="flex items-center gap-2">
+						<div v-if="row.order.source === 'Mail'">
+							<div class="flex items-center justify-center gap-2">
 								<el-icon><Message /></el-icon>
 								<span>Пошта</span>
 							</div>
@@ -1557,37 +1774,30 @@ function formatNumber(value) {
 						{{ row.delivery.delivery_date || 'Не задано' }}
 					</div>
 
-					<div v-else-if="column.prop === 'order.order_status'">
-						<div v-if="row.order.order_status === 'Новий'">
-							<el-button type="primary" size="small" style="width: 70px">{{
-								row.order.order_status
-							}}</el-button>
-						</div>
-						<div v-else-if="row.order.order_status === 'Доставка'">
-							<el-button type="warning" size="small" style="width: 70px">{{
-								row.order.order_status
-							}}</el-button>
-						</div>
-						<div v-else-if="row.order.order_status === 'Виконано'">
-							<el-button type="success" size="small" style="width: 70px">{{
-								row.order.order_status
-							}}</el-button>
-						</div>
-						<div v-else-if="row.order.order_status === 'Скасовано'">
-							<el-button type="danger" size="small" style="width: 70px">{{
-								row.order.order_status
-							}}</el-button>
-						</div>
+					<div
+						v-else-if="column.prop === 'order.order_status'"
+						class="flex justify-center font-semibold"
+					>
+						<SelectValueDropdown
+							:initialArray="subOptions.status"
+							:initialValue="row.order.order_status"
+							:useTag="true"
+							:getStatusColor="getStatusColor"
+							:statusColor="getStatusColor(row.order.order_status)"
+							@update:selectedValue="
+								newValue => (row.order.order_status = newValue)
+							"
+						/>
 					</div>
 					<div
 						v-else-if="column.prop === 'order.manager'"
-						class="flex items-center gap-4"
+						class="flex items-center justify-center gap-4"
 					>
 						<el-icon><User /></el-icon>
 						<span>{{ row.order.manager || 'Не задано' }}</span>
 					</div>
 					<div
-						class="flex items-center gap-2"
+						class="flex items-center justify-center gap-2"
 						v-else-if="column.prop === 'customer.phone'"
 					>
 						<span>{{ row.customer.phone }}</span>
@@ -1634,6 +1844,9 @@ function formatNumber(value) {
 					<div v-else-if="column.prop === 'delivery.adress'">
 						{{ row.delivery.adress || 'Не задано' }}
 					</div>
+					<div v-else-if="column.prop === 'delivery.city'">
+						{{ row.delivery.city || 'Не задано' }}
+					</div>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -1646,5 +1859,22 @@ function formatNumber(value) {
 }
 .package-price-link :deep(.el-link) {
 	font-size: 18px;
+}
+
+/* Увеличиваем размер кружков таймлайна */
+:deep(.el-timeline-item__node) {
+	width: 25px !important;
+	height: 25px !important;
+	left: -7px !important;
+}
+
+/* Увеличиваем размер иконок внутри кружков */
+:deep(.el-timeline-item__icon) {
+	font-size: 15px !important;
+}
+
+/* Увеличиваем отступы между элементами */
+:deep(.el-timeline-item) {
+	padding-bottom: 12px !important;
 }
 </style>

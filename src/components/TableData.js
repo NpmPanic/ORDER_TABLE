@@ -4,11 +4,11 @@ export const TABLE_DATA = ref([
 	{
 		id: 345286913,
 		order: {
-			order_status: 'Доставка',
+			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
 			pay_status: 'Не оплачено',
-			created_at: '16-04-2025',
-			source: 'Prom',
+			created_at: '01/06/2025',
+			source: 'Mail',
 			manager: '',
 			manager_comment: '',
 		},
@@ -53,12 +53,12 @@ export const TABLE_DATA = ref([
 
 		delivery: {
 			delivery_date: '',
-			service: 'Нова пошта',
+			service: '',
 			ttn: '',
-			adress: 'Відділення №2',
-			city: 'м. Львів',
-			delivery_status: '',
-			delivery_price: 80,
+			adress: '',
+			city: '',
+			delivery_status: 'Доставлено',
+			delivery_price: '',
 		},
 	},
 	{
@@ -67,8 +67,8 @@ export const TABLE_DATA = ref([
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
 			pay_status: 'Не оплачено',
-			created_at: '18-04-2025',
-			source: 'Prom',
+			created_at: '04/06/2025',
+			source: 'Mail',
 			manager: '',
 			manager_comment: '',
 		},
@@ -114,12 +114,12 @@ export const TABLE_DATA = ref([
 
 		delivery: {
 			delivery_date: '',
-			service: 'Нова пошта',
+			service: '',
 			ttn: '',
-			adress: 'Відділення №3',
-			city: 'м. Київ',
-			delivery_status: '',
-			delivery_price: 80,
+			adress: '',
+			city: '',
+			delivery_status: 'Замовлення отримано',
+			delivery_price: '',
 		},
 	},
 ])
