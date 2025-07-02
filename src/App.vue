@@ -117,7 +117,8 @@ const subOptions = {
 	],
 	pay_status: ['Оплачено', 'Не оплачено'],
 }
-
+// Массив для хранения примененных тегов поиска
+const appliedSearchTags = ref([])
 // Отфильтрованные значения, применённые к таблице
 const appliedFilters = ref({
 	source: [],
@@ -167,9 +168,33 @@ watch(selectedSubOptions, newOptions => {
 // Сохранить применённые фильтры
 const applyFilters = () => {
 	appliedFilters.value = JSON.parse(JSON.stringify(editingFilters.value))
+	// Обновляем теги поиска
+	appliedSearchTags.value = []
+	for (const category in appliedFilters.value) {
+		if (appliedFilters.value[category].length > 0) {
+			appliedFilters.value[category].forEach(value => {
+				appliedSearchTags.value.push({
+					category,
+					value,
+				})
+			})
+		}
+	}
 	dropdownRef.value?.handleClose?.()
 }
+// Функция для удаления тега
+const handleClose = tag => {
+	// Удаляем тег из массива
+	const index = appliedSearchTags.value.findIndex(t => t.value === tag.value)
+	if (index !== -1) {
+		appliedSearchTags.value.splice(index, 1)
+	}
 
+	// Обновляем appliedFilters
+	appliedFilters.value[tag.category] = appliedFilters.value[
+		tag.category
+	].filter(v => v !== tag.value)
+}
 // Функция сброса всех фильтров
 const resetFilters = () => {
 	appliedFilters.value = {
@@ -189,6 +214,8 @@ const resetFilters = () => {
 		delivery_status: [],
 		pay_status: [],
 	}
+
+	appliedSearchTags.value = []
 
 	selectedSubOptions.value = []
 
@@ -658,9 +685,7 @@ const visibleColumns = computed(() => {
 
 // Обработчик обновления видимости колонок таблицы
 const handleColumnUpdate = newColumns => {
-	Object.keys(tableColumns.value).forEach(key => {
-		tableColumns.value[key].visible = newColumns[key].visible
-	})
+	tableColumns.value = newColumns
 }
 
 // Обработчик сохранения выбранных товаров c проверкой уже добавленных
@@ -748,9 +773,17 @@ function formatNumber(value) {
 </script>
 
 <template>
+	<!-- Header -->
 	<div class="flex m-5">
-		<div class="flex gap-5 w-[70%]">
-			<div class="flex gap-5">
+		<div class="flex items-center gap-4 w-[70%]">
+			<el-input
+				v-model="inputQuerySearch"
+				style="width: 40%"
+				placeholder="Пошук"
+				:prefix-icon="Search"
+				clearable
+			/>
+			<div class="flex items-center gap-10">
 				<el-dropdown
 					placement="bottom-start"
 					trigger="click"
@@ -833,16 +866,22 @@ function formatNumber(value) {
 						</div>
 					</template>
 				</el-dropdown>
-			</div>
 
-			<el-input
-				v-model="inputQuerySearch"
-				style="width: 40%"
-				placeholder="Пошук"
-				:prefix-icon="Search"
-				clearable
-			/>
+				<div class="flex items-center gap-4">
+					<el-tag
+						v-for="tag in appliedSearchTags"
+						:key="tag.value"
+						closable
+						size="large"
+						:disable-transitions="false"
+						@close="handleClose(tag)"
+					>
+						{{ tag.value }}
+					</el-tag>
+				</div>
+			</div>
 		</div>
+
 		<div class="flex justify-end gap-2 w-[30%]">
 			<el-button @click="isAddOrder = true" type="success" plain
 				>Додати замовлення</el-button
@@ -899,156 +938,195 @@ function formatNumber(value) {
 					<div class="w-full flex gap-15 px-4">
 						<!-- Замовлення -->
 
-						<div class="w-[28%] shadow-sm">
+						<div class="w-[28%] shadow-sm px-4">
 							<div
-								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
+								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
 							>
 								<el-icon><Sell /></el-icon>
 								<h3>Замовлення</h3>
 							</div>
 
-							<div class="space-y-6 text-xs">
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold">№ замовлення</span>
-									<span class="text-gray-700">{{ props.row.id }}</span>
+							<div class="space-y-5 text-xs">
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>№ замовлення</span>
+									</div>
+									<div class="w-1/2">
+										<span>{{ props.row.id }}</span>
+									</div>
 								</div>
 
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold">Джерело</span>
-
-									<span v-if="props.row.order.source === 'Mail'">Пошта</span>
-									<span v-else-if="props.row.order.source === 'Manager'"
-										>Менеджер</span
-									>
-									<span v-else>Не задано</span>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Джерело</span>
+									</div>
+									<div class="w-1/2">
+										<span v-if="props.row.order.source === 'Mail'">Пошта</span>
+										<span v-else-if="props.row.order.source === 'Manager'"
+											>Менеджер</span
+										>
+										<span v-else>Не задано</span>
+									</div>
 								</div>
 
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold">Час створення</span>
-									<span>{{ props.row.order.created_at }}</span>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Час створення</span>
+									</div>
+									<div class="w-1/2">
+										<span>{{ props.row.order.created_at }}</span>
+									</div>
 								</div>
 
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold">Менеджер</span>
-									<SelectValueDropdown
-										:initialArray="subOptions.manager"
-										:initialValue="props.row.order.manager"
-										@update:selectedValue="
-											newValue => (props.row.order.manager = newValue)
-										"
-									/>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Менеджер</span>
+									</div>
+									<div class="w-1/2">
+										<SelectValueDropdown
+											:initialArray="subOptions.manager"
+											:initialValue="props.row.order.manager"
+											@update:selectedValue="
+												newValue => (props.row.order.manager = newValue)
+											"
+										/>
+									</div>
 								</div>
 
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold">Статус</span>
-									<el-tag
-										:type="getStatusColor(props.row.order.order_status)"
-										effect="dark"
-									>
-										{{ props.row.order.order_status }}
-									</el-tag>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Статус</span>
+									</div>
+									<div class="w-1/2">
+										<el-tag
+											:type="getStatusColor(props.row.order.order_status)"
+											effect="dark"
+										>
+											{{ props.row.order.order_status }}
+										</el-tag>
+									</div>
 								</div>
 
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold">Статус оплати</span>
-									<SelectValueDropdown
-										:initialArray="subOptions.pay_status"
-										:initialValue="props.row.order.pay_status"
-										:useTag="true"
-										:statusColor="getStatusColor(props.row.order.pay_status)"
-										:getStatusColor="getStatusColor"
-										@update:selectedValue="
-											newValue => (props.row.order.pay_status = newValue)
-										"
-									/>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Статус оплати</span>
+									</div>
+									<div class="w-1/2">
+										<SelectValueDropdown
+											:initialArray="subOptions.pay_status"
+											:initialValue="props.row.order.pay_status"
+											:useTag="true"
+											:statusColor="getStatusColor(props.row.order.pay_status)"
+											:getStatusColor="getStatusColor"
+											@update:selectedValue="
+												newValue => (props.row.order.pay_status = newValue)
+											"
+										/>
+									</div>
 								</div>
 							</div>
 						</div>
 
 						<!-- Покупець -->
 
-						<div class="w-[28%] shadow-sm">
+						<div class="w-[28%] shadow-sm px-4">
 							<div
-								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
+								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
 							>
 								<el-icon><User /></el-icon>
 								<h3>Покупець</h3>
 							</div>
 
-							<div class="space-y-6 text-xs">
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold">Покупець</span>
-									<EditTextPopover
-										:initialText="props.row.customer.name"
-										@update:textValue="
-											newValue => (props.row.customer.name = newValue)
-										"
-									/>
-								</div>
-
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold"
-										>Телефон покупця</span
-									>
-									<EditTextPopover
-										:initialText="props.row.customer.phone"
-										@update:textValue="
-											newValue => (props.row.customer.phone = newValue)
-										"
-									/>
-								</div>
-
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold"
-										>E-mail покупця</span
-									>
-									<EditTextPopover
-										:initialText="props.row.customer.email"
-										@update:textValue="
-											newValue => (props.row.customer.email = newValue)
-										"
-									/>
-								</div>
-
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold"
-										>Коментар покупця</span
-									>
-									<EditCommentPopover
-										:initialText="props.row.customer.comment"
-										@update:textValue="
-											newValue => (props.row.customer.comment = newValue)
-										"
-									/>
-								</div>
-
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold"
-										>Коментар менеджера</span
-									>
-									<EditCommentPopover
-										:initialComment="props.row.order.manager_comment"
-										@update:textValue="
-											newValue => (props.row.order.manager_comment = newValue)
-										"
-									/>
-								</div>
-
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold">Комунікації</span>
-									<div class="flex items-center gap-2">
-										<el-button
-											type="success"
-											:icon="Phone"
-											circle
-											size="small"
+							<div class="space-y-5 text-xs">
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Покупець</span>
+									</div>
+									<div class="w-1/2">
+										<EditTextPopover
+											:initialText="props.row.customer.name"
+											@update:textValue="
+												newValue => (props.row.customer.name = newValue)
+											"
 										/>
-										<el-button
-											type="primary"
-											:icon="ChatRound"
-											circle
-											size="small"
+									</div>
+								</div>
+
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Телефон покупця</span>
+									</div>
+									<div class="w-1/2">
+										<EditTextPopover
+											:initialText="props.row.customer.phone"
+											@update:textValue="
+												newValue => (props.row.customer.phone = newValue)
+											"
 										/>
+									</div>
+								</div>
+
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>E-mail покупця</span>
+									</div>
+									<div class="w-1/2">
+										<EditTextPopover
+											:initialText="props.row.customer.email"
+											@update:textValue="
+												newValue => (props.row.customer.email = newValue)
+											"
+										/>
+									</div>
+								</div>
+
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Коментар покупця</span>
+									</div>
+									<div class="w-1/2">
+										<EditCommentPopover
+											:initialText="props.row.customer.comment"
+											@update:textValue="
+												newValue => (props.row.customer.comment = newValue)
+											"
+										/>
+									</div>
+								</div>
+
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Коментар менеджера</span>
+									</div>
+									<div class="w-1/2">
+										<EditCommentPopover
+											:initialComment="props.row.order.manager_comment"
+											@update:textValue="
+												newValue => (props.row.order.manager_comment = newValue)
+											"
+										/>
+									</div>
+								</div>
+
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Комунікації</span>
+									</div>
+									<div class="w-1/2">
+										<div class="flex items-center gap-2">
+											<el-button
+												type="success"
+												:icon="Phone"
+												circle
+												size="small"
+											/>
+											<el-button
+												type="primary"
+												:icon="ChatRound"
+												circle
+												size="small"
+											/>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -1056,109 +1134,124 @@ function formatNumber(value) {
 
 						<!-- Отримувач -->
 
-						<div class="w-[28%] shadow-sm">
+						<div class="w-[28%] shadow-sm px-4">
 							<div
-								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
+								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
 							>
 								<el-icon><User /></el-icon>
 								<h3>Отримувач</h3>
 							</div>
 
-							<div class="space-y-6 text-xs">
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold">Отримувач</span>
-									<EditTextPopover
-										:initialText="props.row.recipient.name"
-										@update:textValue="
-											newValue => (props.row.recipient.name = newValue)
-										"
-									/>
+							<div class="space-y-5 text-xs">
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Отримувач</span>
+									</div>
+									<div class="w-1/2">
+										<EditTextPopover
+											:initialText="props.row.recipient.name"
+											@update:textValue="
+												newValue => (props.row.recipient.name = newValue)
+											"
+										/>
+									</div>
 								</div>
 
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold"
-										>Телефон отримувача</span
-									>
-									<EditTextPopover
-										:initialText="props.row.recipient.phone"
-										@update:textValue="
-											newValue => (props.row.recipient.phone = newValue)
-										"
-									/>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Телефон отримувача</span>
+									</div>
+									<div class="w-1/2">
+										<EditTextPopover
+											:initialText="props.row.recipient.phone"
+											@update:textValue="
+												newValue => (props.row.recipient.phone = newValue)
+											"
+										/>
+									</div>
 								</div>
 
-								<div class="flex justify-between">
-									<span class="text-gray-500 font-semibold"
-										>Дата відправки</span
-									>
-
-									<el-date-picker
-										v-model="props.row.delivery.delivery_date"
-										type="date"
-										placeholder="Обрати"
-										format="DD/MM/YYYY"
-										value-format="DD/MM/YYYY"
-										style="width: 100px"
-										size="small"
-									/>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Дата відправки</span>
+									</div>
+									<div class="w-1/2">
+										<el-date-picker
+											v-model="props.row.delivery.delivery_date"
+											type="date"
+											placeholder="Обрати"
+											format="DD/MM/YYYY"
+											value-format="DD/MM/YYYY"
+											style="width: 140px"
+											size="small"
+										/>
+									</div>
 								</div>
 
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold"
-										>Служба доставки</span
-									>
-									<SelectValueDropdown
-										:initialArray="subOptions.delivery_service"
-										:initialValue="props.row.delivery.service"
-										@update:selectedValue="
-											newValue => (props.row.delivery.service = newValue)
-										"
-									/>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Служба доставки</span>
+									</div>
+									<div class="w-1/2">
+										<SelectValueDropdown
+											:initialArray="subOptions.delivery_service"
+											:initialValue="props.row.delivery.service"
+											@update:selectedValue="
+												newValue => (props.row.delivery.service = newValue)
+											"
+										/>
+									</div>
 								</div>
 
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold"
-										>Адреса доставки</span
-									>
-									<SelectValueDropdown
-										:initialArray="subOptions.delivery_adress"
-										:initialValue="props.row.delivery.adress"
-										@update:selectedValue="
-											newValue => (props.row.delivery.adress = newValue)
-										"
-									/>
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Адреса доставки</span>
+									</div>
+									<div class="w-1/2">
+										<SelectValueDropdown
+											:initialArray="subOptions.delivery_adress"
+											:initialValue="props.row.delivery.adress"
+											@update:selectedValue="
+												newValue => (props.row.delivery.adress = newValue)
+											"
+										/>
+									</div>
 								</div>
 
-								<div class="flex justify-between items-center gap-2">
-									<span class="text-gray-500 font-semibold">Трекінг код</span>
-									<div class="flex items-center gap-4">
-										<span class="min-w-40">{{ props.row.delivery.ttn }}</span>
-										<div class="flex items-center gap-3 pt-2">
-											<div
-												@click="generateNumber(props.row)"
-												class="text-sm cursor-pointer hover:text-green-500 transition"
-											>
-												<el-tooltip
-													class="box-item"
-													effect="dark"
-													content="Створити номер"
-													placement="top"
+								<div class="flex items-center">
+									<div class="w-1/2">
+										<span>Трекінг код</span>
+									</div>
+									<div class="w-1/2">
+										<div class="flex items-center gap-2">
+											<span v-if="props.row.delivery.ttn">{{
+												props.row.delivery.ttn
+											}}</span>
+											<div class="flex items-center gap-2">
+												<div
+													@click="generateNumber(props.row)"
+													class="text-sm cursor-pointer hover:text-green-500 transition"
 												>
-													<el-icon><DocumentAdd /></el-icon>
-												</el-tooltip>
-											</div>
-											<div
-												@click="props.row.delivery.ttn = null"
-												class="text-sm cursor-pointer hover:text-red-500 transition"
-											>
-												<el-tooltip
-													class="box-item"
-													effect="dark"
-													content="Видалити номер"
-													placement="top"
+													<el-tooltip
+														effect="dark"
+														content="Створити номер"
+														placement="top"
+													>
+														<el-icon><DocumentAdd /></el-icon>
+													</el-tooltip>
+												</div>
+												<div
+													@click="props.row.delivery.ttn = null"
+													class="text-sm cursor-pointer hover:text-red-500 transition"
 												>
-													<el-icon><Delete /></el-icon>
-												</el-tooltip>
+													<el-tooltip
+														effect="dark"
+														content="Видалити номер"
+														placement="top"
+													>
+														<el-icon><Delete /></el-icon>
+													</el-tooltip>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -1167,9 +1260,9 @@ function formatNumber(value) {
 						</div>
 
 						<!-- Статус доставки -->
-						<div class="w-[16%] shadow-sm">
+						<div class="w-[16%] shadow-sm px-4">
 							<div
-								class="flex items-center gap-2 mb-8 text-base font-semibold text-gray-700"
+								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
 							>
 								<el-icon><LocationInformation /></el-icon>
 								<h3>Статус доставки</h3>
@@ -1861,20 +1954,20 @@ function formatNumber(value) {
 	font-size: 18px;
 }
 
-/* Увеличиваем размер кружков таймлайна */
+/* Размер кружков таймлайна */
 :deep(.el-timeline-item__node) {
-	width: 25px !important;
-	height: 25px !important;
-	left: -7px !important;
+	width: 20px !important;
+	height: 20px !important;
+	left: -5px !important;
 }
 
-/* Увеличиваем размер иконок внутри кружков */
+/* Размер иконок внутри кружков */
 :deep(.el-timeline-item__icon) {
-	font-size: 15px !important;
+	font-size: 12px !important;
 }
 
-/* Увеличиваем отступы между элементами */
+/* Отступы между элементами */
 :deep(.el-timeline-item) {
-	padding-bottom: 12px !important;
+	padding-bottom: 8px !important;
 }
 </style>
