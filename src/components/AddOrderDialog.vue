@@ -72,6 +72,23 @@ const newOrder = ref([
 	},
 ])
 
+const errorFields = ref({
+	manager: false,
+	customerName: false,
+	customerPhone: false,
+	recipientName: false,
+	recipientPhone: false,
+	deliveryService: false,
+	deliveryCity: false,
+	deliveryAdress: false,
+	products: false,
+})
+
+// Обработчик динамического состояния валидации
+const handleFieldChange = field => {
+	errorFields.value[field] = false
+}
+
 const takeCurrentEditProduct = product => {
 	currentEditProduct.value = product
 	isAddReserve.value = true
@@ -262,25 +279,34 @@ const resetForm = () => {
 }
 
 const saveModal = () => {
-	// Проверка заполнения обязательных полей
-	const requiredFields = [
-		newOrder.value[0].order.manager,
-		newOrder.value[0].customer.name,
-		newOrder.value[0].customer.phone,
-		newOrder.value[0].recipient.name,
-		newOrder.value[0].recipient.phone,
-		newOrder.value[0].delivery.service,
-		newOrder.value[0].delivery.city,
-		newOrder.value[0].delivery.adress,
-		addProducts.value.length > 0,
-	]
+	// Создаем объект для хранения состояния ошибок
+	const errors = {
+		manager: !newOrder.value[0].order.manager,
+		customerName: !newOrder.value[0].customer.name,
+		customerPhone: !newOrder.value[0].customer.phone,
+		recipientName: !newOrder.value[0].recipient.name,
+		recipientPhone: !newOrder.value[0].recipient.phone,
+		deliveryService: !newOrder.value[0].delivery.service,
+		deliveryCity:
+			newOrder.value[0].delivery.service === 'Нова пошта' &&
+			!newOrder.value[0].delivery.city,
+		deliveryAdress:
+			newOrder.value[0].delivery.service === 'Нова пошта' &&
+			!newOrder.value[0].delivery.adress,
+		products: addProducts.value.length === 0,
+	}
 
-	if (requiredFields.some(field => !field)) {
+	// Проверяем, есть ли ошибки
+	const hasErrors = Object.values(errors).some(error => error)
+
+	if (hasErrors) {
 		ElMessage({
 			type: 'error',
-			message:
-				"Заповніть всі обов'язкові поля: менеджер, дані покупця, отримувача, доставки та товару",
+			message: "Заповніть всі обов'язкові поля та додайте товар",
 		})
+
+		// Сохраняем состояние ошибок для подсветки полей
+		errorFields.value = errors
 		return
 	}
 
@@ -288,6 +314,19 @@ const saveModal = () => {
 	newOrder.value[0].id = generateOrderNumber()
 	newOrder.value[0].order.created_at = getTodayDate()
 	newOrder.value[0].products = [...addProducts.value]
+
+	// Сбрасываем состояние ошибок
+	errorFields.value = {
+		manager: false,
+		customerName: false,
+		customerPhone: false,
+		recipientName: false,
+		recipientPhone: false,
+		deliveryService: false,
+		deliveryCity: false,
+		deliveryAdress: false,
+		products: false,
+	}
 
 	// Сохранение и закрытие
 	emit('update:modelValue', false)
@@ -335,9 +374,11 @@ const closeModal = () => {
 
 					<el-select
 						v-model="newOrder[0].order.manager"
+						@change="handleFieldChange('manager')"
 						placeholder="Обрати менеджера"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.manager }"
 					>
 						<el-option
 							v-for="manager in props.new_orderManagerList"
@@ -363,15 +404,19 @@ const closeModal = () => {
 
 					<el-input
 						v-model="newOrder[0].customer.name"
+						@input="handleFieldChange('customerName')"
 						placeholder="Ім'я покупця"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.customerName }"
 					/>
 					<el-input
 						v-model="newOrder[0].customer.phone"
+						@input="handleFieldChange('customerPhone')"
 						placeholder="Телефон покупця"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.customerPhone }"
 					/>
 					<el-input
 						v-model="newOrder[0].customer.email"
@@ -386,21 +431,27 @@ const closeModal = () => {
 					<p class="font-semibold pb-4">Інформація про отримувача</p>
 					<el-input
 						v-model="newOrder[0].recipient.name"
+						@input="handleFieldChange('recipientName')"
 						placeholder="Ім'я отримувача"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.recipientName }"
 					/>
 					<el-input
 						v-model="newOrder[0].recipient.phone"
+						@input="handleFieldChange('recipientPhone')"
 						placeholder="Телефон отримувача"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.recipientPhone }"
 					/>
 					<el-select
 						v-model="newOrder[0].delivery.service"
+						@change="handleFieldChange('deliveryService')"
 						placeholder="Служба доставки"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.deliveryService }"
 					>
 						<el-option
 							v-for="service in props.new_orderDeliveryService"
@@ -410,16 +461,22 @@ const closeModal = () => {
 						/>
 					</el-select>
 					<el-input
+						v-if="newOrder[0].delivery.service === 'Нова пошта'"
 						v-model="newOrder[0].delivery.city"
+						@input="handleFieldChange('deliveryCity')"
 						placeholder="Місто доставки"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.deliveryCity }"
 					/>
 					<el-select
+						v-if="newOrder[0].delivery.service === 'Нова пошта'"
 						v-model="newOrder[0].delivery.adress"
+						@change="handleFieldChange('deliveryAdress')"
 						placeholder="Адреса доставки"
 						clearable
 						class="pb-4"
+						:class="{ 'error-field': errorFields.deliveryAdress }"
 					>
 						<el-option
 							v-for="adress in props.new_orderDeliveryAdress"
@@ -717,5 +774,13 @@ const closeModal = () => {
 <style scoped>
 .package-price-link :deep(.el-link) {
 	font-size: 14px;
+}
+
+.package-price-link :deep(.el-link) {
+	font-size: 14px;
+}
+.error-field :deep(.el-input__wrapper),
+.error-field :deep(.el-select__wrapper) {
+	box-shadow: 0 0 0 0.5px red inset !important;
 }
 </style>

@@ -1856,7 +1856,7 @@ function formatNumber(value) {
 							</div>
 						</div>
 						<div v-else-if="row.order.source === 'Manager'">
-							<div class="flex items-center gap-2">
+							<div class="flex items-center justify-center gap-2">
 								<el-icon><Service /></el-icon>
 								<span>Менеджер</span>
 							</div>
