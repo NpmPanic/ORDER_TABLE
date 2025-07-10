@@ -40,7 +40,7 @@ import AddProductDrawer from './components/AddProductDrawer.vue'
 import AddReserveDialog from './components/AddReserveDialog.vue'
 import AddOrderDialog from './components/AddOrderDialog.vue'
 import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
-import SelectValueDropdown from './components/SelectValueDropdown.vue'
+import SelectValuePopover from './components/SelectValuePopover.vue'
 
 // Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
@@ -983,7 +983,7 @@ function formatNumber(value) {
 										<span>Менеджер</span>
 									</div>
 									<div class="w-1/2">
-										<SelectValueDropdown
+										<SelectValuePopover
 											:initialArray="subOptions.manager"
 											:initialValue="props.row.order.manager"
 											@update:selectedValue="
@@ -1012,7 +1012,7 @@ function formatNumber(value) {
 										<span>Статус оплати</span>
 									</div>
 									<div class="w-1/2">
-										<SelectValueDropdown
+										<SelectValuePopover
 											:initialArray="subOptions.pay_status"
 											:initialValue="props.row.order.pay_status"
 											:useTag="true"
@@ -1193,7 +1193,7 @@ function formatNumber(value) {
 										<span>Служба доставки</span>
 									</div>
 									<div class="w-1/2">
-										<SelectValueDropdown
+										<SelectValuePopover
 											:initialArray="subOptions.delivery_service"
 											:initialValue="props.row.delivery.service"
 											@update:selectedValue="
@@ -1208,7 +1208,7 @@ function formatNumber(value) {
 										<span>Адреса доставки</span>
 									</div>
 									<div class="w-1/2">
-										<SelectValueDropdown
+										<SelectValuePopover
 											:initialArray="subOptions.delivery_adress"
 											:initialValue="props.row.delivery.adress"
 											@update:selectedValue="
@@ -1871,7 +1871,7 @@ function formatNumber(value) {
 						v-else-if="column.prop === 'order.order_status'"
 						class="flex justify-center font-semibold"
 					>
-						<SelectValueDropdown
+						<SelectValuePopover
 							:initialArray="subOptions.status"
 							:initialValue="row.order.order_status"
 							:useTag="true"
