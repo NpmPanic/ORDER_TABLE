@@ -88,6 +88,6 @@ const handleCommand = command => {
 }
 /* Цвет полосы прокрутки :hover */
 .dropdown-with-scroll::-webkit-scrollbar-thumb:hover {
-	background: #8b8b8b;
+	background: #666666;
 }
 </style>

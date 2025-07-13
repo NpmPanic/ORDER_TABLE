@@ -151,7 +151,9 @@ const closeModal = () => {
 		</template>
 
 		<template #footer>
-			<el-button type="primary" @click="closeModal">Закрити</el-button>
+			<el-button type="default" @click="closeModal" size="large"
+				>Закрити</el-button
+			>
 		</template>
 	</el-dialog>
 </template>

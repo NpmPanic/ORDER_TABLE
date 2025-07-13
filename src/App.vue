@@ -17,7 +17,6 @@ import {
 	CreditCard,
 	Message,
 	Service,
-	View,
 	Menu,
 	Document,
 	Refresh,
@@ -26,6 +25,7 @@ import {
 	Check,
 	Switch,
 	LocationInformation,
+	More,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -832,7 +832,7 @@ function formatNumber(value) {
 								</div>
 
 								<!-- Правая панель 60% -->
-								<div class="w-[60%] px-10 overflow-y-auto">
+								<div class="w-[60%] px-10 overflow-y-auto dropdown-with-scroll">
 									<!-- Отображение дочернего списка -->
 									<template v-if="subOptions[selectedCategory]">
 										<el-checkbox-group
@@ -922,6 +922,8 @@ function formatNumber(value) {
 		:new_orderFormatNumber="formatNumber"
 		@save-order="handleSaveOrder"
 	/>
+
+	<DeliveryStatusDialog v-model="isDeliveryStatusDialog" />
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -1261,11 +1263,25 @@ function formatNumber(value) {
 
 						<!-- Статус доставки -->
 						<div class="w-[16%] shadow-sm px-4">
-							<div
-								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
-							>
-								<el-icon><LocationInformation /></el-icon>
-								<h3>Статус доставки</h3>
+							<div class="flex items-center gap-10 mb-8">
+								<div
+									class="flex items-center gap-2 text-base font-semibold text-gray-700"
+								>
+									<el-icon><LocationInformation /></el-icon>
+									<h3>Статус доставки</h3>
+								</div>
+								<div
+									class="cursor-pointer hover:text-blue-500 transition"
+									@click="isDeliveryStatusDialog = true"
+								>
+									<el-tooltip
+										effect="dark"
+										content="Додаткова інформація"
+										placement="top"
+									>
+										<el-icon><More /></el-icon>
+									</el-tooltip>
+								</div>
 							</div>
 							<div class="pl-1 text-xs">
 								<el-timeline>
@@ -1969,5 +1985,23 @@ function formatNumber(value) {
 /* Отступы между элементами */
 :deep(.el-timeline-item) {
 	padding-bottom: 8px !important;
+}
+
+/* Ширина полосы прокрутки */
+.dropdown-with-scroll::-webkit-scrollbar {
+	width: 6px;
+}
+/* Фон полосы прокрутки */
+.dropdown-with-scroll::-webkit-scrollbar-track {
+	background: white;
+}
+/* Цвет полосы прокрутки */
+.dropdown-with-scroll::-webkit-scrollbar-thumb {
+	background: #999999;
+	border-radius: 3px;
+}
+/* Цвет полосы прокрутки :hover */
+.dropdown-with-scroll::-webkit-scrollbar-thumb:hover {
+	background: #666666;
 }
 </style>

@@ -58,6 +58,38 @@ export const TABLE_DATA = ref([
 			adress: '',
 			city: '',
 			delivery_status: 'Доставлено',
+			status_history: [
+				{
+					status: 'Замовлення отримано',
+					date: '01/06/2025',
+					time: '10:15',
+					comment: 'Замовлення отримано від клієнта',
+				},
+				{
+					status: 'Обробка замовлення',
+					date: '01/06/2025',
+					time: '11:30',
+					comment: 'Замовлення передано на комплектацію',
+				},
+				{
+					status: 'У дорозі',
+					date: '02/06/2025',
+					time: '08:30',
+					comment: 'Замовлення прямує до відділення',
+				},
+				{
+					status: 'Прибуло у відділення',
+					date: '04/06/2025',
+					time: '11:40',
+					comment: 'Замовлення прибуло на відділення',
+				},
+				{
+					status: 'Доставлено',
+					date: '04/06/2025',
+					time: '16:40',
+					comment: 'Клієнт отримав замовлення',
+				},
+			],
 			delivery_price: '',
 		},
 	},
@@ -119,6 +151,14 @@ export const TABLE_DATA = ref([
 			adress: '',
 			city: '',
 			delivery_status: 'Замовлення отримано',
+			status_history: [
+				{
+					status: 'Замовлення отримано',
+					date: '04/06/2025',
+					time: '12:15',
+					comment: 'Замовлення отримано від клієнта',
+				},
+			],
 			delivery_price: '',
 		},
 	},
