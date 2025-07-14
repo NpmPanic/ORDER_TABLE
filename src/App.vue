@@ -323,6 +323,19 @@ const resultData = computed(() => {
 	})
 })
 
+// Вспомогательная функция для получения иконки по статусу
+const getStatusIcon = status => {
+	const icons = {
+		'Замовлення отримано': Document,
+		'Обробка замовлення': Refresh,
+		'У дорозі': Van,
+		'Прибуло у відділення': Location,
+		Доставлено: Check,
+		Повернення: Switch,
+	}
+	return icons[status] || Document
+}
+
 // Функция для генерации steps на основе текущего статуса доставки
 const getDeliverySteps = deliveryStatus => {
 	// Порядок статусов доставки (важен для определения что было до и после)
@@ -345,19 +358,6 @@ const getDeliverySteps = deliveryStatus => {
 		isCurrent: index === currentIndex,
 		isDone: currentIndex >= 0 && index < currentIndex,
 	}))
-}
-
-// Вспомогательная функция для получения иконки по статусу
-const getStatusIcon = status => {
-	const icons = {
-		'Замовлення отримано': Document,
-		'Обробка замовлення': Refresh,
-		'У дорозі': Van,
-		'Прибуло у відділення': Location,
-		Доставлено: Check,
-		Повернення: Switch,
-	}
-	return icons[status] || Document
 }
 
 const isTableEditDrawer = ref(false)
@@ -430,6 +430,12 @@ const currentOrder = ref({})
 const currentEditProduct = ref({})
 // Переменная хранения цены упаковки
 const packagePrice = ref(10)
+
+// Обработчик текущего статуса доставки
+const showDeliveryStatus = order => {
+	currentOrder.value = order
+	isDeliveryStatusDialog.value = true
+}
 
 const handleSaveOrder = newOrder => {
 	// Создаем полный объект заказа с ID
@@ -758,6 +764,7 @@ const removeAdditionalConfirm = (order, productIndex) => {
 const takeCurrentEditProduct = product => {
 	currentEditProduct.value = product
 	isEditProductsDrawer.value = true
+	console.log(currentEditProduct.value)
 }
 // Функция сохранения изменений редактируемого товара
 const handleEditProductSave = updatedProduct => {
@@ -923,7 +930,11 @@ function formatNumber(value) {
 		@save-order="handleSaveOrder"
 	/>
 
-	<DeliveryStatusDialog v-model="isDeliveryStatusDialog" />
+	<DeliveryStatusDialog
+		v-model="isDeliveryStatusDialog"
+		:statusHistory="currentOrder.delivery?.status_history || []"
+		:currentStatus="currentOrder.delivery?.delivery_status || ''"
+	/>
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -1272,7 +1283,7 @@ function formatNumber(value) {
 								</div>
 								<div
 									class="cursor-pointer hover:text-blue-500 transition"
-									@click="isDeliveryStatusDialog = true"
+									@click="showDeliveryStatus(props.row)"
 								>
 									<el-tooltip
 										effect="dark"
@@ -1864,19 +1875,34 @@ function formatNumber(value) {
 						</div>
 					</div>
 
-					<div v-else-if="column.prop === 'order.source'">
-						<div v-if="row.order.source === 'Mail'">
-							<div class="flex items-center justify-center gap-2">
-								<el-icon><Message /></el-icon>
-								<span>Пошта</span>
-							</div>
-						</div>
-						<div v-else-if="row.order.source === 'Manager'">
-							<div class="flex items-center justify-center gap-2">
-								<el-icon><Service /></el-icon>
-								<span>Менеджер</span>
-							</div>
-						</div>
+					<div
+						v-else-if="column.prop === 'order.source'"
+						class="cursor-pointer"
+					>
+						<el-tooltip trigger="click" effect="light" placement="bottom">
+							<template #default>
+								<div v-if="row.order.source === 'Mail'">
+									<div class="flex items-center justify-center gap-2">
+										<el-icon><Message /></el-icon>
+										<span>Пошта</span>
+									</div>
+								</div>
+								<div v-else-if="row.order.source === 'Manager'">
+									<div class="flex items-center justify-center gap-2">
+										<el-icon><Service /></el-icon>
+										<span>Менеджер</span>
+									</div>
+								</div>
+							</template>
+							<template #content>
+								<div class="flex items-center gap-2">
+									<span class="text-sm">utm:</span>
+									<el-link type="primary" :underline="false">
+										<span>{{ row.order.source_utm }}</span>
+									</el-link>
+								</div>
+							</template>
+						</el-tooltip>
 					</div>
 
 					<div v-else-if="column.prop === 'delivery.delivery_date'">
