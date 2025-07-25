@@ -4,7 +4,6 @@ import { DocumentAdd, Delete, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 const props = defineProps({
 	modelValue: Boolean,
-	countProduct: Number,
 	product: Object,
 	warehouseList: Array,
 })
@@ -12,47 +11,47 @@ const emit = defineEmits(['update:modelValue', 'save'])
 const input_reserves = ref([
 	{
 		place: '',
-		count: 0,
 		number: '',
 	},
 ])
+
+// Добавляем объект для хранения ошибок валидации
+const errorFields = ref([])
+
 const addReserve = () => {
-	input_reserves.value.push({ place: '', count: 0, number: '' })
+	input_reserves.value.push({ place: '', number: '' })
+	// Добавляем поле для ошибки при создании нового резерва
+	errorFields.value.push(false)
 }
+
 const deleteReserve = index => {
 	if (input_reserves.value.length > 1) {
 		input_reserves.value.splice(index, 1)
+		// Удаляем соответствующее поле ошибки
+		errorFields.value.splice(index, 1)
 	}
 }
 
-// Вычисляем текущее количество зарезервированного товара
-const currentReservedCount = computed(() => {
-	if (!props.product || !props.product.warehouse) return 0
-	return props.product.warehouse.reduce((total, item) => total + item.count, 0)
-})
-
-// Функция вычисления максимально допустимого кол резерва согласно сумме товара в заказе
-function getMaxCountForReserve(index) {
-	const totalReserved = input_reserves.value.reduce((sum, reserve, i) => {
-		return sum + (i === index ? 0 : Number(reserve.count))
-	}, 0)
-
-	const remaining =
-		props.countProduct - currentReservedCount.value - totalReserved
-	return remaining > 0 ? remaining : 0
+// Обработчик изменения поля для сброса ошибки
+const handleFieldChange = index => {
+	errorFields.value[index] = false
 }
 
 const saveReserve = () => {
 	let hasErrors = false
 
-	input_reserves.value.forEach(reserve => {
-		if (!reserve.place || reserve.count <= 0) {
+	// Проверяем каждое поле place
+	input_reserves.value.forEach((reserve, index) => {
+		if (!reserve.place) {
+			errorFields.value[index] = true
 			hasErrors = true
+		} else {
+			errorFields.value[index] = false
 		}
 	})
 
 	if (hasErrors) {
-		ElMessage.error('Заповніть місце та кількість резерву')
+		ElMessage.error('Заповніть місце резерву')
 		return
 	}
 
@@ -61,10 +60,11 @@ const saveReserve = () => {
 	input_reserves.value = [
 		{
 			place: '',
-			count: 0,
 			number: '',
 		},
 	]
+	// Сбрасываем ошибки
+	errorFields.value = [false]
 }
 
 // Отмена изменений при закрытии
@@ -97,8 +97,10 @@ const closeModal = () => {
 			>
 				<el-select
 					v-model="reserve.place"
+					@change="handleFieldChange(index)"
 					clearable
 					placeholder="Місце резерву"
+					:class="{ 'error-field': errorFields[index] }"
 				>
 					<el-option
 						v-for="item in props.warehouseList"
@@ -107,12 +109,6 @@ const closeModal = () => {
 						:value="item.value"
 					/>
 				</el-select>
-				<el-input-number
-					v-model="reserve.count"
-					:min="0"
-					:max="getMaxCountForReserve(index)"
-					style="width: 60%"
-				/>
 				<el-input
 					v-model="reserve.number"
 					placeholder="Номер резерву"
@@ -143,3 +139,10 @@ const closeModal = () => {
 		</template>
 	</el-dialog>
 </template>
+
+<style scoped>
+.error-field :deep(.el-input__wrapper),
+.error-field :deep(.el-select__wrapper) {
+	box-shadow: 0 0 0 0.5px red inset !important;
+}
+</style>

@@ -115,7 +115,7 @@ const handleProductSave = products => {
 // Обработчик добавления резерва к выбраному товару
 const handleSaveReserves = reserves => {
 	const validReserves = reserves.filter(
-		reserve => reserve.place && reserve.count > 0
+		reserve => reserve.place && reserve.place.trim() !== ''
 	)
 
 	if (validReserves.length > 0) {
@@ -123,18 +123,6 @@ const handleSaveReserves = reserves => {
 	}
 
 	isAddReserve.value = false
-}
-
-// Вычисления максимального количества резерва для прямого редактирования
-const getMaxReserveCount = (product, currentReserveIndex) => {
-	if (!product.warehouse) return product.count
-
-	const totalOtherReserves = product.warehouse.reduce((total, item, index) => {
-		return index === currentReserveIndex ? total : total + item.count
-	}, 0)
-
-	const remaining = product.count - totalOtherReserves
-	return remaining > 0 ? remaining : 0
 }
 
 // Удаления резерва из текущего товара
@@ -239,7 +227,6 @@ const getTotalPrice = products => {
 	return +mainTotalSum.toFixed(2)
 }
 
-// Функция для сброса формы (опционально)
 const resetForm = () => {
 	newOrder.value = [
 		{
@@ -679,24 +666,6 @@ const closeModal = () => {
 									<EditTextPopover
 										:initialText="reserve.place"
 										@update:textValue="newValue => (reserve.place = newValue)"
-									/>
-								</div>
-							</div>
-							<span v-else class="text-gray-400">Не задано</span>
-						</template>
-					</el-table-column>
-					<el-table-column
-						label="Кількість резерву"
-						header-align="center"
-						align="center"
-					>
-						<template #default="{ row }">
-							<div v-if="row.warehouse && row.warehouse.length > 0">
-								<div v-for="(reserve, i) in row.warehouse" :key="i">
-									<EditCountPopover
-										:initialCount="reserve.count"
-										:maxCount="getMaxReserveCount(row, i)"
-										@update:countValue="newValue => (reserve.count = newValue)"
 									/>
 								</div>
 							</div>

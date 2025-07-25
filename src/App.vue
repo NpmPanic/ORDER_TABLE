@@ -237,13 +237,13 @@ const isSaveDisabled = computed(() => {
 // Фильтрация данных таблицы на основе appliedFilters
 const resultData = computed(() => {
 	const search = inputQuerySearch.value?.trim() || ''
-	const category = selectedCategory.value
 	const filters = appliedFilters.value
 
 	// Фильтрация по поисковому запросу
 	const searchFiltered = TABLE_DATA.value.filter(item => {
-		if (!search && !category) return true
+		if (!search) return true
 
+		const searchLower = search.toLowerCase()
 		const customerName = item.customer?.name?.toLowerCase() || ''
 		const customerPhone = item.customer?.phone?.toLowerCase() || ''
 		const recipientName = item.recipient?.name?.toLowerCase() || ''
@@ -251,37 +251,14 @@ const resultData = computed(() => {
 		const orderId = String(item.id)
 		const ttn = item.delivery?.ttn?.toLowerCase() || ''
 
-		if (category && search) {
-			switch (category) {
-				case 'order':
-					return orderId.includes(search)
-				case 'customer':
-					return customerName.includes(search)
-				case 'customer_phone':
-					return customerPhone.includes(search)
-				case 'recipient':
-					return recipientName.includes(search)
-				case 'recipient_phone':
-					return recipientPhone.includes(search)
-				case 'ttn':
-					return ttn.includes(search)
-				default:
-					return false
-			}
-		}
-
-		if (!category && search) {
-			return (
-				orderId.includes(search) ||
-				customerName.includes(search) ||
-				customerPhone.includes(search) ||
-				recipientName.includes(search) ||
-				recipientPhone.includes(search) ||
-				ttn.includes(search)
-			)
-		}
-
-		return true
+		return (
+			orderId.includes(search) ||
+			customerName.includes(searchLower) ||
+			customerPhone.includes(searchLower) ||
+			recipientName.includes(searchLower) ||
+			recipientPhone.includes(searchLower) ||
+			ttn.includes(searchLower)
+		)
 	})
 
 	// Фильтрация по примененным фильтрам
@@ -322,6 +299,24 @@ const resultData = computed(() => {
 		)
 	})
 })
+
+// Подсветка строк таблицы согласно статусу заказа
+const tableRowClassName = ({ row }) => {
+	const statusColor = getStatusColor(row.order.order_status)
+
+	switch (statusColor) {
+		case 'primary':
+			return 'primary-row'
+		case 'success':
+			return 'success-row'
+		case 'warning':
+			return 'warning-row'
+		case 'danger':
+			return 'danger-row'
+		default:
+			return ''
+	}
+}
 
 // Вспомогательная функция для получения иконки по статусу
 const getStatusIcon = status => {
@@ -490,18 +485,6 @@ const addReserveToOrder = product => {
 	isAddReserve.value = true
 }
 
-// Вычисления максимального количества резерва для прямого редактирования
-const getMaxReserveCount = (product, currentReserveIndex) => {
-	if (!product.warehouse) return product.count
-
-	const totalOtherReserves = product.warehouse.reduce((total, item, index) => {
-		return index === currentReserveIndex ? total : total + item.count
-	}, 0)
-
-	const remaining = product.count - totalOtherReserves
-	return remaining > 0 ? remaining : 0
-}
-
 // Удаления резерва из текущего товара
 const deleteReserve = (warehouseArray, index) => {
 	ElMessageBox.confirm('Ця дія незворотня. Продовжити?', 'Увага!', {
@@ -529,7 +512,7 @@ const deleteReserve = (warehouseArray, index) => {
 // Обработчик добавления резерва к выбраному товару
 const handleSaveReserves = reserves => {
 	const validReserves = reserves.filter(
-		reserve => reserve.place && reserve.count > 0
+		reserve => reserve.place && reserve.place.trim() !== ''
 	)
 
 	if (validReserves.length > 0) {
@@ -916,7 +899,6 @@ function formatNumber(value) {
 	<AddReserveDialog
 		v-model="isAddReserve"
 		:product="currentEditProduct"
-		:countProduct="currentEditProduct.count"
 		:warehouseList="optionsWarehouseReserve"
 		@save="handleSaveReserves"
 	/>
@@ -944,6 +926,7 @@ function formatNumber(value) {
 			:default-sort="{ prop: 'order.created_at', order: 'descending' }"
 			height="100%"
 			style="width: 100%"
+			:row-class-name="tableRowClassName"
 		>
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
@@ -1455,26 +1438,6 @@ function formatNumber(value) {
 										</template>
 									</el-table-column>
 									<el-table-column
-										label="Кількість резерву"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div v-if="row.warehouse && row.warehouse.length > 0">
-												<div v-for="(reserve, i) in row.warehouse" :key="i">
-													<EditCountPopover
-														:initialCount="reserve.count"
-														:maxCount="getMaxReserveCount(row, i)"
-														@update:countValue="
-															newValue => (reserve.count = newValue)
-														"
-													/>
-												</div>
-											</div>
-											<span v-else class="text-gray-400">Не задано</span>
-										</template>
-									</el-table-column>
-									<el-table-column
 										label="Номер резерву"
 										header-align="center"
 										align="center"
@@ -1681,26 +1644,6 @@ function formatNumber(value) {
 														:initialText="reserve.place"
 														@update:textValue="
 															newValue => (reserve.place = newValue)
-														"
-													/>
-												</div>
-											</div>
-											<span v-else class="text-gray-400">Не задано</span>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Кількість резерву"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div v-if="row.warehouse && row.warehouse.length > 0">
-												<div v-for="(reserve, i) in row.warehouse" :key="i">
-													<EditCountPopover
-														:initialCount="reserve.count"
-														:maxCount="getMaxReserveCount(row, i)"
-														@update:countValue="
-															newValue => (reserve.count = newValue)
 														"
 													/>
 												</div>
@@ -2029,5 +1972,17 @@ function formatNumber(value) {
 /* Цвет полосы прокрутки :hover */
 .dropdown-with-scroll::-webkit-scrollbar-thumb:hover {
 	background: #666666;
+}
+:deep(.el-table .primary-row) {
+	--el-table-tr-bg-color: var(--el-color-primary-light-8) !important;
+}
+:deep(.el-table .success-row) {
+	--el-table-tr-bg-color: var(--el-color-success-light-8) !important;
+}
+:deep(.el-table .warning-row) {
+	--el-table-tr-bg-color: var(--el-color-warning-light-8) !important;
+}
+:deep(.el-table .danger-row) {
+	--el-table-tr-bg-color: var(--el-color-danger-light-8) !important;
 }
 </style>
