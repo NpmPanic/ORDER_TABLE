@@ -760,6 +760,27 @@ function formatNumber(value) {
 	const rounded = Math.round(value)
 	return new Intl.NumberFormat('uk-UA').format(rounded)
 }
+
+// Функция для получения текущей даты и времени
+function getTodayDateTime() {
+	const today = new Date()
+
+	const day = String(today.getDate()).padStart(2, '0')
+	const month = String(today.getMonth() + 1).padStart(2, '0')
+	const year = today.getFullYear()
+
+	const hours = String(today.getHours()).padStart(2, '0')
+	const minutes = String(today.getMinutes()).padStart(2, '0')
+	const seconds = String(today.getSeconds()).padStart(2, '0')
+
+	return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
+}
+
+// Функция для обновления статуса заказа с добавлением даты изменения
+const updateOrderStatus = (order, newStatus) => {
+	order.order.order_status = newStatus
+	order.order.status_changed_at = getTodayDateTime()
+}
 </script>
 
 <template>
@@ -1854,7 +1875,7 @@ function formatNumber(value) {
 
 					<div
 						v-else-if="column.prop === 'order.order_status'"
-						class="flex justify-center font-semibold"
+						class="flex flex-col items-center"
 					>
 						<SelectValueDropdown
 							:initialArray="subOptions.status"
@@ -1863,9 +1884,15 @@ function formatNumber(value) {
 							:getStatusColor="getStatusColor"
 							:statusColor="getStatusColor(row.order.order_status)"
 							@update:selectedValue="
-								newValue => (row.order.order_status = newValue)
+								newValue => updateOrderStatus(row, newValue)
 							"
 						/>
+						<span
+							v-if="row.order.status_changed_at"
+							class="text-xs text-gray-500 mt-1"
+						>
+							{{ row.order.status_changed_at }}
+						</span>
 					</div>
 					<div
 						v-else-if="column.prop === 'order.manager'"
