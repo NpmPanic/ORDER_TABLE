@@ -630,6 +630,7 @@ const tableColumns = ref({
 		visible: true,
 		prop: 'products.name',
 		sortable: false,
+		width: 250,
 	},
 	Вартість: {
 		visible: true,
@@ -761,6 +762,12 @@ function formatNumber(value) {
 	return new Intl.NumberFormat('uk-UA').format(rounded)
 }
 
+// Фрматировка даты создания заказа для отображения в две строки
+const formatDateTime = datetime => {
+	const [date, time] = datetime.split(' ')
+	return `${date}<br/>${time}`
+}
+
 // Функция для получения текущей даты и времени
 function getTodayDateTime() {
 	const today = new Date()
@@ -771,9 +778,8 @@ function getTodayDateTime() {
 
 	const hours = String(today.getHours()).padStart(2, '0')
 	const minutes = String(today.getMinutes()).padStart(2, '0')
-	const seconds = String(today.getSeconds()).padStart(2, '0')
 
-	return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
+	return `${day}.${month}.${year} ${hours}:${minutes}`
 }
 
 // Функция для обновления статуса заказа с добавлением даты изменения
@@ -1867,6 +1873,10 @@ const updateOrderStatus = (order, newStatus) => {
 								</div>
 							</template>
 						</el-tooltip>
+					</div>
+
+					<div v-else-if="column.prop === 'order.created_at'">
+						<div v-html="formatDateTime(row.order.created_at)"></div>
 					</div>
 
 					<div v-else-if="column.prop === 'delivery.delivery_date'">

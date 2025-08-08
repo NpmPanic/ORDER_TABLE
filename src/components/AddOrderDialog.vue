@@ -203,9 +203,8 @@ function getTodayDateTime() {
 
 	const hours = String(today.getHours()).padStart(2, '0')
 	const minutes = String(today.getMinutes()).padStart(2, '0')
-	const seconds = String(today.getSeconds()).padStart(2, '0')
 
-	return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
+	return `${day}.${month}.${year} ${hours}:${minutes}`
 }
 
 const getTotalProductsPrice = products => {

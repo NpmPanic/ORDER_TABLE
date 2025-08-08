@@ -4,10 +4,10 @@ export const TABLE_DATA = ref([
 	{
 		id: 345286913,
 		order: {
-			order_status: 'Оплачено',
+			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
-			pay_status: 'Оплачено',
-			created_at: '01/06/2025 08:50:40',
+			pay_status: 'Не оплачено',
+			created_at: '08.08.2025 08:50',
 			status_changed_at: '',
 			source: 'Mail',
 			source_utm: 'prom_site',
@@ -104,7 +104,7 @@ export const TABLE_DATA = ref([
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
 			pay_status: 'Не оплачено',
-			created_at: '04/06/2025 12:30:25',
+			created_at: '08.08.2025 12:50',
 			status_changed_at: '',
 			source: 'Mail',
 			source_utm: 'prom_ads',
