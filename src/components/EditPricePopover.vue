@@ -41,7 +41,7 @@ const cancelEdit = () => {
 				placeholder="Введіть ціну"
 				clearable
 				:min="0"
-				:max="59999"
+				:max="999999"
 				:formatter="
 					value => {
 						const cleanValue = value.replace(/[^\d]/g, '')

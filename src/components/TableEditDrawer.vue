@@ -55,8 +55,10 @@ const closeDrawer = () => {
 		:show-close="false"
 	>
 		<template #header>
-			<div class="flex items-center justify-between w-full px-4 pb-5">
-				<span class="text-xl font-semibold">Налаштування</span>
+			<div class="flex items-center justify-between w-full px-4 mb-10">
+				<span class="text-xl text-gray-700 font-semibold uppercase"
+					>Налаштування</span
+				>
 				<el-button @click="closeDrawer" link circle>
 					<el-icon size="large">
 						<Close class="text-gray-500 hover:text-blue-500" />
@@ -82,7 +84,7 @@ const closeDrawer = () => {
 			>
 				<template #item="{ element }">
 					<div
-						class="w-full flex items-center justify-between mb-5 mt-5 px-4 border-b border-gray-200"
+						class="w-full flex items-center justify-between mb-5 px-4 border-b border-gray-200"
 					>
 						<div
 							class="flex items-center gap-4 pb-4"

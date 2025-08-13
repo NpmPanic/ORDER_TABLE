@@ -71,8 +71,10 @@ const saveChanges = () => {
 		size="30%"
 	>
 		<template #header>
-			<div class="flex items-center justify-between w-full px-4 pb-5">
-				<span class="text-xl font-semibold">Редагування товару</span>
+			<div class="flex items-center justify-between w-full px-4 mb-10">
+				<span class="text-xl text-gray-700 font-semibold uppercase"
+					>Редагування товару</span
+				>
 				<el-button @click="closeDrawer" link circle>
 					<el-icon size="large"
 						><Close class="text-gray-500 hover:text-blue-500"
@@ -81,7 +83,7 @@ const saveChanges = () => {
 			</div>
 		</template>
 		<template #default>
-			<div class="px-4 mt-5">
+			<div class="px-4">
 				<div class="flex items-center mb-10 gap-2">
 					<img class="w-50" :src="localProduct.img" alt="img" />
 					<p class="leading-loose">{{ localProduct.title }}</p>

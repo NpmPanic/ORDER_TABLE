@@ -41,6 +41,7 @@ import AddReserveDialog from './components/AddReserveDialog.vue'
 import AddOrderDialog from './components/AddOrderDialog.vue'
 import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
 import SelectValueDropdown from './components/SelectValueDropdown.vue'
+import CreateTtnDialog from './components/CreateTtnDialog.vue'
 
 // Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
@@ -362,6 +363,7 @@ const isAddReserve = ref(false)
 const isAdditionalProducts = ref(true)
 const isDeliveryStatusDialog = ref(false)
 const isAddOrder = ref(false)
+const isCreateTtnNumber = ref(false)
 
 const statusGroups = {
 	new: {
@@ -549,20 +551,6 @@ const optionsWarehouseReserve = [
 	{ value: 'Магазин 4', label: 'Магазин 4' },
 	{ value: 'Магазин 5', label: 'Магазин 5' },
 ]
-
-// Функция генерации номера ТТН
-
-function generateNumber(row) {
-	const prefix = '204'
-	let remainingDigits = ''
-
-	for (let i = 0; i < 11; i++) {
-		remainingDigits += Math.floor(Math.random() * 10)
-	}
-
-	const newNumber = prefix + remainingDigits
-	row.delivery.ttn = newNumber
-}
 
 // Объект с настройками колонок таблицы
 const tableColumns = ref({
@@ -787,6 +775,13 @@ const updateOrderStatus = (order, newStatus) => {
 	order.order.order_status = newStatus
 	order.order.status_changed_at = getTodayDateTime()
 }
+
+// Функция открытия окна создания номера ТТН
+const CreateTtnNumber = order => {
+	currentOrder.value = order
+	isCreateTtnNumber.value = true
+	console.dir(currentOrder.value)
+}
 </script>
 
 <template>
@@ -944,6 +939,7 @@ const updateOrderStatus = (order, newStatus) => {
 		:statusHistory="currentOrder.delivery?.status_history || []"
 		:currentStatus="currentOrder.delivery?.delivery_status || ''"
 	/>
+	<CreateTtnDialog v-model="isCreateTtnNumber" :selectedOrder="currentOrder" />
 
 	<!-- Основная таблица с данными -->
 	<div class="pb-5">
@@ -1252,7 +1248,7 @@ const updateOrderStatus = (order, newStatus) => {
 											}}</span>
 											<div class="flex items-center gap-2">
 												<div
-													@click="generateNumber(props.row)"
+													@click="CreateTtnNumber(props.row)"
 													class="text-sm cursor-pointer hover:text-green-500 transition"
 												>
 													<el-tooltip

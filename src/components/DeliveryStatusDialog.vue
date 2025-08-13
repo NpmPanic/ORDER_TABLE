@@ -79,8 +79,10 @@ const closeModal = () => {
 		class="rounded-xl"
 	>
 		<template #header>
-			<div class="flex justify-between items-center w-full px-4 mb-5">
-				<span class="text-xl font-semibold">Статус доставки</span>
+			<div class="flex justify-between items-center w-full px-4 mb-10">
+				<span class="text-xl text-gray-700 font-semibold uppercase"
+					>Статус доставки</span
+				>
 				<el-button @click="closeModal" link circle>
 					<el-icon size="large"
 						><Close class="text-gray-500 hover:text-blue-500"

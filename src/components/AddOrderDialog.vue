@@ -351,7 +351,7 @@ const closeModal = () => {
 	>
 		<template #header>
 			<div class="flex justify-between items-center w-full px-4 mb-10">
-				<span class="text-xl text-gray-700 font-semibold"
+				<span class="text-xl text-gray-700 font-semibold uppercase"
 					>Додати замовлення</span
 				>
 				<el-button @click="closeModal" link circle>
@@ -369,6 +369,7 @@ const closeModal = () => {
 
 					<el-select
 						v-model="newOrder[0].order.manager"
+						size="large"
 						@change="handleFieldChange('manager')"
 						placeholder="Обрати менеджера"
 						clearable
@@ -385,11 +386,11 @@ const closeModal = () => {
 
 					<el-input
 						v-model="newOrder[0].order.manager_comment"
-						type="textarea"
+						size="large"
+						clearable
 						maxlength="30"
 						show-word-limit
 						placeholder="Коментар менеджера"
-						rows="4"
 					/>
 				</div>
 
@@ -399,6 +400,7 @@ const closeModal = () => {
 
 					<el-input
 						v-model="newOrder[0].customer.name"
+						size="large"
 						@input="handleFieldChange('customerName')"
 						placeholder="Ім'я покупця"
 						clearable
@@ -407,6 +409,7 @@ const closeModal = () => {
 					/>
 					<el-input
 						v-model="newOrder[0].customer.phone"
+						size="large"
 						@input="handleFieldChange('customerPhone')"
 						placeholder="Телефон покупця"
 						clearable
@@ -415,6 +418,7 @@ const closeModal = () => {
 					/>
 					<el-input
 						v-model="newOrder[0].customer.email"
+						size="large"
 						placeholder="E-mail покупця"
 						clearable
 						class="pb-4"
@@ -426,6 +430,7 @@ const closeModal = () => {
 					<p class="font-semibold pb-4">Інформація про отримувача</p>
 					<el-input
 						v-model="newOrder[0].recipient.name"
+						size="large"
 						@input="handleFieldChange('recipientName')"
 						placeholder="Ім'я отримувача"
 						clearable
@@ -434,6 +439,7 @@ const closeModal = () => {
 					/>
 					<el-input
 						v-model="newOrder[0].recipient.phone"
+						size="large"
 						@input="handleFieldChange('recipientPhone')"
 						placeholder="Телефон отримувача"
 						clearable
@@ -442,6 +448,7 @@ const closeModal = () => {
 					/>
 					<el-select
 						v-model="newOrder[0].delivery.service"
+						size="large"
 						@change="handleFieldChange('deliveryService')"
 						placeholder="Служба доставки"
 						clearable
@@ -458,6 +465,7 @@ const closeModal = () => {
 					<el-input
 						v-if="newOrder[0].delivery.service === 'Нова пошта'"
 						v-model="newOrder[0].delivery.city"
+						size="large"
 						@input="handleFieldChange('deliveryCity')"
 						placeholder="Місто доставки"
 						clearable
@@ -467,6 +475,7 @@ const closeModal = () => {
 					<el-select
 						v-if="newOrder[0].delivery.service === 'Нова пошта'"
 						v-model="newOrder[0].delivery.adress"
+						size="large"
 						@change="handleFieldChange('deliveryAdress')"
 						placeholder="Адреса доставки"
 						clearable

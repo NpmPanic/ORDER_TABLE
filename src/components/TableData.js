@@ -7,6 +7,7 @@ export const TABLE_DATA = ref([
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
 			pay_status: 'Не оплачено',
+			pay_method: '',
 			created_at: '08.08.2025 08:50',
 			status_changed_at: '',
 			source: 'Mail',
@@ -19,6 +20,10 @@ export const TABLE_DATA = ref([
 			phone: '+380671112233',
 			email: 'ivan@example.com',
 			comment: '',
+		},
+		sender: {
+			name: '',
+			phone: '',
 		},
 		recipient: {
 			name: 'Оксана Іванова',
@@ -59,6 +64,11 @@ export const TABLE_DATA = ref([
 		delivery: {
 			delivery_date: '',
 			service: '',
+			delivery_method: '',
+			delivery_payer: '',
+			delivery_warehouse: '',
+			item_description: '',
+			assessed_value: '',
 			ttn: '',
 			adress: '',
 			city: '',
@@ -104,6 +114,7 @@ export const TABLE_DATA = ref([
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
 			pay_status: 'Не оплачено',
+			pay_method: '',
 			created_at: '08.08.2025 12:50',
 			status_changed_at: '',
 			source: 'Mail',
@@ -116,6 +127,10 @@ export const TABLE_DATA = ref([
 			phone: '+380671113322',
 			email: 'petro@example.com',
 			comment: '',
+		},
+		sender: {
+			name: '',
+			phone: '',
 		},
 		recipient: {
 			name: 'Марина Петрівна',
@@ -156,6 +171,11 @@ export const TABLE_DATA = ref([
 		delivery: {
 			delivery_date: '',
 			service: '',
+			delivery_method: '',
+			delivery_payer: '',
+			delivery_warehouse: '',
+			item_description: '',
+			assessed_value: '',
 			ttn: '',
 			adress: '',
 			city: '',
