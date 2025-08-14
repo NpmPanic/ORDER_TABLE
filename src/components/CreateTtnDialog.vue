@@ -1,6 +1,6 @@
 <script setup>
 import { Close } from '@element-plus/icons-vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const props = defineProps({
 	modelValue: Boolean,
@@ -12,6 +12,20 @@ const emit = defineEmits(['update:modelValue'])
 const closeModal = () => {
 	emit('update:modelValue', false)
 }
+
+// Инициализация с проверкой на существование products
+const orderProducts = ref(
+	props.selectedOrder?.products?.map(product => product.name) || []
+)
+
+// Watcher с проверкой
+watch(
+	() => props.selectedOrder,
+	newOrder => {
+		orderProducts.value = newOrder?.products?.map(product => product.name) || []
+	},
+	{ immediate: true, deep: true }
+)
 </script>
 <template>
 	<el-dialog
@@ -19,6 +33,7 @@ const closeModal = () => {
 		@close="closeModal"
 		:show-close="false"
 		align-center
+		width="80%"
 	>
 		<template #header>
 			<div class="flex justify-between items-center w-full px-4 mb-10">
@@ -33,14 +48,14 @@ const closeModal = () => {
 			</div>
 		</template>
 		<template #default>
-			<div class="flex gap-5 px-4 mb-10">
+			<div class="flex gap-5 px-4">
 				<div class="w-1/2">
 					<div class="mb-4">
 						<p class="font-semibold mb-4">Отримувач</p>
 
 						<el-input
-							v-model="props.selectedOrder.customer.name"
-							placeholder="Отримувач"
+							v-model="props.selectedOrder.recipient.name"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						/>
@@ -50,7 +65,7 @@ const closeModal = () => {
 
 						<el-select
 							v-model="props.selectedOrder.delivery.delivery_method"
-							placeholder="Спосіб доставки"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						>
@@ -67,7 +82,7 @@ const closeModal = () => {
 
 						<el-select
 							v-model="props.selectedOrder.delivery.city"
-							placeholder="Місто доставки"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						>
@@ -84,7 +99,7 @@ const closeModal = () => {
 
 						<el-input
 							v-model="props.selectedOrder.sender.name"
-							placeholder="Відправник"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						/>
@@ -94,7 +109,7 @@ const closeModal = () => {
 
 						<el-select
 							v-model="props.selectedOrder.delivery.delivery_payer"
-							placeholder="Оплата доставки"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						>
@@ -111,7 +126,7 @@ const closeModal = () => {
 
 						<el-select
 							v-model="props.selectedOrder.order.pay_method"
-							placeholder="Форма оплати"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						>
@@ -130,8 +145,8 @@ const closeModal = () => {
 						<p class="font-semibold mb-4">Телефон отримувача</p>
 
 						<el-input
-							v-model="props.selectedOrder.customer.phone"
-							placeholder="Телефон отримувача"
+							v-model="props.selectedOrder.recipient.phone"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						/>
@@ -141,7 +156,7 @@ const closeModal = () => {
 
 						<el-select
 							v-model="props.selectedOrder.delivery.delivery_warehouse"
-							placeholder="Склад доставки"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						>
@@ -158,7 +173,7 @@ const closeModal = () => {
 
 						<el-select
 							v-model="props.selectedOrder.delivery.adress"
-							placeholder="Відділення доставки"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						>
@@ -175,7 +190,7 @@ const closeModal = () => {
 
 						<el-input
 							v-model="props.selectedOrder.delivery.item_description"
-							placeholder="Опис відправлення"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 						/>
@@ -185,7 +200,7 @@ const closeModal = () => {
 
 						<el-input
 							v-model="props.selectedOrder.delivery.assessed_value"
-							placeholder="Оціночна вартість"
+							placeholder="Заповніть данні"
 							clearable
 							size="large"
 							:min="0"
@@ -208,14 +223,88 @@ const closeModal = () => {
 
 						<el-input
 							v-model="props.selectedOrder.order.manager_comment"
+							placeholder="Заповніть данні"
 							maxlength="30"
 							size="large"
 							clearable
 							show-word-limit
-							placeholder="Коментар менеджера"
 							rows="2"
 						/>
 					</div>
+				</div>
+			</div>
+			<div class="flex gap-5 px-4 mb-10">
+				<div class="w-[40%]">
+					<p class="font-semibold mb-4">Товар</p>
+
+					<el-input-tag
+						v-model="orderProducts"
+						size="large"
+						tag-type="primary"
+						disabled
+					/>
+				</div>
+				<div class="w-[10%]">
+					<p class="font-semibold mb-4">Кількість</p>
+
+					<el-input-number
+						v-model="props.selectedOrder.products[0].count"
+						size="large"
+						:min="1"
+						:max="10"
+						disabled
+						style="width: 100%"
+					/>
+				</div>
+				<div class="w-[10%]">
+					<p class="font-semibold mb-4">Ширина</p>
+
+					<el-input
+						v-model="props.selectedOrder.delivery.width"
+						placeholder="Заповніть данні"
+						clearable
+						size="large"
+					/>
+				</div>
+				<div class="w-[10%]">
+					<p class="font-semibold mb-4">Довжина</p>
+
+					<el-input
+						v-model="props.selectedOrder.delivery.length"
+						placeholder="Заповніть данні"
+						clearable
+						size="large"
+					/>
+				</div>
+				<div class="w-[10%]">
+					<p class="font-semibold mb-4">Висота</p>
+
+					<el-input
+						v-model="props.selectedOrder.delivery.height"
+						placeholder="Заповніть данні"
+						clearable
+						size="large"
+					/>
+				</div>
+				<div class="w-[10%]">
+					<p class="font-semibold mb-4">Вага, кг</p>
+
+					<el-input
+						v-model="props.selectedOrder.delivery.weight"
+						placeholder="Заповніть данні"
+						clearable
+						size="large"
+					/>
+				</div>
+				<div class="w-[10%]">
+					<p class="font-semibold mb-4">Об`ємна вага, кг</p>
+
+					<el-input
+						v-model="props.selectedOrder.delivery.weight"
+						placeholder="Заповніть данні"
+						clearable
+						size="large"
+					/>
 				</div>
 			</div>
 		</template>
