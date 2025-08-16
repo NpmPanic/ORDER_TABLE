@@ -780,7 +780,6 @@ const updateOrderStatus = (order, newStatus) => {
 const CreateTtnNumber = order => {
 	currentOrder.value = order
 	isCreateTtnNumber.value = true
-	console.dir(currentOrder.value)
 }
 </script>
 

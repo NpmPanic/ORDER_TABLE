@@ -1,6 +1,6 @@
 <script setup>
 import { Close } from '@element-plus/icons-vue'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
 	modelValue: Boolean,
@@ -13,10 +13,34 @@ const closeModal = () => {
 	emit('update:modelValue', false)
 }
 
+const optionsDeliveryMethod = ref([
+	{ value: 'Відділення-Відділення', label: 'Відділення-Відділення' },
+])
+const optionsDeliveryPayer = ref([
+	{ value: 'Відправник', label: 'Відправник' },
+	{ value: 'Отримувач', label: 'Отримувач' },
+	{ value: 'Третя особа', label: 'Третя особа' },
+])
+const optionsPayMethod = ref([
+	{ value: 'Готівка', label: 'Готівка' },
+	{ value: 'Безготівка', label: 'Безготівка' },
+])
+const optionsDeliveryWarehouse = ref([
+	{ value: 'Склад за замовчуванням', label: 'Склад за замовчуванням' },
+])
+
 // Инициализация с проверкой на существование products
 const orderProducts = ref(
 	props.selectedOrder?.products?.map(product => product.name) || []
 )
+
+// Вычисляемое свойство для общего количества товаров
+const totalProductsCount = computed(() => {
+	if (!props.selectedOrder?.products) return 0
+	return props.selectedOrder.products.reduce((total, product) => {
+		return total + (product.count || 0)
+	}, 0)
+})
 
 // Watcher с проверкой
 watch(
@@ -70,18 +94,28 @@ watch(
 							size="large"
 						>
 							<el-option
-								v-for="manager in props.new_orderManagerList"
-								:key="manager"
-								:label="manager"
-								:value="manager"
+								v-for="item in optionsDeliveryMethod"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
 							/>
 						</el-select>
 					</div>
 					<div class="mb-4">
 						<p class="font-semibold mb-4">Місто доставки</p>
 
-						<el-select
+						<el-input
 							v-model="props.selectedOrder.delivery.city"
+							placeholder="Заповніть данні"
+							size="large"
+							disabled
+						/>
+					</div>
+					<div class="mb-4">
+						<p class="font-semibold mb-4">Відправник</p>
+
+						<el-select
+							v-model="props.selectedOrder.sender.name"
 							placeholder="Заповніть данні"
 							clearable
 							size="large"
@@ -93,16 +127,6 @@ watch(
 								:value="manager"
 							/>
 						</el-select>
-					</div>
-					<div class="mb-4">
-						<p class="font-semibold mb-4">Відправник</p>
-
-						<el-input
-							v-model="props.selectedOrder.sender.name"
-							placeholder="Заповніть данні"
-							clearable
-							size="large"
-						/>
 					</div>
 					<div class="mb-4">
 						<p class="font-semibold mb-4">Оплата доставки</p>
@@ -114,10 +138,10 @@ watch(
 							size="large"
 						>
 							<el-option
-								v-for="manager in props.new_orderManagerList"
-								:key="manager"
-								:label="manager"
-								:value="manager"
+								v-for="item in optionsDeliveryPayer"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
 							/>
 						</el-select>
 					</div>
@@ -131,10 +155,10 @@ watch(
 							size="large"
 						>
 							<el-option
-								v-for="manager in props.new_orderManagerList"
-								:key="manager"
-								:label="manager"
-								:value="manager"
+								v-for="item in optionsPayMethod"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
 							/>
 						</el-select>
 					</div>
@@ -161,29 +185,22 @@ watch(
 							size="large"
 						>
 							<el-option
-								v-for="manager in props.new_orderManagerList"
-								:key="manager"
-								:label="manager"
-								:value="manager"
+								v-for="item in optionsDeliveryWarehouse"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
 							/>
 						</el-select>
 					</div>
 					<div class="mb-4">
 						<p class="font-semibold mb-4">Відділення доставки</p>
 
-						<el-select
+						<el-input
 							v-model="props.selectedOrder.delivery.adress"
 							placeholder="Заповніть данні"
-							clearable
 							size="large"
-						>
-							<el-option
-								v-for="manager in props.new_orderManagerList"
-								:key="manager"
-								:label="manager"
-								:value="manager"
-							/>
-						</el-select>
+							disabled
+						/>
 					</div>
 					<div class="mb-4">
 						<p class="font-semibold mb-4">Опис відправлення</p>
@@ -247,62 +264,75 @@ watch(
 				<div class="w-[10%]">
 					<p class="font-semibold mb-4">Кількість</p>
 
-					<el-input-number
-						v-model="props.selectedOrder.products[0].count"
-						size="large"
-						:min="1"
-						:max="10"
+					<el-input
+						v-model="totalProductsCount"
+						placeholder="0"
+						clearable
 						disabled
-						style="width: 100%"
+						size="large"
 					/>
 				</div>
+
 				<div class="w-[10%]">
 					<p class="font-semibold mb-4">Ширина</p>
-
-					<el-input
+					<el-input-number
 						v-model="props.selectedOrder.delivery.width"
-						placeholder="Заповніть данні"
-						clearable
+						style="width: 100%"
+						:min="1"
+						:max="10000"
+						:step="0.01"
+						controls-position="right"
 						size="large"
 					/>
 				</div>
 				<div class="w-[10%]">
 					<p class="font-semibold mb-4">Довжина</p>
 
-					<el-input
+					<el-input-number
 						v-model="props.selectedOrder.delivery.length"
-						placeholder="Заповніть данні"
-						clearable
+						style="width: 100%"
+						:min="1"
+						:max="10000"
+						:step="0.01"
+						controls-position="right"
 						size="large"
 					/>
 				</div>
 				<div class="w-[10%]">
 					<p class="font-semibold mb-4">Висота</p>
 
-					<el-input
+					<el-input-number
 						v-model="props.selectedOrder.delivery.height"
-						placeholder="Заповніть данні"
-						clearable
+						style="width: 100%"
+						:min="1"
+						:max="10000"
+						:step="0.01"
+						controls-position="right"
 						size="large"
 					/>
 				</div>
 				<div class="w-[10%]">
 					<p class="font-semibold mb-4">Вага, кг</p>
-
-					<el-input
+					<el-input-number
 						v-model="props.selectedOrder.delivery.weight"
-						placeholder="Заповніть данні"
-						clearable
+						style="width: 100%"
+						:min="0.1"
+						:max="10000"
+						:step="0.01"
+						controls-position="right"
 						size="large"
 					/>
 				</div>
 				<div class="w-[10%]">
 					<p class="font-semibold mb-4">Об`ємна вага, кг</p>
 
-					<el-input
-						v-model="props.selectedOrder.delivery.weight"
-						placeholder="Заповніть данні"
-						clearable
+					<el-input-number
+						v-model="props.selectedOrder.delivery.volumetric_weight"
+						style="width: 100%"
+						:min="0.1"
+						:max="10000"
+						:step="0.01"
+						controls-position="right"
 						size="large"
 					/>
 				</div>

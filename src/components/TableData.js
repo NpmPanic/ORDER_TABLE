@@ -75,8 +75,8 @@ export const TABLE_DATA = ref([
 			weight: '',
 			volumetric_weight: '',
 			ttn: '',
-			adress: '',
-			city: '',
+			adress: 'Відділення №4',
+			city: 'м. Харків',
 			delivery_status: 'Доставлено',
 			status_history: [
 				{
@@ -187,8 +187,8 @@ export const TABLE_DATA = ref([
 			weight: '',
 			volumetric_weight: '',
 			ttn: '',
-			adress: '',
-			city: '',
+			adress: 'Відділення №2',
+			city: 'м. Київ',
 			delivery_status: 'Замовлення отримано',
 			status_history: [
 				{
