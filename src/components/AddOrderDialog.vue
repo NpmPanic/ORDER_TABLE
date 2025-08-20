@@ -745,8 +745,8 @@ const closeModal = () => {
 			</div>
 		</template>
 		<template #footer>
-			<div class="flex justify-end fixed bottom-0 left-0 right-4 bg-white z-50">
-				<div class="flex gap-4 p-4">
+			<div class="flex justify-end fixed bottom-0 left-0 right-0 bg-white z-50">
+				<div class="flex gap-4 py-4 px-8">
 					<el-button @click="closeModal" size="large">Закрити</el-button>
 					<el-button @click="saveModal" type="primary" size="large"
 						>Зберегти</el-button

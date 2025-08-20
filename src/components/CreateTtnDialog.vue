@@ -16,6 +16,10 @@ const closeModal = () => {
 const optionsDeliveryMethod = ref([
 	{ value: 'Відділення-Відділення', label: 'Відділення-Відділення' },
 ])
+const optionsDeliverySender = ref([
+	{ value: 'ТОВ ДАТА АМ', label: 'ТОВ ДАТА АМ' },
+	{ value: 'ТОВ ТОРГПОСТАЧ', label: 'ТОВ ТОРГПОСТАЧ' },
+])
 const optionsDeliveryPayer = ref([
 	{ value: 'Відправник', label: 'Відправник' },
 	{ value: 'Отримувач', label: 'Отримувач' },
@@ -28,6 +32,12 @@ const optionsPayMethod = ref([
 const optionsDeliveryWarehouse = ref([
 	{ value: 'Склад за замовчуванням', label: 'Склад за замовчуванням' },
 ])
+const optionsPayType = ref([
+	{ value: 'Передоплата ', label: 'Передоплата' },
+	{ value: 'Післяплата', label: 'Післяплата' },
+])
+
+const radioValue = ref('standart')
 
 // Инициализация с проверкой на существование products
 const orderProducts = ref(
@@ -88,9 +98,9 @@ watch(
 						<p class="font-semibold mb-4">Спосіб доставки</p>
 
 						<el-select
-							v-model="props.selectedOrder.delivery.delivery_method"
+							v-model="optionsDeliveryMethod[0].value"
 							placeholder="Заповніть данні"
-							clearable
+							disabled
 							size="large"
 						>
 							<el-option
@@ -121,10 +131,10 @@ watch(
 							size="large"
 						>
 							<el-option
-								v-for="manager in props.new_orderManagerList"
-								:key="manager"
-								:label="manager"
-								:value="manager"
+								v-for="item in optionsDeliverySender"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
 							/>
 						</el-select>
 					</div>
@@ -149,7 +159,7 @@ watch(
 						<p class="font-semibold mb-4">Форма оплати</p>
 
 						<el-select
-							v-model="props.selectedOrder.order.pay_method"
+							v-model="props.selectedOrder.delivery.pay_method"
 							placeholder="Заповніть данні"
 							clearable
 							size="large"
@@ -161,6 +171,19 @@ watch(
 								:value="item.value"
 							/>
 						</el-select>
+					</div>
+					<div class="mb-4">
+						<p class="font-semibold mb-4">Коментар менеджера</p>
+
+						<el-input
+							v-model="props.selectedOrder.order.manager_comment"
+							placeholder="Заповніть данні"
+							maxlength="30"
+							size="large"
+							clearable
+							show-word-limit
+							rows="1"
+						/>
 					</div>
 				</div>
 
@@ -179,10 +202,10 @@ watch(
 						<p class="font-semibold mb-4">Склад доставки</p>
 
 						<el-select
-							v-model="props.selectedOrder.delivery.delivery_warehouse"
+							v-model="optionsDeliveryWarehouse[0].value"
 							placeholder="Заповніть данні"
-							clearable
 							size="large"
+							disabled
 						>
 							<el-option
 								v-for="item in optionsDeliveryWarehouse"
@@ -236,22 +259,39 @@ watch(
 						/>
 					</div>
 					<div class="mb-4">
-						<p class="font-semibold mb-4">Коментар менеджера</p>
+						<p class="font-semibold mb-4">Вид оплати</p>
 
-						<el-input
-							v-model="props.selectedOrder.order.manager_comment"
+						<el-select
+							v-model="props.selectedOrder.delivery.pay_type"
 							placeholder="Заповніть данні"
-							maxlength="30"
-							size="large"
 							clearable
-							show-word-limit
-							rows="2"
-						/>
+							size="large"
+						>
+							<el-option
+								v-for="item in optionsPayType"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
+							/>
+						</el-select>
+					</div>
+					<div class="">
+						<p class="font-semibold mb-4">Параметри</p>
+						<el-radio-group v-model="radioValue" size="large">
+							<el-radio-button label="Стандартні" value="standart" />
+							<el-radio-button label="Розширені" value="extended" />
+						</el-radio-group>
 					</div>
 				</div>
 			</div>
-			<div class="flex gap-5 px-4 mb-10">
-				<div class="w-[40%]">
+			<div
+				class="flex gap-5 px-4"
+				:class="{
+					'mb-4': radioValue === 'extended',
+					'mb-10': radioValue === 'standart',
+				}"
+			>
+				<div class="w-1/3">
 					<p class="font-semibold mb-4">Товар</p>
 
 					<el-input-tag
@@ -261,7 +301,7 @@ watch(
 						disabled
 					/>
 				</div>
-				<div class="w-[10%]">
+				<div class="w-1/3">
 					<p class="font-semibold mb-4">Кількість</p>
 
 					<el-input
@@ -273,7 +313,21 @@ watch(
 					/>
 				</div>
 
-				<div class="w-[10%]">
+				<div class="w-1/3">
+					<p class="font-semibold mb-4">Вага, кг</p>
+					<el-input-number
+						v-model="props.selectedOrder.delivery.weight"
+						style="width: 100%"
+						:min="0.1"
+						:max="10000"
+						:step="0.01"
+						controls-position="right"
+						size="large"
+					/>
+				</div>
+			</div>
+			<div v-if="radioValue === 'extended'" class="flex gap-5 px-4 mb-10">
+				<div class="w-1/4">
 					<p class="font-semibold mb-4">Ширина</p>
 					<el-input-number
 						v-model="props.selectedOrder.delivery.width"
@@ -285,7 +339,7 @@ watch(
 						size="large"
 					/>
 				</div>
-				<div class="w-[10%]">
+				<div class="w-1/4">
 					<p class="font-semibold mb-4">Довжина</p>
 
 					<el-input-number
@@ -298,7 +352,7 @@ watch(
 						size="large"
 					/>
 				</div>
-				<div class="w-[10%]">
+				<div class="w-1/4">
 					<p class="font-semibold mb-4">Висота</p>
 
 					<el-input-number
@@ -311,19 +365,7 @@ watch(
 						size="large"
 					/>
 				</div>
-				<div class="w-[10%]">
-					<p class="font-semibold mb-4">Вага, кг</p>
-					<el-input-number
-						v-model="props.selectedOrder.delivery.weight"
-						style="width: 100%"
-						:min="0.1"
-						:max="10000"
-						:step="0.01"
-						controls-position="right"
-						size="large"
-					/>
-				</div>
-				<div class="w-[10%]">
+				<div class="w-1/4">
 					<p class="font-semibold mb-4">Об`ємна вага, кг</p>
 
 					<el-input-number
