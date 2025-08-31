@@ -319,6 +319,13 @@ const tableRowClassName = ({ row }) => {
 	}
 }
 
+// Обработчик проверки просмотрен ли заказ
+const handleExpandChange = (row, expandedRows) => {
+	if (expandedRows.includes(row)) {
+		row.isViewed = true
+	}
+}
+
 // Вспомогательная функция для получения иконки по статусу
 const getStatusIcon = status => {
 	const icons = {
@@ -785,121 +792,135 @@ const CreateTtnNumber = order => {
 
 <template>
 	<!-- Header -->
-	<div class="flex m-5">
-		<div class="flex items-center gap-4 w-[70%]">
-			<el-input
-				v-model="inputQuerySearch"
-				style="width: 40%"
-				placeholder="Пошук"
-				:prefix-icon="Search"
-				clearable
-			/>
-			<div class="flex items-center gap-10">
-				<el-dropdown
-					placement="bottom-start"
-					trigger="click"
-					ref="dropdownRef"
-					@visible-change="val => val && openFilters()"
-				>
-					<el-badge :value="filterCount" :hidden="filterCount === 0">
-						<el-button :icon="Menu" type="primary" />
-					</el-badge>
-					<template #dropdown>
-						<div class="w-[600px] py-5">
-							<div class="flex h-[400px] px-10">
-								<!-- Левая панель 40% -->
-								<div
-									class="w-[40%] flex flex-col space-y-2 border-r border-slate-200"
-								>
-									<!-- Категория с подсписком: Джерело -->
-									<el-radio label="source" v-model="selectedCategory">
-										Джерело
-									</el-radio>
-
-									<!-- Категория с подсписком: Статус -->
-									<el-radio label="status" v-model="selectedCategory">
-										Статус
-									</el-radio>
-
-									<!-- Категория с подсписком: Менеджер -->
-									<el-radio label="manager" v-model="selectedCategory">
-										Менеджер
-									</el-radio>
-
-									<!-- Категория с подсписком: Служба доставки -->
-									<el-radio label="delivery_service" v-model="selectedCategory">
-										Служба доставки
-									</el-radio>
-
-									<!-- Категория с подсписком: Статус доставки -->
-									<el-radio label="delivery_status" v-model="selectedCategory">
-										Статус доставки
-									</el-radio>
-
-									<!-- Категория с подсписком: Статус оплаты -->
-									<el-radio label="pay_status" v-model="selectedCategory">
-										Статус оплати
-									</el-radio>
-								</div>
-
-								<!-- Правая панель 60% -->
-								<div class="w-[60%] px-10 overflow-y-auto dropdown-with-scroll">
-									<!-- Отображение дочернего списка -->
-									<template v-if="subOptions[selectedCategory]">
-										<el-checkbox-group
-											v-model="selectedSubOptions"
-											class="flex flex-col space-y-2"
-										>
-											<el-checkbox
-												v-for="item in subOptions[selectedCategory]"
-												:key="item"
-												:label="item"
-											>
-												{{ item }}
-											</el-checkbox>
-										</el-checkbox-group>
-									</template>
-								</div>
-							</div>
-
-							<div class="flex justify-center w-[40%] mt-5">
-								<el-button @click="resetFilters" type="default" size="small"
-									>Очистити</el-button
-								>
-								<el-button
-									@click="applyFilters"
-									:disabled="isSaveDisabled"
-									type="primary"
-									size="small"
-									>Прийняти</el-button
-								>
-							</div>
-						</div>
-					</template>
-				</el-dropdown>
-
-				<div class="flex items-center gap-4">
-					<el-tag
-						v-for="tag in appliedSearchTags"
-						:key="tag.value"
-						closable
-						size="large"
-						:disable-transitions="false"
-						@close="handleClose(tag)"
+	<div class="mx-4 my-4">
+		<div class="flex">
+			<div class="flex items-center gap-4 w-[70%]">
+				<el-input
+					v-model="inputQuerySearch"
+					style="width: 40%"
+					placeholder="Пошук"
+					:prefix-icon="Search"
+					clearable
+				/>
+				<div class="flex items-center">
+					<el-dropdown
+						placement="bottom-start"
+						trigger="click"
+						ref="dropdownRef"
+						@visible-change="val => val && openFilters()"
 					>
-						{{ tag.value }}
-					</el-tag>
+						<el-badge :value="filterCount" :hidden="filterCount === 0">
+							<el-button :icon="Menu" type="primary" />
+						</el-badge>
+
+						<template #dropdown>
+							<div class="w-[600px] py-5">
+								<div class="flex h-[400px] px-10">
+									<!-- Левая панель 40% -->
+									<div
+										class="w-[40%] flex flex-col space-y-2 border-r border-slate-200"
+									>
+										<!-- Категория с подсписком: Джерело -->
+										<el-radio label="source" v-model="selectedCategory">
+											Джерело
+										</el-radio>
+
+										<!-- Категория с подсписком: Статус -->
+										<el-radio label="status" v-model="selectedCategory">
+											Статус
+										</el-radio>
+
+										<!-- Категория с подсписком: Менеджер -->
+										<el-radio label="manager" v-model="selectedCategory">
+											Менеджер
+										</el-radio>
+
+										<!-- Категория с подсписком: Служба доставки -->
+										<el-radio
+											label="delivery_service"
+											v-model="selectedCategory"
+										>
+											Служба доставки
+										</el-radio>
+
+										<!-- Категория с подсписком: Статус доставки -->
+										<el-radio
+											label="delivery_status"
+											v-model="selectedCategory"
+										>
+											Статус доставки
+										</el-radio>
+
+										<!-- Категория с подсписком: Статус оплаты -->
+										<el-radio label="pay_status" v-model="selectedCategory">
+											Статус оплати
+										</el-radio>
+									</div>
+
+									<!-- Правая панель 60% -->
+									<div
+										class="w-[60%] px-10 overflow-y-auto dropdown-with-scroll"
+									>
+										<!-- Отображение дочернего списка -->
+										<template v-if="subOptions[selectedCategory]">
+											<el-checkbox-group
+												v-model="selectedSubOptions"
+												class="flex flex-col space-y-2"
+											>
+												<el-checkbox
+													v-for="item in subOptions[selectedCategory]"
+													:key="item"
+													:label="item"
+												>
+													{{ item }}
+												</el-checkbox>
+											</el-checkbox-group>
+										</template>
+									</div>
+								</div>
+
+								<div class="flex justify-center w-[40%] mt-5">
+									<el-button @click="resetFilters" type="default" size="small"
+										>Очистити</el-button
+									>
+									<el-button
+										@click="applyFilters"
+										:disabled="isSaveDisabled"
+										type="primary"
+										size="small"
+										>Прийняти</el-button
+									>
+								</div>
+							</div>
+						</template>
+					</el-dropdown>
+				</div>
+				<div class="flex items-center gap-5 pl-10">
+					<el-statistic :value="19856" class="text-center" />
+					<el-statistic :value="24587" class="text-center" />
 				</div>
 			</div>
-		</div>
 
-		<div class="flex justify-end gap-2 w-[30%]">
-			<el-button @click="isAddOrder = true" type="success" plain
-				>Додати замовлення</el-button
+			<div class="flex justify-end gap-2 w-[30%]">
+				<el-button @click="isAddOrder = true" type="success" plain
+					>Додати замовлення</el-button
+				>
+				<el-button @click="isTableEditDrawer = true" type="primary" plain>
+					Редагувати таблицю
+				</el-button>
+			</div>
+		</div>
+		<div class="flex flex-wrap items-center gap-4 mt-4">
+			<el-tag
+				v-for="tag in appliedSearchTags"
+				:key="tag.value"
+				closable
+				size="large"
+				:disable-transitions="false"
+				@close="handleClose(tag)"
 			>
-			<el-button @click="isTableEditDrawer = true" type="primary" plain>
-				Редагувати таблицю
-			</el-button>
+				{{ tag.value }}
+			</el-tag>
 		</div>
 	</div>
 
@@ -949,6 +970,7 @@ const CreateTtnNumber = order => {
 			height="100%"
 			style="width: 100%"
 			:row-class-name="tableRowClassName"
+			@expand-change="handleExpandChange"
 		>
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
@@ -957,11 +979,18 @@ const CreateTtnNumber = order => {
 						<!-- Замовлення -->
 
 						<div class="w-[28%] shadow-sm px-4">
-							<div
-								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
-							>
-								<el-icon><Sell /></el-icon>
-								<h3>Замовлення</h3>
+							<div class="flex">
+								<div
+									class="flex items-center w-1/2 gap-2 text-base font-semibold text-gray-700 mb-8"
+								>
+									<el-icon><Sell /></el-icon>
+									<h3>Замовлення</h3>
+								</div>
+								<div class="w-1/2" v-if="props.row.isViewed">
+									<el-check-tag checked type="success"
+										>Переглянуто</el-check-tag
+									>
+								</div>
 							</div>
 
 							<div class="space-y-5 text-xs">

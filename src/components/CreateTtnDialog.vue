@@ -33,8 +33,10 @@ const optionsDeliveryWarehouse = ref([
 	{ value: 'Склад за замовчуванням', label: 'Склад за замовчуванням' },
 ])
 const optionsPayType = ref([
-	{ value: 'Передоплата ', label: 'Передоплата' },
-	{ value: 'Післяплата', label: 'Післяплата' },
+	{ value: 'Передоплата ТОВ ДАТА АМ', label: 'Передоплата ТОВ ДАТА АМ' },
+	{ value: 'Післяплата ТОВ ДАТА АМ', label: 'Післяплата ТОВ ДАТА АМ' },
+	{ value: 'Передоплата ТОВ ТОРГПОСТАЧ', label: 'Передоплата ТОВ ТОРГПОСТАЧ' },
+	{ value: 'Післяплата ТОВ ТОРГПОСТАЧ', label: 'Післяплата ТОВ ТОРГПОСТАЧ' },
 ])
 
 const radioValue = ref('standart')
@@ -120,23 +122,6 @@ watch(
 							size="large"
 							disabled
 						/>
-					</div>
-					<div class="mb-4">
-						<p class="font-semibold mb-4">Відправник</p>
-
-						<el-select
-							v-model="props.selectedOrder.sender.name"
-							placeholder="Заповніть данні"
-							clearable
-							size="large"
-						>
-							<el-option
-								v-for="item in optionsDeliverySender"
-								:key="item.value"
-								:label="item.label"
-								:value="item.value"
-							/>
-						</el-select>
 					</div>
 					<div class="mb-4">
 						<p class="font-semibold mb-4">Оплата доставки</p>
@@ -236,6 +221,23 @@ watch(
 						/>
 					</div>
 					<div class="mb-4">
+						<p class="font-semibold mb-4">Вид оплати</p>
+
+						<el-select
+							v-model="props.selectedOrder.delivery.pay_type"
+							placeholder="Заповніть данні"
+							clearable
+							size="large"
+						>
+							<el-option
+								v-for="item in optionsPayType"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value"
+							/>
+						</el-select>
+					</div>
+					<div class="mb-4">
 						<p class="font-semibold mb-4">Оціночна вартість</p>
 
 						<el-input
@@ -257,23 +259,6 @@ watch(
 							"
 							:parser="value => value.replace(/[^\d]/g, '')"
 						/>
-					</div>
-					<div class="mb-4">
-						<p class="font-semibold mb-4">Вид оплати</p>
-
-						<el-select
-							v-model="props.selectedOrder.delivery.pay_type"
-							placeholder="Заповніть данні"
-							clearable
-							size="large"
-						>
-							<el-option
-								v-for="item in optionsPayType"
-								:key="item.value"
-								:label="item.label"
-								:value="item.value"
-							/>
-						</el-select>
 					</div>
 					<div class="">
 						<p class="font-semibold mb-4">Параметри</p>

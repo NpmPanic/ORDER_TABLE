@@ -3,6 +3,7 @@ import { ref } from 'vue'
 export const TABLE_DATA = ref([
 	{
 		id: 345286913,
+		isViewed: 'false',
 		order: {
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
@@ -19,10 +20,6 @@ export const TABLE_DATA = ref([
 			phone: '+380671112233',
 			email: 'ivan@example.com',
 			comment: '',
-		},
-		sender: {
-			name: '',
-			phone: '',
 		},
 		recipient: {
 			name: 'Оксана Іванова',
@@ -66,6 +63,10 @@ export const TABLE_DATA = ref([
 			delivery_method: '',
 			pay_method: '',
 			pay_type: '',
+			delivery_sender: {
+				name: '',
+				phone: '',
+			},
 			delivery_payer: '',
 			delivery_warehouse: '',
 			item_description: '',
@@ -116,6 +117,7 @@ export const TABLE_DATA = ref([
 	},
 	{
 		id: 345286218,
+		isViewed: 'false',
 		order: {
 			order_status: 'Новий',
 			contact_status: 'Не вдалося зв’язатися',
@@ -132,10 +134,6 @@ export const TABLE_DATA = ref([
 			phone: '+380671113322',
 			email: 'petro@example.com',
 			comment: '',
-		},
-		sender: {
-			name: '',
-			phone: '',
 		},
 		recipient: {
 			name: 'Марина Петрівна',
@@ -179,6 +177,10 @@ export const TABLE_DATA = ref([
 			delivery_method: '',
 			pay_method: '',
 			pay_type: '',
+			delivery_sender: {
+				name: '',
+				phone: '',
+			},
 			delivery_payer: '',
 			delivery_warehouse: '',
 			item_description: '',
