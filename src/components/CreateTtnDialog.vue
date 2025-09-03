@@ -16,10 +16,6 @@ const closeModal = () => {
 const optionsDeliveryMethod = ref([
 	{ value: 'Відділення-Відділення', label: 'Відділення-Відділення' },
 ])
-const optionsDeliverySender = ref([
-	{ value: 'ТОВ ДАТА АМ', label: 'ТОВ ДАТА АМ' },
-	{ value: 'ТОВ ТОРГПОСТАЧ', label: 'ТОВ ТОРГПОСТАЧ' },
-])
 const optionsDeliveryPayer = ref([
 	{ value: 'Відправник', label: 'Відправник' },
 	{ value: 'Отримувач', label: 'Отримувач' },
@@ -41,28 +37,49 @@ const optionsPayType = ref([
 
 const radioValue = ref('standart')
 
-// Инициализация с проверкой на существование products
-const orderProducts = ref(
-	props.selectedOrder?.products?.map(product => product.name) || []
-)
+// Получаем все товары (основные + дополнительные)
+const allProducts = computed(() => {
+	if (!props.selectedOrder) return []
+
+	const mainProducts = props.selectedOrder.products || []
+	const additionalProducts = props.selectedOrder.additional_products || []
+
+	return [...mainProducts, ...additionalProducts]
+})
+
+// Вычисляемое свойство для отображаемых товаров
+const displayProducts = computed(() => {
+	if (!allProducts.value.length) return []
+
+	if (allProducts.value.length === 1) {
+		return [allProducts.value[0].name]
+	} else {
+		return [allProducts.value[0].name]
+	}
+})
+
+// Вычисляемое свойство для количества остальных товаров
+const remainingProductsCount = computed(() => {
+	return Math.max(0, allProducts.value.length - 1)
+})
+
+// Вычисляемое свойство для списка остальных товаров
+const remainingProducts = computed(() => {
+	if (allProducts.value.length <= 1) return []
+
+	return allProducts.value.slice(1).map(product => product.name)
+})
 
 // Вычисляемое свойство для общего количества товаров
 const totalProductsCount = computed(() => {
-	if (!props.selectedOrder?.products) return 0
-	return props.selectedOrder.products.reduce((total, product) => {
+	if (!allProducts.value.length) return 0
+
+	return allProducts.value.reduce((total, product) => {
 		return total + (product.count || 0)
 	}, 0)
 })
-
-// Watcher с проверкой
-watch(
-	() => props.selectedOrder,
-	newOrder => {
-		orderProducts.value = newOrder?.products?.map(product => product.name) || []
-	},
-	{ immediate: true, deep: true }
-)
 </script>
+
 <template>
 	<el-dialog
 		v-model="props.modelValue"
@@ -270,7 +287,7 @@ watch(
 				</div>
 			</div>
 			<div
-				class="flex gap-5 px-4"
+				class="flex items-center gap-5 px-4"
 				:class="{
 					'mb-4': radioValue === 'extended',
 					'mb-10': radioValue === 'standart',
@@ -279,12 +296,22 @@ watch(
 				<div class="w-1/3">
 					<p class="font-semibold mb-4">Товар</p>
 
-					<el-input-tag
-						v-model="orderProducts"
-						size="large"
-						tag-type="primary"
-						disabled
-					/>
+					<div class="flex items-center gap-5">
+						<el-tooltip
+							v-if="remainingProductsCount > 0"
+							placement="bottom-start"
+							trigger="click"
+							:content="remainingProducts.join(', ')"
+						>
+							<el-button size="large" plain style="width: 100%"
+								>{{ displayProducts[0] }} та ще
+								{{ remainingProductsCount }}</el-button
+							>
+						</el-tooltip>
+						<el-button v-else size="large" plain style="width: 100%">{{
+							displayProducts[0]
+						}}</el-button>
+					</div>
 				</div>
 				<div class="w-1/3">
 					<p class="font-semibold mb-4">Кількість</p>

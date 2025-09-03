@@ -301,6 +301,18 @@ const resultData = computed(() => {
 	})
 })
 
+// Вычисляемое свойство для количества отфильтрованных заказов
+const filteredOrdersCount = computed(() => {
+	return resultData.value.length
+})
+
+// Вычисляемое свойство для общей стоимости отфильтрованных заказов
+const filteredOrdersTotalPrice = computed(() => {
+	return resultData.value.reduce((total, order) => {
+		return total + getTotalPrice(order)
+	}, 0)
+})
+
 // Подсветка строк таблицы согласно статусу заказа
 const tableRowClassName = ({ row }) => {
 	const statusColor = getStatusColor(row.order.order_status)
@@ -895,9 +907,14 @@ const CreateTtnNumber = order => {
 						</template>
 					</el-dropdown>
 				</div>
-				<div class="flex items-center gap-5 pl-10">
-					<el-statistic :value="19856" class="text-center" />
-					<el-statistic :value="24587" class="text-center" />
+				<div class="flex items-center gap-5 ml-10">
+					<el-check-tag checked type="primary"
+						>Замовлень: {{ filteredOrdersCount }}</el-check-tag
+					>
+					<el-check-tag checked type="success"
+						>Вартість:
+						{{ formatNumber(filteredOrdersTotalPrice) }}</el-check-tag
+					>
 				</div>
 			</div>
 
@@ -914,6 +931,8 @@ const CreateTtnNumber = order => {
 			<el-tag
 				v-for="tag in appliedSearchTags"
 				:key="tag.value"
+				type="info"
+				effect="plain"
 				closable
 				size="large"
 				:disable-transitions="false"
@@ -962,7 +981,7 @@ const CreateTtnNumber = order => {
 	<CreateTtnDialog v-model="isCreateTtnNumber" :selectedOrder="currentOrder" />
 
 	<!-- Основная таблица с данными -->
-	<div class="pb-5">
+	<div class="mx-4 mb-5">
 		<el-table
 			:data="resultData"
 			row-key="id"
@@ -988,7 +1007,7 @@ const CreateTtnNumber = order => {
 								</div>
 								<div class="w-1/2" v-if="props.row.isViewed">
 									<el-check-tag checked type="success"
-										>Переглянуто</el-check-tag
+										>Переглянуто Марина</el-check-tag
 									>
 								</div>
 							</div>
