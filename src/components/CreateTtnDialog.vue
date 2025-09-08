@@ -330,7 +330,7 @@ const totalProductsCount = computed(() => {
 										<div class="font-medium flex-1">{{ product.name }}</div>
 										<div class="flex gap-4">
 											<span class="text-gray-600 min-w-16 text-right">
-												{{ product.count }} шт.
+												{{ product.count }} шт
 											</span>
 											<span
 												class="text-blue-500 font-semibold min-w-20 text-right"
