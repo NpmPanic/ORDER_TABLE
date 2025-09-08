@@ -63,11 +63,18 @@ const remainingProductsCount = computed(() => {
 	return Math.max(0, allProducts.value.length - 1)
 })
 
-// Вычисляемое свойство для списка остальных товаров
-const remainingProducts = computed(() => {
-	if (allProducts.value.length <= 1) return []
+// Вычисляемое свойство для полного списка всех товаров с количеством и общей суммой
+const allProductsWithDetails = computed(() => {
+	if (!allProducts.value.length) return []
 
-	return allProducts.value.slice(1).map(product => product.name)
+	return allProducts.value.map(product => {
+		const totalPrice = (product.count || 0) * (product.price || 0)
+		return {
+			name: product.name,
+			count: product.count || 0,
+			totalPrice: totalPrice,
+		}
+	})
 })
 
 // Вычисляемое свойство для общего количества товаров
@@ -297,20 +304,44 @@ const totalProductsCount = computed(() => {
 					<p class="font-semibold mb-4">Товар</p>
 
 					<div class="flex items-center gap-5">
-						<el-tooltip
-							v-if="remainingProductsCount > 0"
-							placement="bottom-start"
+						<el-popover
+							v-if="allProducts.length > 0"
+							placement="bottom"
+							:width="500"
 							trigger="click"
-							:content="remainingProducts.join(', ')"
 						>
-							<el-button size="large" plain style="width: 100%"
-								>{{ displayProducts[0] }} та ще
-								{{ remainingProductsCount }}</el-button
-							>
-						</el-tooltip>
-						<el-button v-else size="large" plain style="width: 100%">{{
-							displayProducts[0]
-						}}</el-button>
+							<template #reference>
+								<el-button size="large" plain style="width: 100%">
+									<span v-if="allProducts.length === 1">
+										{{ displayProducts[0] }}
+									</span>
+									<span v-else>
+										{{ displayProducts[0] }} та ще {{ remainingProductsCount }}
+									</span>
+								</el-button>
+							</template>
+							<template #default>
+								<div class="max-h-72 overflow-y-auto">
+									<div
+										v-for="(product, index) in allProductsWithDetails"
+										:key="index"
+										class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
+									>
+										<div class="font-medium flex-1">{{ product.name }}</div>
+										<div class="flex gap-4">
+											<span class="text-gray-600 min-w-16 text-right">
+												{{ product.count }} шт.
+											</span>
+											<span
+												class="text-blue-500 font-semibold min-w-20 text-right"
+											>
+												{{ product.totalPrice.toLocaleString() }} ₴
+											</span>
+										</div>
+									</div>
+								</div>
+							</template>
+						</el-popover>
 					</div>
 				</div>
 				<div class="w-1/3">

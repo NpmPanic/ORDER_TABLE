@@ -26,6 +26,8 @@ import {
 	Switch,
 	LocationInformation,
 	More,
+	View,
+	Hide,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -573,6 +575,11 @@ const optionsWarehouseReserve = [
 
 // Объект с настройками колонок таблицы
 const tableColumns = ref({
+	'Статус перегляду': {
+		visible: true,
+		prop: 'isViewed',
+		sortable: false,
+	},
 	'№ замовлення': {
 		visible: true,
 		prop: 'id',
@@ -593,7 +600,7 @@ const tableColumns = ref({
 		prop: 'delivery.delivery_date',
 		sortable: true,
 	},
-	Статус: {
+	'Статус замовлення': {
 		visible: true,
 		prop: 'order.order_status',
 		sortable: false,
@@ -998,18 +1005,11 @@ const CreateTtnNumber = order => {
 						<!-- Замовлення -->
 
 						<div class="w-[28%] shadow-sm px-4">
-							<div class="flex">
-								<div
-									class="flex items-center w-1/2 gap-2 text-base font-semibold text-gray-700 mb-8"
-								>
-									<el-icon><Sell /></el-icon>
-									<h3>Замовлення</h3>
-								</div>
-								<div class="w-1/2" v-if="props.row.isViewed">
-									<el-check-tag checked type="success"
-										>Переглянуто Марина</el-check-tag
-									>
-								</div>
+							<div
+								class="flex items-center w-1/2 gap-2 text-base font-semibold text-gray-700 mb-8"
+							>
+								<el-icon><Sell /></el-icon>
+								<h3>Замовлення</h3>
 							</div>
 
 							<div class="space-y-5 text-xs">
@@ -1878,6 +1878,13 @@ const CreateTtnNumber = order => {
 			>
 				<!-- Кастомные шаблоны для определенных колонок -->
 				<template #default="{ row }">
+					<div
+						class="flex items-center justify-center gap-2"
+						v-if="column.prop === 'isViewed'"
+					>
+						<el-icon v-if="row.isViewed === true"><View /></el-icon>
+						<el-icon v-else><Hide /></el-icon>
+					</div>
 					<div
 						class="flex items-center justify-center gap-2"
 						v-if="column.prop === 'id'"
