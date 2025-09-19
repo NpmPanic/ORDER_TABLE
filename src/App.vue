@@ -26,8 +26,6 @@ import {
 	Switch,
 	LocationInformation,
 	More,
-	View,
-	Hide,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -575,11 +573,6 @@ const optionsWarehouseReserve = [
 
 // Объект с настройками колонок таблицы
 const tableColumns = ref({
-	'Статус перегляду': {
-		visible: true,
-		prop: 'isViewed',
-		sortable: false,
-	},
 	'№ замовлення': {
 		visible: true,
 		prop: 'id',
@@ -926,10 +919,10 @@ const CreateTtnNumber = order => {
 			</div>
 
 			<div class="flex justify-end gap-2 w-[30%]">
-				<el-button @click="isAddOrder = true" type="success" plain
+				<el-button @click="isAddOrder = true" type="success"
 					>Додати замовлення</el-button
 				>
-				<el-button @click="isTableEditDrawer = true" type="primary" plain>
+				<el-button @click="isTableEditDrawer = true" type="primary">
 					Редагувати таблицю
 				</el-button>
 			</div>
@@ -997,22 +990,23 @@ const CreateTtnNumber = order => {
 			style="width: 100%"
 			:row-class-name="tableRowClassName"
 			@expand-change="handleExpandChange"
+			size="small"
 		>
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
 				<template #default="props">
-					<div class="w-full flex gap-15 px-4">
+					<div class="w-full flex gap-15">
 						<!-- Замовлення -->
 
 						<div class="w-[28%] shadow-sm px-4">
 							<div
-								class="flex items-center w-1/2 gap-2 text-base font-semibold text-gray-700 mb-8"
+								class="flex items-center w-1/2 gap-2 text-sm font-semibold text-gray-700 mb-5"
 							>
 								<el-icon><Sell /></el-icon>
 								<h3>Замовлення</h3>
 							</div>
 
-							<div class="space-y-5 text-xs">
+							<div class="space-y-3 text-xs">
 								<div class="flex items-center">
 									<div class="w-1/2">
 										<span>№ замовлення</span>
@@ -1097,13 +1091,13 @@ const CreateTtnNumber = order => {
 
 						<div class="w-[28%] shadow-sm px-4">
 							<div
-								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
+								class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
 							>
 								<el-icon><User /></el-icon>
 								<h3>Покупець</h3>
 							</div>
 
-							<div class="space-y-5 text-xs">
+							<div class="space-y-3 text-xs">
 								<div class="flex items-center">
 									<div class="w-1/2">
 										<span>Покупець</span>
@@ -1202,13 +1196,13 @@ const CreateTtnNumber = order => {
 
 						<div class="w-[28%] shadow-sm px-4">
 							<div
-								class="flex items-center gap-2 text-base font-semibold text-gray-700 mb-8"
+								class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
 							>
 								<el-icon><User /></el-icon>
 								<h3>Отримувач</h3>
 							</div>
 
-							<div class="space-y-5 text-xs">
+							<div class="space-y-3 text-xs">
 								<div class="flex items-center">
 									<div class="w-1/2">
 										<span>Отримувач</span>
@@ -1327,9 +1321,9 @@ const CreateTtnNumber = order => {
 
 						<!-- Статус доставки -->
 						<div class="w-[16%] shadow-sm px-4">
-							<div class="flex items-center gap-10 mb-8">
+							<div class="flex items-center gap-10 mb-5">
 								<div
-									class="flex items-center gap-2 text-base font-semibold text-gray-700"
+									class="flex items-center gap-2 text-sm font-semibold text-gray-700"
 								>
 									<el-icon><LocationInformation /></el-icon>
 									<h3>Статус доставки</h3>
@@ -1382,13 +1376,13 @@ const CreateTtnNumber = order => {
 					</div>
 
 					<!--Товары-->
-					<div class="flex w-full justify-between gap-2 px-4">
+					<div class="flex w-full justify-between gap-2">
 						<div class="w-4/5">
 							<div>
-								<div class="flex items-center justify-between m-5">
+								<div class="flex items-center justify-between m-2">
 									<div class="flex items-center gap-2">
 										<el-icon><Goods /></el-icon>
-										<span class="font-medium">Товари замовлення</span>
+										<span class="font-medium text-sm">Товари замовлення</span>
 									</div>
 									<div class="flex items-center gap-4">
 										<span class="text-sm"> Додаткові товари </span>
@@ -1431,7 +1425,7 @@ const CreateTtnNumber = order => {
 										label="Назва товару"
 										header-align="center"
 										align="center"
-										width="250px"
+										width="400px"
 									>
 										<template #default="{ row }">
 											<div>
@@ -1590,10 +1584,10 @@ const CreateTtnNumber = order => {
 							<!--Допродажи-->
 
 							<div v-if="isAdditionalProducts">
-								<div class="flex items-center justify-between m-5">
+								<div class="flex items-center justify-between m-2">
 									<div class="flex items-center gap-2">
 										<el-icon><Sell /></el-icon>
-										<span class="font-medium">Додаткові товари</span>
+										<span class="font-medium text-sm">Додаткові товари</span>
 									</div>
 									<div class="flex items-center gap-4">
 										<span class="text-sm">
@@ -1645,7 +1639,7 @@ const CreateTtnNumber = order => {
 										label="Назва товару"
 										header-align="center"
 										align="center"
-										width="250px"
+										width="400px"
 									>
 										<template #default="{ row }">
 											<div>
@@ -1804,7 +1798,12 @@ const CreateTtnNumber = order => {
 						</div>
 
 						<!--Оплата-->
-						<div class="flex-1 px-5 mt-15 bg-white shadow-sm">
+						<div
+							class="flex-1 px-5 mt-10 bg-white shadow-sm"
+							:class="{
+								'self-end pb-5': props.row.additional_products.length > 1,
+							}"
+						>
 							<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
 								<el-icon><PriceTag /></el-icon>
 								Підсумкова вартість
@@ -1849,7 +1848,7 @@ const CreateTtnNumber = order => {
 								</div>
 							</div>
 
-							<hr class="my-4 border-gray-300" />
+							<hr class="my-5 border-gray-300" />
 
 							<div
 								class="flex justify-between items-center text-xl font-bold text-blue-600"
@@ -1861,6 +1860,16 @@ const CreateTtnNumber = order => {
 								<span>{{ formatNumber(getTotalPrice(props.row)) }} грн</span>
 							</div>
 						</div>
+					</div>
+				</template>
+			</el-table-column>
+
+			<!-- Колонка отображения статуса просмотра -->
+			<el-table-column width="50" header-align="center" align="center">
+				<template #header> </template>
+				<template #default="{ row }">
+					<div class="flex justify-center text-green-500">
+						<el-icon v-if="row.isViewed === true"><Check /></el-icon>
 					</div>
 				</template>
 			</el-table-column>
@@ -1886,13 +1895,11 @@ const CreateTtnNumber = order => {
 						<el-icon v-else><Hide /></el-icon>
 					</div>
 					<div
-						class="flex items-center justify-center gap-2"
+						@click="copyText(row.id)"
+						class="flex items-center justify-center cursor-pointer"
 						v-if="column.prop === 'id'"
 					>
 						<span>{{ row.id }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
-							<el-icon @click="copyText(row.id)"><DocumentCopy /></el-icon>
-						</div>
 					</div>
 
 					<div
@@ -1962,29 +1969,21 @@ const CreateTtnNumber = order => {
 						<span>{{ row.order.manager || 'Не задано' }}</span>
 					</div>
 					<div
-						class="flex items-center justify-center gap-2"
+						@click="copyText(row.customer.phone)"
+						class="flex items-center justify-center cursor-pointer"
 						v-else-if="column.prop === 'customer.phone'"
 					>
 						<span>{{ row.customer.phone }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
-							<el-icon @click="copyText(row.customer.phone)"
-								><DocumentCopy
-							/></el-icon>
-						</div>
 					</div>
 					<div v-else-if="column.prop === 'delivery.service'">
 						{{ row.delivery.service || 'Не задано' }}
 					</div>
 					<div
-						class="flex items-center gap-2"
+						@click="copyText(row.delivery.ttn)"
+						class="flex items-center cursor-pointer"
 						v-else-if="column.prop === 'delivery.ttn'"
 					>
 						<span>{{ row.delivery.ttn || 'Не задано' }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
-							<el-icon @click="copyText(row.delivery.ttn)"
-								><DocumentCopy
-							/></el-icon>
-						</div>
 					</div>
 					<div v-else-if="column.prop === 'products.name'">
 						<div v-for="product in row.products" :key="product.id">
@@ -1996,15 +1995,11 @@ const CreateTtnNumber = order => {
 						<span> грн</span>
 					</div>
 					<div
-						class="flex items-center gap-2"
+						@click="copyText(row.recipient.phone)"
+						class="flex items-center cursor-pointer"
 						v-else-if="column.prop === 'recipient.phone'"
 					>
 						<span>{{ row.recipient.phone }}</span>
-						<div class="cursor-pointer hover:text-blue-500 transition pt-1">
-							<el-icon @click="copyText(row.recipient.phone)"
-								><DocumentCopy
-							/></el-icon>
-						</div>
 					</div>
 					<div v-else-if="column.prop === 'delivery.adress'">
 						{{ row.delivery.adress || 'Не задано' }}
@@ -2040,7 +2035,7 @@ const CreateTtnNumber = order => {
 
 /* Отступы между элементами */
 :deep(.el-timeline-item) {
-	padding-bottom: 8px !important;
+	padding-bottom: 1px !important;
 }
 
 /* Ширина полосы прокрутки */
