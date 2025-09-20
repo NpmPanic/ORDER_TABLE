@@ -20,15 +20,17 @@ watch(
 	isOpen => {
 		if (isOpen) {
 			const columns = JSON.parse(JSON.stringify(props.columns))
+
+			// Исключаем fontSize из списка колонок для перетаскивания
 			localColumnsList.value = Object.entries(columns)
-				.filter(([name]) => name !== 'fontSize') // исключаем fontSize из списка колонок
+				.filter(([name]) => name !== 'fontSize')
 				.map(([name, settings], index) => ({
 					id: index,
 					name,
 					settings,
 				}))
 
-			// Устанавливаем текущий размер шрифта
+			// Устанавливаем текущий размер шрифта из отдельного свойства
 			fontSize.value = columns.fontSize?.value || 10
 		}
 	},
@@ -42,17 +44,13 @@ const saveSettings = () => {
 		newColumns[item.name] = item.settings
 	})
 
-	// Добавляем настройку размера шрифта
+	// Добавляем настройку размера шрифта отдельно
 	newColumns.fontSize = {
 		value: fontSize.value,
 		visible: true,
 	}
 
 	emit('update:columns', newColumns)
-	emit('update:modelValue', false)
-}
-
-const closeDrawer = () => {
 	emit('update:modelValue', false)
 }
 </script>

@@ -678,7 +678,7 @@ const tableFontSize = computed(() => {
 // Возвращает массив объектов с настройками видимых колонок
 const visibleColumns = computed(() => {
 	return Object.entries(tableColumns.value)
-		.filter(([_, settings]) => settings.visible)
+		.filter(([key, settings]) => settings.visible && key !== 'fontSize') // Исключаем fontSize
 		.map(([label, settings]) => ({
 			label,
 			prop: settings.prop,
