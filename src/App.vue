@@ -25,6 +25,7 @@ import {
 	Switch,
 	LocationInformation,
 	More,
+	Select,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -1877,11 +1878,11 @@ const CreateTtnNumber = order => {
 			</el-table-column>
 
 			<!-- Колонка отображения статуса просмотра -->
-			<el-table-column width="50" header-align="center" align="center">
+			<el-table-column width="20" header-align="center" align="center">
 				<template #header> </template>
 				<template #default="{ row }">
 					<div class="flex justify-center text-green-500">
-						<el-icon v-if="row.isViewed === true"><Check /></el-icon>
+						<el-icon v-if="row.isViewed === true"><Select /></el-icon>
 					</div>
 				</template>
 			</el-table-column>
