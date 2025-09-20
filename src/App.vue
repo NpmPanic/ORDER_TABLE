@@ -7,7 +7,6 @@ import {
 	ChatRound,
 	Phone,
 	DocumentAdd,
-	DocumentCopy,
 	Goods,
 	Sell,
 	Money,
@@ -664,6 +663,15 @@ const tableColumns = ref({
 		prop: 'delivery.city',
 		sortable: false,
 	},
+	fontSize: {
+		value: 10,
+		visible: true,
+	},
+})
+
+// Вычисляемое свойство для получения размера шрифта
+const tableFontSize = computed(() => {
+	return tableColumns.value.fontSize?.value || 10
 })
 
 // Вычисляемое свойство для получения только видимых колонок таблицы
@@ -984,6 +992,7 @@ const CreateTtnNumber = order => {
 	<div class="mx-4 mb-5">
 		<el-table
 			:data="resultData"
+			:style="`font-size: ${tableFontSize}px;`"
 			row-key="id"
 			:default-sort="{ prop: 'order.created_at', order: 'descending' }"
 			height="100%"
@@ -995,10 +1004,13 @@ const CreateTtnNumber = order => {
 			<!-- Колонка с раскрывающейся секцией -->
 			<el-table-column type="expand">
 				<template #default="props">
-					<div class="w-full flex gap-15">
+					<div
+						class="w-full flex gap-15"
+						:style="`font-size: ${tableFontSize}px;`"
+					>
 						<!-- Замовлення -->
 
-						<div class="w-[28%] shadow-sm px-4">
+						<div class="w-[28%] shadow-sm px-4 pb-2">
 							<div
 								class="flex items-center w-1/2 gap-2 text-sm font-semibold text-gray-700 mb-5"
 							>
@@ -1089,7 +1101,7 @@ const CreateTtnNumber = order => {
 
 						<!-- Покупець -->
 
-						<div class="w-[28%] shadow-sm px-4">
+						<div class="w-[28%] shadow-sm px-4 pb-2">
 							<div
 								class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
 							>
@@ -1194,7 +1206,7 @@ const CreateTtnNumber = order => {
 
 						<!-- Отримувач -->
 
-						<div class="w-[28%] shadow-sm px-4">
+						<div class="w-[28%] shadow-sm px-4 pb-2">
 							<div
 								class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
 							>
@@ -1320,7 +1332,7 @@ const CreateTtnNumber = order => {
 						</div>
 
 						<!-- Статус доставки -->
-						<div class="w-[16%] shadow-sm px-4">
+						<div class="w-[16%] shadow-sm px-4 pb-2">
 							<div class="flex items-center gap-10 mb-5">
 								<div
 									class="flex items-center gap-2 text-sm font-semibold text-gray-700"
@@ -2014,6 +2026,16 @@ const CreateTtnNumber = order => {
 </template>
 
 <style scoped>
+/* Стили изменения шрифта */
+:deep(.el-table__expanded-cell) {
+	font-size: v-bind('tableFontSize + "px"') !important;
+}
+
+:deep(.el-table__expanded-cell *) {
+	font-size: inherit !important;
+}
+
+/* Стили линков */
 .el-link :hover {
 	color: orange;
 }

@@ -11,38 +11,47 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'update:columns'])
 
 const localColumnsList = ref([])
+const fontSize = ref(10)
 const isDragging = ref(false) // Добавляем состояние перетаскивания
 
-// Преобразуем объект columns в массив для draggable
+// Инициализация при открытии
 watch(
 	() => props.modelValue,
 	isOpen => {
 		if (isOpen) {
 			const columns = JSON.parse(JSON.stringify(props.columns))
-			localColumnsList.value = Object.entries(columns).map(
-				([name, settings], index) => ({
+			localColumnsList.value = Object.entries(columns)
+				.filter(([name]) => name !== 'fontSize') // исключаем fontSize из списка колонок
+				.map(([name, settings], index) => ({
 					id: index,
 					name,
 					settings,
-				})
-			)
+				}))
+
+			// Устанавливаем текущий размер шрифта
+			fontSize.value = columns.fontSize?.value || 10
 		}
 	},
 	{ immediate: true }
 )
 
-// Сохраняем изменения только при нажатии кнопки
+// Сохраняем изменения
 const saveSettings = () => {
 	const newColumns = {}
 	localColumnsList.value.forEach(item => {
 		newColumns[item.name] = item.settings
 	})
 
+	// Добавляем настройку размера шрифта
+	newColumns.fontSize = {
+		value: fontSize.value,
+		visible: true,
+	}
+
 	emit('update:columns', newColumns)
 	emit('update:modelValue', false)
 }
 
-// Отмена изменений при закрытии
 const closeDrawer = () => {
 	emit('update:modelValue', false)
 }
@@ -68,38 +77,61 @@ const closeDrawer = () => {
 		</template>
 
 		<template #default>
-			<draggable
-				v-model="localColumnsList"
-				item-key="id"
-				handle=".drag-handle"
-				ghost-class="ghost"
-				:component-data="{
-					tag: 'div',
-					type: 'transition-group',
-					name: !isDragging ? 'flip-list' : null,
-				}"
-				:animation="200"
-				@start="isDragging = true"
-				@end="isDragging = false"
-			>
-				<template #item="{ element }">
-					<div
-						class="w-full flex items-center justify-between mb-5 px-4 border-b border-gray-200"
-					>
-						<div
-							class="flex items-center gap-4 pb-4"
-							:class="{ 'text-gray-400': !element.settings.visible }"
-						>
-							<el-icon class="drag-handle"><Rank /></el-icon>
+			<!-- Настройка размера шрифта -->
+			<div class="px-4 mb-15">
+				<div class="flex items-center justify-between mb-5">
+					<span class="text-gray-700 font-medium">Розмір шрифту</span>
+					<span class="text-blue-500 font-medium">{{ fontSize }}px</span>
+				</div>
+				<el-slider
+					v-model="fontSize"
+					:min="10"
+					:max="16"
+					:step="1"
+					show-stops
+					:marks="{
+						10: '10',
+						12: '12',
+						14: '14',
+						16: '16',
+					}"
+				/>
+			</div>
 
-							<span>{{ element.name }}</span>
+			<!-- Настройки колонок -->
+			<div class="mb-4">
+				<draggable
+					v-model="localColumnsList"
+					item-key="id"
+					handle=".drag-handle"
+					ghost-class="ghost"
+					:component-data="{
+						tag: 'div',
+						type: 'transition-group',
+						name: !isDragging ? 'flip-list' : null,
+					}"
+					:animation="200"
+					@start="isDragging = true"
+					@end="isDragging = false"
+				>
+					<template #item="{ element }">
+						<div
+							class="w-full flex items-center justify-between mb-5 px-4 border-b border-gray-200"
+						>
+							<div
+								class="flex items-center gap-4 pb-4"
+								:class="{ 'text-gray-400': !element.settings.visible }"
+							>
+								<el-icon class="drag-handle"><Rank /></el-icon>
+								<span>{{ element.name }}</span>
+							</div>
+							<div class="pb-2">
+								<el-switch v-model="element.settings.visible" size="small" />
+							</div>
 						</div>
-						<div class="pb-2">
-							<el-switch v-model="element.settings.visible" size="small" />
-						</div>
-					</div>
-				</template>
-			</draggable>
+					</template>
+				</draggable>
+			</div>
 		</template>
 
 		<template #footer>
@@ -126,5 +158,9 @@ const closeDrawer = () => {
 .ghost {
 	opacity: 0.5;
 	background: white;
+}
+
+:deep(.el-slider__marks-text) {
+	font-size: 12px;
 }
 </style>
