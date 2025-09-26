@@ -53,6 +53,9 @@ const saveSettings = () => {
 	emit('update:columns', newColumns)
 	emit('update:modelValue', false)
 }
+const closeDrawer = () => {
+	emit('update:modelValue', false)
+}
 </script>
 
 <template>

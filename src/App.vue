@@ -813,143 +813,1232 @@ const CreateTtnNumber = order => {
 </script>
 
 <template>
-	<!-- Header -->
-	<div class="mx-4 my-4">
-		<div class="flex">
-			<div class="flex items-center gap-4 w-[70%]">
-				<el-input
-					v-model="inputQuerySearch"
-					style="width: 40%"
-					placeholder="Пошук"
-					:prefix-icon="Search"
-					clearable
-				/>
-				<div class="flex items-center">
-					<el-dropdown
-						placement="bottom-start"
-						trigger="click"
-						ref="dropdownRef"
-						@visible-change="val => val && openFilters()"
+	<div class="app-container">
+		<!-- Боковое меню слева -->
+		<el-menu
+			default-active="1"
+			text-color="#fff"
+			active-text-color="#ffd04b"
+			background-color="#545c64"
+			class="el-menu-vertical-demo sidebar-menu"
+			:collapse="true"
+			@open="handleOpen"
+			@close="handleClose"
+		>
+			<el-menu-item index="1" @click="isAddOrder = true">
+				<el-icon><DocumentAdd /></el-icon>
+				<template #title>Створити замовлення</template>
+			</el-menu-item>
+
+			<el-menu-item index="2" @click="isTableEditDrawer = true">
+				<el-icon><Setting /></el-icon>
+				<template #title>Налаштування таблиці</template>
+			</el-menu-item>
+			<el-menu-item index="3" @click="isTableEditDrawer = true" disabled>
+				<el-icon><Location /></el-icon>
+				<template #title>Налаштування доставки</template>
+			</el-menu-item>
+			<el-menu-item index="4" @click="isTableEditDrawer = true" disabled>
+				<el-icon><User /></el-icon>
+				<template #title>Налаштування доступу</template>
+			</el-menu-item>
+		</el-menu>
+
+		<div class="main-content">
+			<!-- Header -->
+			<div class="mx-4 my-4">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-5 w-1/2">
+						<el-input
+							v-model="inputQuerySearch"
+							style="width: 50%"
+							placeholder="Пошук"
+							:prefix-icon="Search"
+							clearable
+						/>
+						<div class="flex items-center">
+							<el-dropdown
+								placement="bottom-start"
+								trigger="click"
+								ref="dropdownRef"
+								@visible-change="val => val && openFilters()"
+							>
+								<el-badge :value="filterCount" :hidden="filterCount === 0">
+									<el-button :icon="Menu" type="primary" />
+								</el-badge>
+
+								<template #dropdown>
+									<div class="w-[600px] py-5">
+										<div class="flex h-[400px] px-10">
+											<!-- Левая панель 40% -->
+											<div
+												class="w-[40%] flex flex-col space-y-2 border-r border-slate-200"
+											>
+												<!-- Категория с подсписком: Джерело -->
+												<el-radio label="source" v-model="selectedCategory">
+													Джерело
+												</el-radio>
+
+												<!-- Категория с подсписком: Статус -->
+												<el-radio label="status" v-model="selectedCategory">
+													Статус
+												</el-radio>
+
+												<!-- Категория с подсписком: Менеджер -->
+												<el-radio label="manager" v-model="selectedCategory">
+													Менеджер
+												</el-radio>
+
+												<!-- Категория с подсписком: Служба доставки -->
+												<el-radio
+													label="delivery_service"
+													v-model="selectedCategory"
+												>
+													Служба доставки
+												</el-radio>
+
+												<!-- Категория с подсписком: Статус доставки -->
+												<el-radio
+													label="delivery_status"
+													v-model="selectedCategory"
+												>
+													Статус доставки
+												</el-radio>
+
+												<!-- Категория с подсписком: Статус оплаты -->
+												<el-radio label="pay_status" v-model="selectedCategory">
+													Статус оплати
+												</el-radio>
+											</div>
+
+											<!-- Правая панель -->
+											<div class="px-10 overflow-y-auto dropdown-with-scroll">
+												<!-- Отображение дочернего списка -->
+												<template v-if="subOptions[selectedCategory]">
+													<el-checkbox-group
+														v-model="selectedSubOptions"
+														class="flex flex-col space-y-2"
+													>
+														<el-checkbox
+															v-for="item in subOptions[selectedCategory]"
+															:key="item"
+															:label="item"
+														>
+															{{ item }}
+														</el-checkbox>
+													</el-checkbox-group>
+												</template>
+											</div>
+										</div>
+
+										<div class="flex justify-center w-[40%] mt-5">
+											<el-button
+												@click="resetFilters"
+												type="default"
+												size="small"
+												>Очистити</el-button
+											>
+											<el-button
+												@click="applyFilters"
+												:disabled="isSaveDisabled"
+												type="primary"
+												size="small"
+												>Прийняти</el-button
+											>
+										</div>
+									</div>
+								</template>
+							</el-dropdown>
+						</div>
+					</div>
+
+					<div class="flex items-center gap-5">
+						<el-check-tag checked type="primary"
+							>Замовлень: {{ filteredOrdersCount }}</el-check-tag
+						>
+						<el-check-tag checked type="success"
+							>Вартість:
+							{{ formatNumber(filteredOrdersTotalPrice) }}</el-check-tag
+						>
+					</div>
+				</div>
+
+				<div class="flex flex-wrap items-center gap-4 mt-4">
+					<el-tag
+						v-for="tag in appliedSearchTags"
+						:key="tag.value"
+						type="info"
+						effect="plain"
+						closable
+						size="large"
+						:disable-transitions="false"
+						@close="handleClose(tag)"
 					>
-						<el-badge :value="filterCount" :hidden="filterCount === 0">
-							<el-button :icon="Menu" type="primary" />
-						</el-badge>
+						{{ tag.value }}
+					</el-tag>
+				</div>
+			</div>
+			<!-- Основная таблица с данными -->
+			<div class="mx-4 mb-5">
+				<el-table
+					:data="resultData"
+					:style="`font-size: ${tableFontSize}px;`"
+					row-key="id"
+					:default-sort="{ prop: 'order.created_at', order: 'descending' }"
+					height="100%"
+					style="width: 100%"
+					:row-class-name="tableRowClassName"
+					@expand-change="handleExpandChange"
+					size="small"
+				>
+					<!-- Колонка с раскрывающейся секцией -->
+					<el-table-column type="expand">
+						<template #default="props">
+							<div
+								class="w-full flex gap-15"
+								:style="`font-size: ${tableFontSize}px;`"
+							>
+								<!-- Замовлення -->
 
-						<template #dropdown>
-							<div class="w-[600px] py-5">
-								<div class="flex h-[400px] px-10">
-									<!-- Левая панель 40% -->
+								<div class="w-[28%] shadow-sm px-4 pb-2">
 									<div
-										class="w-[40%] flex flex-col space-y-2 border-r border-slate-200"
+										class="flex items-center w-1/2 gap-2 text-sm font-semibold text-gray-700 mb-5"
 									>
-										<!-- Категория с подсписком: Джерело -->
-										<el-radio label="source" v-model="selectedCategory">
-											Джерело
-										</el-radio>
-
-										<!-- Категория с подсписком: Статус -->
-										<el-radio label="status" v-model="selectedCategory">
-											Статус
-										</el-radio>
-
-										<!-- Категория с подсписком: Менеджер -->
-										<el-radio label="manager" v-model="selectedCategory">
-											Менеджер
-										</el-radio>
-
-										<!-- Категория с подсписком: Служба доставки -->
-										<el-radio
-											label="delivery_service"
-											v-model="selectedCategory"
-										>
-											Служба доставки
-										</el-radio>
-
-										<!-- Категория с подсписком: Статус доставки -->
-										<el-radio
-											label="delivery_status"
-											v-model="selectedCategory"
-										>
-											Статус доставки
-										</el-radio>
-
-										<!-- Категория с подсписком: Статус оплаты -->
-										<el-radio label="pay_status" v-model="selectedCategory">
-											Статус оплати
-										</el-radio>
+										<el-icon><Sell /></el-icon>
+										<h3>Замовлення</h3>
 									</div>
 
-									<!-- Правая панель 60% -->
-									<div
-										class="w-[60%] px-10 overflow-y-auto dropdown-with-scroll"
-									>
-										<!-- Отображение дочернего списка -->
-										<template v-if="subOptions[selectedCategory]">
-											<el-checkbox-group
-												v-model="selectedSubOptions"
-												class="flex flex-col space-y-2"
-											>
-												<el-checkbox
-													v-for="item in subOptions[selectedCategory]"
-													:key="item"
-													:label="item"
+									<div class="space-y-3 text-xs">
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>№ замовлення</span>
+											</div>
+											<div class="w-1/2">
+												<span>{{ props.row.id }}</span>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Джерело</span>
+											</div>
+											<div class="w-1/2">
+												<span v-if="props.row.order.source === 'Mail'"
+													>Пошта</span
 												>
-													{{ item }}
-												</el-checkbox>
-											</el-checkbox-group>
-										</template>
+												<span v-else-if="props.row.order.source === 'Manager'"
+													>Менеджер</span
+												>
+												<span v-else>Не задано</span>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Час створення</span>
+											</div>
+											<div class="w-1/2">
+												<span>{{ props.row.order.created_at }}</span>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Менеджер</span>
+											</div>
+											<div class="w-1/2">
+												<SelectValueDropdown
+													:initialArray="subOptions.manager"
+													:initialValue="props.row.order.manager"
+													@update:selectedValue="
+														newValue => (props.row.order.manager = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Статус</span>
+											</div>
+											<div class="w-1/2">
+												<el-tag
+													:type="getStatusColor(props.row.order.order_status)"
+													effect="dark"
+												>
+													{{ props.row.order.order_status }}
+												</el-tag>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Статус оплати</span>
+											</div>
+											<div class="w-1/2">
+												<SelectValueDropdown
+													:initialArray="subOptions.pay_status"
+													:initialValue="props.row.order.pay_status"
+													:useTag="true"
+													:statusColor="
+														getStatusColor(props.row.order.pay_status)
+													"
+													:getStatusColor="getStatusColor"
+													@update:selectedValue="
+														newValue => (props.row.order.pay_status = newValue)
+													"
+												/>
+											</div>
+										</div>
 									</div>
 								</div>
 
-								<div class="flex justify-center w-[40%] mt-5">
-									<el-button @click="resetFilters" type="default" size="small"
-										>Очистити</el-button
+								<!-- Покупець -->
+
+								<div class="w-[28%] shadow-sm px-4 pb-2">
+									<div
+										class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
 									>
-									<el-button
-										@click="applyFilters"
-										:disabled="isSaveDisabled"
-										type="primary"
-										size="small"
-										>Прийняти</el-button
+										<el-icon><User /></el-icon>
+										<h3>Покупець</h3>
+									</div>
+
+									<div class="space-y-3 text-xs">
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Покупець</span>
+											</div>
+											<div class="w-1/2">
+												<EditTextPopover
+													:initialText="props.row.customer.name"
+													@update:textValue="
+														newValue => (props.row.customer.name = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Телефон покупця</span>
+											</div>
+											<div class="w-1/2">
+												<EditTextPopover
+													:initialText="props.row.customer.phone"
+													@update:textValue="
+														newValue => (props.row.customer.phone = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>E-mail покупця</span>
+											</div>
+											<div class="w-1/2">
+												<EditTextPopover
+													:initialText="props.row.customer.email"
+													@update:textValue="
+														newValue => (props.row.customer.email = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Коментар покупця</span>
+											</div>
+											<div class="w-1/2">
+												<EditCommentPopover
+													:initialText="props.row.customer.comment"
+													@update:textValue="
+														newValue => (props.row.customer.comment = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Коментар менеджера</span>
+											</div>
+											<div class="w-1/2">
+												<EditCommentPopover
+													:initialComment="props.row.order.manager_comment"
+													@update:textValue="
+														newValue =>
+															(props.row.order.manager_comment = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Комунікації</span>
+											</div>
+											<div class="w-1/2">
+												<div class="flex items-center gap-2">
+													<el-button
+														type="success"
+														:icon="Phone"
+														circle
+														size="small"
+													/>
+													<el-button
+														type="primary"
+														:icon="ChatRound"
+														circle
+														size="small"
+													/>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Отримувач -->
+
+								<div class="w-[28%] shadow-sm px-4 pb-2">
+									<div
+										class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
 									>
+										<el-icon><User /></el-icon>
+										<h3>Отримувач</h3>
+									</div>
+
+									<div class="space-y-3 text-xs">
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Отримувач</span>
+											</div>
+											<div class="w-1/2">
+												<EditTextPopover
+													:initialText="props.row.recipient.name"
+													@update:textValue="
+														newValue => (props.row.recipient.name = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Телефон отримувача</span>
+											</div>
+											<div class="w-1/2">
+												<EditTextPopover
+													:initialText="props.row.recipient.phone"
+													@update:textValue="
+														newValue => (props.row.recipient.phone = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Дата відправки</span>
+											</div>
+											<div class="w-1/2">
+												<el-date-picker
+													v-model="props.row.delivery.delivery_date"
+													type="date"
+													placeholder="Обрати"
+													format="DD/MM/YYYY"
+													value-format="DD/MM/YYYY"
+													style="width: 140px"
+													size="small"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Служба доставки</span>
+											</div>
+											<div class="w-1/2">
+												<SelectValueDropdown
+													:initialArray="subOptions.delivery_service"
+													:initialValue="props.row.delivery.service"
+													@update:selectedValue="
+														newValue => (props.row.delivery.service = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Адреса доставки</span>
+											</div>
+											<div class="w-1/2">
+												<SelectValueDropdown
+													:initialArray="subOptions.delivery_adress"
+													:initialValue="props.row.delivery.adress"
+													@update:selectedValue="
+														newValue => (props.row.delivery.adress = newValue)
+													"
+												/>
+											</div>
+										</div>
+
+										<div class="flex items-center">
+											<div class="w-1/2">
+												<span>Трекінг код</span>
+											</div>
+											<div class="w-1/2">
+												<div class="flex items-center gap-2">
+													<span v-if="props.row.delivery.ttn">{{
+														props.row.delivery.ttn
+													}}</span>
+													<div class="flex items-center">
+														<div @click="CreateTtnNumber(props.row)">
+															<el-link type="success" :underline="false"
+																>Створити</el-link
+															>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Статус доставки -->
+								<div class="w-[16%] shadow-sm px-4 pb-2">
+									<div class="flex items-center gap-10 mb-5">
+										<div
+											class="flex items-center gap-2 text-sm font-semibold text-gray-700"
+										>
+											<el-icon><LocationInformation /></el-icon>
+											<h3>Статус доставки</h3>
+										</div>
+										<div
+											class="cursor-pointer hover:text-blue-500 transition"
+											@click="showDeliveryStatus(props.row)"
+										>
+											<el-tooltip
+												effect="dark"
+												content="Додаткова інформація"
+												placement="top"
+											>
+												<el-icon><More /></el-icon>
+											</el-tooltip>
+										</div>
+									</div>
+									<div class="pl-1 text-xs">
+										<el-timeline>
+											<el-timeline-item
+												v-for="(step, index) in getDeliverySteps(
+													props.row.delivery.delivery_status
+												)"
+												:key="index"
+												:icon="step.icon"
+												:type="
+													step.isCurrent
+														? 'primary'
+														: step.isDone
+														? 'success'
+														: 'info'
+												"
+												size="large"
+											>
+												<div
+													class="ml-3 pt-1"
+													:class="{
+														'text-blue-500': step.isCurrent,
+														'font-bold': step.isCurrent,
+														'font-semibold': !step.isCurrent,
+														'text-green-600': step.isDone,
+													}"
+												>
+													{{ step.title }}
+												</div>
+											</el-timeline-item>
+										</el-timeline>
+									</div>
+								</div>
+							</div>
+
+							<!--Товары-->
+							<div class="flex w-full justify-between gap-2">
+								<div class="w-4/5">
+									<div>
+										<div class="flex items-center justify-between m-2">
+											<div class="flex items-center gap-2">
+												<el-icon><Goods /></el-icon>
+												<span class="font-medium text-sm"
+													>Товари замовлення</span
+												>
+											</div>
+											<div class="flex items-center gap-4">
+												<span class="text-sm"> Додаткові товари </span>
+
+												<el-switch
+													v-model="isAdditionalProducts"
+													size="small"
+												/>
+											</div>
+										</div>
+										<el-table
+											:data="props.row.products"
+											style="width: 100%"
+											border
+											size="small"
+										>
+											<el-table-column
+												label="Зображення"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<el-image
+														style="width: 50px"
+														:src="row.img"
+														:zoom-rate="1.2"
+														:max-scale="7"
+														:min-scale="0.2"
+														:preview-src-list="[row.img]"
+														show-progress
+														fit="cover"
+														preview-teleported="true"
+													/>
+												</template>
+											</el-table-column>
+											<el-table-column
+												prop="id"
+												label="Артикуль"
+												header-align="center"
+												align="center"
+											/>
+											<el-table-column
+												label="Назва товару"
+												header-align="center"
+												align="center"
+												width="400px"
+											>
+												<template #default="{ row }">
+													<div>
+														<span>{{ row.name }}</span>
+													</div>
+													<div>
+														<span class="text-gray-400 font-mono">{{
+															row.second_name
+														}}</span>
+													</div>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Кількість"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div class="flex gap-1 items-center justify-center">
+														<EditCountPopover
+															:initialCount="row.count"
+															@update:countValue="
+																newValue => (row.count = newValue)
+															"
+														/>
+														<span>{{ row.count_name }}</span>
+													</div>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Ціна товару"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div class="flex items-center justify-center gap-1">
+														<EditPricePopover
+															:initialPrice="row.price"
+															@update:priceValue="
+																newValue => (row.price = newValue)
+															"
+														/>
+														<span> грн</span>
+													</div>
+												</template>
+											</el-table-column>
+
+											<el-table-column
+												label="Ціна продажу"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<span
+														>{{ formatNumber(row.price * row.count) }} грн</span
+													>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Місце резерву"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div v-if="row.warehouse && row.warehouse.length > 0">
+														<div v-for="(reserve, i) in row.warehouse" :key="i">
+															<EditTextPopover
+																:initialText="reserve.place"
+																@update:textValue="
+																	newValue => (reserve.place = newValue)
+																"
+															/>
+														</div>
+													</div>
+													<span v-else class="text-gray-400">Не задано</span>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Номер резерву"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div v-if="row.warehouse && row.warehouse.length > 0">
+														<div
+															class="flex items-center justify-center gap-4"
+															v-for="(reserve, i) in row.warehouse"
+															:key="i"
+														>
+															<EditTextPopover
+																:initialText="reserve.number"
+																@update:textValue="
+																	newValue => (reserve.number = newValue)
+																"
+															/>
+															<div
+																class="mt-1 cursor-pointer hover:text-red-500 transition"
+															>
+																<el-tooltip
+																	content="Видалити резерв"
+																	placement="top"
+																>
+																	<el-icon
+																		@click="deleteReserve(row.warehouse, i)"
+																		><Delete
+																	/></el-icon>
+																</el-tooltip>
+															</div>
+														</div>
+													</div>
+													<span v-else class="text-gray-400">Не задано</span>
+												</template>
+											</el-table-column>
+
+											<el-table-column
+												label="Дії"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div class="flex items-center justify-center gap-4">
+														<div
+															class="text-sm cursor-pointer hover:text-green-500 transition"
+														>
+															<el-tooltip
+																content="Додати резерв"
+																placement="top"
+															>
+																<el-icon @click="addReserveToOrder(row)"
+																	><DocumentAdd
+																/></el-icon>
+															</el-tooltip>
+														</div>
+														<div
+															class="text-sm cursor-pointer hover:text-blue-500 transition"
+														>
+															<el-tooltip
+																content="Редагувати товар"
+																placement="top"
+															>
+																<el-icon @click="takeCurrentEditProduct(row)"
+																	><Edit
+																/></el-icon>
+															</el-tooltip>
+														</div>
+														<div
+															class="text-sm cursor-pointer hover:text-red-500 transition"
+														>
+															<el-tooltip
+																content="Видалити товар"
+																placement="top"
+															>
+																<el-icon
+																	@click="removeOrderConfirm(props.row, $index)"
+																	><Delete
+																/></el-icon>
+															</el-tooltip>
+														</div>
+													</div>
+												</template>
+											</el-table-column>
+										</el-table>
+									</div>
+
+									<!--Допродажи-->
+
+									<div v-if="isAdditionalProducts">
+										<div class="flex items-center justify-between m-2">
+											<div class="flex items-center gap-2">
+												<el-icon><Sell /></el-icon>
+												<span class="font-medium text-sm"
+													>Додаткові товари</span
+												>
+											</div>
+											<div class="flex items-center gap-4">
+												<span class="text-sm">
+													{{ props.row.additional_products.length }} позиції
+												</span>
+
+												<el-button
+													type="primary"
+													size="small"
+													@click="addAdditionalProductsToOrder(props.row)"
+												>
+													Додати
+												</el-button>
+											</div>
+										</div>
+
+										<el-table
+											:data="props.row.additional_products"
+											style="width: 100%"
+											border
+											size="small"
+										>
+											<el-table-column
+												label="Зображення"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<el-image
+														style="width: 50px"
+														:src="row.img"
+														:zoom-rate="1.2"
+														:max-scale="7"
+														:min-scale="0.2"
+														:preview-src-list="[row.img]"
+														show-progress
+														fit="cover"
+														preview-teleported="true"
+													/>
+												</template>
+											</el-table-column>
+											<el-table-column
+												prop="id"
+												label="Артикуль"
+												header-align="center"
+												align="center"
+											/>
+											<el-table-column
+												label="Назва товару"
+												header-align="center"
+												align="center"
+												width="400px"
+											>
+												<template #default="{ row }">
+													<div>
+														<span>{{ row.name }}</span>
+													</div>
+													<div>
+														<span class="text-gray-400 font-mono">{{
+															row.second_name
+														}}</span>
+													</div>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Кількість"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div class="flex gap-1 items-center justify-center">
+														<EditCountPopover
+															:initialCount="row.count"
+															@update:countValue="
+																newValue => (row.count = newValue)
+															"
+														/>
+														<span>{{ row.count_name }}</span>
+													</div>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Ціна товару"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div class="flex items-center justify-center gap-1">
+														<EditPricePopover
+															:initialPrice="row.price"
+															@update:priceValue="
+																newValue => (row.price = newValue)
+															"
+														/>
+														<span> грн</span>
+													</div>
+												</template>
+											</el-table-column>
+
+											<el-table-column
+												label="Ціна продажу"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<span
+														>{{ formatNumber(row.price * row.count) }} грн</span
+													>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Місце резерву"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div v-if="row.warehouse && row.warehouse.length > 0">
+														<div v-for="(reserve, i) in row.warehouse" :key="i">
+															<EditTextPopover
+																:initialText="reserve.place"
+																@update:textValue="
+																	newValue => (reserve.place = newValue)
+																"
+															/>
+														</div>
+													</div>
+													<span v-else class="text-gray-400">Не задано</span>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Номер резерву"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div v-if="row.warehouse && row.warehouse.length > 0">
+														<div
+															class="flex items-center justify-center gap-4"
+															v-for="(reserve, i) in row.warehouse"
+															:key="i"
+														>
+															<EditTextPopover
+																:initialText="reserve.number"
+																@update:textValue="
+																	newValue => (reserve.number = newValue)
+																"
+															/>
+															<div
+																class="mt-1 cursor-pointer hover:text-red-500 transition"
+															>
+																<el-tooltip
+																	content="Видалити резерв"
+																	placement="top"
+																>
+																	<el-icon
+																		@click="deleteReserve(row.warehouse, i)"
+																		><Delete
+																	/></el-icon>
+																</el-tooltip>
+															</div>
+														</div>
+													</div>
+													<span v-else class="text-gray-400">Не задано</span>
+												</template>
+											</el-table-column>
+											<el-table-column
+												label="Дії"
+												header-align="center"
+												align="center"
+											>
+												<template #default="{ row }">
+													<div class="flex items-center justify-center gap-4">
+														<div
+															class="text-sm cursor-pointer hover:text-green-500 transition"
+														>
+															<el-tooltip
+																content="Додати резерв"
+																placement="top"
+															>
+																<el-icon @click="addReserveToOrder(row)"
+																	><DocumentAdd
+																/></el-icon>
+															</el-tooltip>
+														</div>
+														<div
+															class="text-sm cursor-pointer hover:text-blue-500 transition"
+														>
+															<el-tooltip
+																content="Редагувати товар"
+																placement="top"
+															>
+																<el-icon @click="takeCurrentEditProduct(row)"
+																	><Edit
+																/></el-icon>
+															</el-tooltip>
+														</div>
+														<div
+															class="text-sm cursor-pointer hover:text-red-500 transition"
+														>
+															<el-tooltip
+																content="Видалити товар"
+																placement="top"
+															>
+																<el-icon
+																	@click="
+																		removeAdditionalConfirm(props.row, $index)
+																	"
+																	><Delete
+																/></el-icon>
+															</el-tooltip>
+														</div>
+													</div>
+												</template>
+											</el-table-column>
+										</el-table>
+									</div>
+								</div>
+
+								<!--Оплата-->
+								<div
+									class="flex-1 px-5 mt-10 bg-white shadow-sm"
+									:class="{
+										'self-end pb-5': props.row.additional_products.length > 1,
+									}"
+								>
+									<h2
+										class="text-xl font-semibold mb-4 flex items-center gap-2"
+									>
+										<el-icon><PriceTag /></el-icon>
+										Підсумкова вартість
+									</h2>
+
+									<div class="space-y-3">
+										<div
+											class="flex justify-between items-center text-gray-700"
+										>
+											<div class="flex items-center gap-2">
+												<el-icon><ShoppingCart /></el-icon>
+												<span>Вартість товарів</span>
+											</div>
+											<span class="text-lg"
+												>{{
+													formatNumber(getTotalProductsPrice(props.row))
+												}}
+												грн</span
+											>
+										</div>
+
+										<div
+											class="flex justify-between items-center text-gray-700"
+										>
+											<div class="flex items-center gap-2">
+												<el-icon><Money /></el-icon>
+												<span>Накладений платіж (2% + 20 грн)</span>
+											</div>
+											<span class="text-lg"
+												>{{
+													formatNumber(getDeliveryPrice(props.row))
+												}}
+												грн</span
+											>
+										</div>
+
+										<div
+											class="flex justify-between items-center text-gray-700"
+										>
+											<div class="flex items-center gap-2">
+												<el-icon><Box /></el-icon>
+												<span>Вартість упакування</span>
+											</div>
+											<div class="flex items-center gap-1 package-price-link">
+												<EditPricePopover
+													:initialPrice="packagePrice"
+													@update:priceValue="
+														newValue => (packagePrice = newValue)
+													"
+												/>
+												<span class="text-lg"> грн</span>
+											</div>
+										</div>
+									</div>
+
+									<hr class="my-5 border-gray-300" />
+
+									<div
+										class="flex justify-between items-center text-xl font-bold text-blue-600"
+									>
+										<div class="flex items-center gap-2">
+											<el-icon><CreditCard /></el-icon>
+											<span>Загальна вартість</span>
+										</div>
+										<span
+											>{{ formatNumber(getTotalPrice(props.row)) }} грн</span
+										>
+									</div>
 								</div>
 							</div>
 						</template>
-					</el-dropdown>
-				</div>
-				<div class="flex items-center gap-5 ml-10">
-					<el-check-tag checked type="primary"
-						>Замовлень: {{ filteredOrdersCount }}</el-check-tag
-					>
-					<el-check-tag checked type="success"
-						>Вартість:
-						{{ formatNumber(filteredOrdersTotalPrice) }}</el-check-tag
-					>
-				</div>
-			</div>
+					</el-table-column>
 
-			<div class="flex justify-end gap-2 w-[30%]">
-				<el-button @click="isAddOrder = true" type="success"
-					>Додати замовлення</el-button
-				>
-				<el-button @click="isTableEditDrawer = true" type="primary">
-					Редагувати таблицю
-				</el-button>
+					<!-- Колонка отображения статуса просмотра -->
+					<el-table-column width="20" header-align="center" align="center">
+						<template #header> </template>
+						<template #default="{ row }">
+							<div class="flex justify-center text-green-500">
+								<el-icon v-if="row.isViewed === true"><Select /></el-icon>
+							</div>
+						</template>
+					</el-table-column>
+
+					<!-- Динамически генерируемые колонки таблицы -->
+					<el-table-column
+						v-for="column in visibleColumns"
+						:key="column.key"
+						:prop="column.prop"
+						:label="column.label"
+						:sortable="column.sortable === true"
+						:width="column.width"
+						header-align="center"
+						align="center"
+					>
+						<!-- Кастомные шаблоны для определенных колонок -->
+						<template #default="{ row }">
+							<div
+								class="flex items-center justify-center gap-2"
+								v-if="column.prop === 'isViewed'"
+							>
+								<el-icon v-if="row.isViewed === true"><View /></el-icon>
+								<el-icon v-else><Hide /></el-icon>
+							</div>
+							<div
+								@click="copyText(row.id)"
+								class="flex items-center justify-center cursor-pointer"
+								v-if="column.prop === 'id'"
+							>
+								<span>{{ row.id }}</span>
+							</div>
+
+							<div
+								v-else-if="column.prop === 'order.source'"
+								class="cursor-pointer"
+							>
+								<el-tooltip trigger="click" effect="light" placement="bottom">
+									<template #default>
+										<div v-if="row.order.source === 'Mail'">
+											<div class="flex items-center justify-center gap-2">
+												<el-icon><Message /></el-icon>
+												<span>Пошта</span>
+											</div>
+										</div>
+										<div v-else-if="row.order.source === 'Manager'">
+											<div class="flex items-center justify-center gap-2">
+												<el-icon><Service /></el-icon>
+												<span>Менеджер</span>
+											</div>
+										</div>
+									</template>
+									<template #content>
+										<div class="flex items-center gap-2">
+											<span class="text-sm">utm:</span>
+											<el-link type="primary" :underline="false">
+												<span>{{ row.order.source_utm }}</span>
+											</el-link>
+										</div>
+									</template>
+								</el-tooltip>
+							</div>
+
+							<div v-else-if="column.prop === 'order.created_at'">
+								<div v-html="formatDateTime(row.order.created_at)"></div>
+							</div>
+
+							<div v-else-if="column.prop === 'delivery.delivery_date'">
+								{{ row.delivery.delivery_date || 'Не задано' }}
+							</div>
+
+							<div
+								v-else-if="column.prop === 'order.order_status'"
+								class="flex flex-col items-center"
+							>
+								<SelectValueDropdown
+									:initialArray="subOptions.status"
+									:initialValue="row.order.order_status"
+									:useTag="true"
+									:getStatusColor="getStatusColor"
+									:statusColor="getStatusColor(row.order.order_status)"
+									@update:selectedValue="
+										newValue => updateOrderStatus(row, newValue)
+									"
+								/>
+								<span
+									v-if="row.order.status_changed_at"
+									class="text-xs text-gray-500 mt-1"
+								>
+									{{ row.order.status_changed_at }}
+								</span>
+							</div>
+							<div
+								v-else-if="column.prop === 'order.manager'"
+								class="flex items-center justify-center gap-4"
+							>
+								<el-icon><User /></el-icon>
+								<span>{{ row.order.manager || 'Не задано' }}</span>
+							</div>
+							<div
+								@click="copyText(row.customer.phone)"
+								class="flex items-center justify-center cursor-pointer"
+								v-else-if="column.prop === 'customer.phone'"
+							>
+								<span>{{ row.customer.phone }}</span>
+							</div>
+							<div v-else-if="column.prop === 'delivery.service'">
+								{{ row.delivery.service || 'Не задано' }}
+							</div>
+							<div
+								@click="copyText(row.delivery.ttn)"
+								class="flex items-center cursor-pointer"
+								v-else-if="column.prop === 'delivery.ttn'"
+							>
+								<span>{{ row.delivery.ttn || 'Не задано' }}</span>
+							</div>
+							<div v-else-if="column.prop === 'products.name'">
+								<div v-for="product in row.products" :key="product.id">
+									{{ product.name }} ({{ product.count }} шт.)
+								</div>
+							</div>
+							<div v-else-if="column.prop === 'products.price'">
+								{{ formatNumber(getTotalPrice(row)) }}
+								<span> грн</span>
+							</div>
+							<div
+								@click="copyText(row.recipient.phone)"
+								class="flex items-center cursor-pointer"
+								v-else-if="column.prop === 'recipient.phone'"
+							>
+								<span>{{ row.recipient.phone }}</span>
+							</div>
+							<div v-else-if="column.prop === 'delivery.adress'">
+								{{ row.delivery.adress || 'Не задано' }}
+							</div>
+							<div v-else-if="column.prop === 'delivery.city'">
+								{{ row.delivery.city || 'Не задано' }}
+							</div>
+						</template>
+					</el-table-column>
+				</el-table>
 			</div>
-		</div>
-		<div class="flex flex-wrap items-center gap-4 mt-4">
-			<el-tag
-				v-for="tag in appliedSearchTags"
-				:key="tag.value"
-				type="info"
-				effect="plain"
-				closable
-				size="large"
-				:disable-transitions="false"
-				@close="handleClose(tag)"
-			>
-				{{ tag.value }}
-			</el-tag>
 		</div>
 	</div>
 
@@ -989,1026 +2078,26 @@ const CreateTtnNumber = order => {
 		:currentStatus="currentOrder.delivery?.delivery_status || ''"
 	/>
 	<CreateTtnDialog v-model="isCreateTtnNumber" :selectedOrder="currentOrder" />
-
-	<!-- Основная таблица с данными -->
-	<div class="mx-4 mb-5">
-		<el-table
-			:data="resultData"
-			:style="`font-size: ${tableFontSize}px;`"
-			row-key="id"
-			:default-sort="{ prop: 'order.created_at', order: 'descending' }"
-			height="100%"
-			style="width: 100%"
-			:row-class-name="tableRowClassName"
-			@expand-change="handleExpandChange"
-			size="small"
-		>
-			<!-- Колонка с раскрывающейся секцией -->
-			<el-table-column type="expand">
-				<template #default="props">
-					<div
-						class="w-full flex gap-15"
-						:style="`font-size: ${tableFontSize}px;`"
-					>
-						<!-- Замовлення -->
-
-						<div class="w-[28%] shadow-sm px-4 pb-2">
-							<div
-								class="flex items-center w-1/2 gap-2 text-sm font-semibold text-gray-700 mb-5"
-							>
-								<el-icon><Sell /></el-icon>
-								<h3>Замовлення</h3>
-							</div>
-
-							<div class="space-y-3 text-xs">
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>№ замовлення</span>
-									</div>
-									<div class="w-1/2">
-										<span>{{ props.row.id }}</span>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Джерело</span>
-									</div>
-									<div class="w-1/2">
-										<span v-if="props.row.order.source === 'Mail'">Пошта</span>
-										<span v-else-if="props.row.order.source === 'Manager'"
-											>Менеджер</span
-										>
-										<span v-else>Не задано</span>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Час створення</span>
-									</div>
-									<div class="w-1/2">
-										<span>{{ props.row.order.created_at }}</span>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Менеджер</span>
-									</div>
-									<div class="w-1/2">
-										<SelectValueDropdown
-											:initialArray="subOptions.manager"
-											:initialValue="props.row.order.manager"
-											@update:selectedValue="
-												newValue => (props.row.order.manager = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Статус</span>
-									</div>
-									<div class="w-1/2">
-										<el-tag
-											:type="getStatusColor(props.row.order.order_status)"
-											effect="dark"
-										>
-											{{ props.row.order.order_status }}
-										</el-tag>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Статус оплати</span>
-									</div>
-									<div class="w-1/2">
-										<SelectValueDropdown
-											:initialArray="subOptions.pay_status"
-											:initialValue="props.row.order.pay_status"
-											:useTag="true"
-											:statusColor="getStatusColor(props.row.order.pay_status)"
-											:getStatusColor="getStatusColor"
-											@update:selectedValue="
-												newValue => (props.row.order.pay_status = newValue)
-											"
-										/>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<!-- Покупець -->
-
-						<div class="w-[28%] shadow-sm px-4 pb-2">
-							<div
-								class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
-							>
-								<el-icon><User /></el-icon>
-								<h3>Покупець</h3>
-							</div>
-
-							<div class="space-y-3 text-xs">
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Покупець</span>
-									</div>
-									<div class="w-1/2">
-										<EditTextPopover
-											:initialText="props.row.customer.name"
-											@update:textValue="
-												newValue => (props.row.customer.name = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Телефон покупця</span>
-									</div>
-									<div class="w-1/2">
-										<EditTextPopover
-											:initialText="props.row.customer.phone"
-											@update:textValue="
-												newValue => (props.row.customer.phone = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>E-mail покупця</span>
-									</div>
-									<div class="w-1/2">
-										<EditTextPopover
-											:initialText="props.row.customer.email"
-											@update:textValue="
-												newValue => (props.row.customer.email = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Коментар покупця</span>
-									</div>
-									<div class="w-1/2">
-										<EditCommentPopover
-											:initialText="props.row.customer.comment"
-											@update:textValue="
-												newValue => (props.row.customer.comment = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Коментар менеджера</span>
-									</div>
-									<div class="w-1/2">
-										<EditCommentPopover
-											:initialComment="props.row.order.manager_comment"
-											@update:textValue="
-												newValue => (props.row.order.manager_comment = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Комунікації</span>
-									</div>
-									<div class="w-1/2">
-										<div class="flex items-center gap-2">
-											<el-button
-												type="success"
-												:icon="Phone"
-												circle
-												size="small"
-											/>
-											<el-button
-												type="primary"
-												:icon="ChatRound"
-												circle
-												size="small"
-											/>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<!-- Отримувач -->
-
-						<div class="w-[28%] shadow-sm px-4 pb-2">
-							<div
-								class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-5"
-							>
-								<el-icon><User /></el-icon>
-								<h3>Отримувач</h3>
-							</div>
-
-							<div class="space-y-3 text-xs">
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Отримувач</span>
-									</div>
-									<div class="w-1/2">
-										<EditTextPopover
-											:initialText="props.row.recipient.name"
-											@update:textValue="
-												newValue => (props.row.recipient.name = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Телефон отримувача</span>
-									</div>
-									<div class="w-1/2">
-										<EditTextPopover
-											:initialText="props.row.recipient.phone"
-											@update:textValue="
-												newValue => (props.row.recipient.phone = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Дата відправки</span>
-									</div>
-									<div class="w-1/2">
-										<el-date-picker
-											v-model="props.row.delivery.delivery_date"
-											type="date"
-											placeholder="Обрати"
-											format="DD/MM/YYYY"
-											value-format="DD/MM/YYYY"
-											style="width: 140px"
-											size="small"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Служба доставки</span>
-									</div>
-									<div class="w-1/2">
-										<SelectValueDropdown
-											:initialArray="subOptions.delivery_service"
-											:initialValue="props.row.delivery.service"
-											@update:selectedValue="
-												newValue => (props.row.delivery.service = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Адреса доставки</span>
-									</div>
-									<div class="w-1/2">
-										<SelectValueDropdown
-											:initialArray="subOptions.delivery_adress"
-											:initialValue="props.row.delivery.adress"
-											@update:selectedValue="
-												newValue => (props.row.delivery.adress = newValue)
-											"
-										/>
-									</div>
-								</div>
-
-								<div class="flex items-center">
-									<div class="w-1/2">
-										<span>Трекінг код</span>
-									</div>
-									<div class="w-1/2">
-										<div class="flex items-center gap-2">
-											<span v-if="props.row.delivery.ttn">{{
-												props.row.delivery.ttn
-											}}</span>
-											<div class="flex items-center">
-												<div @click="CreateTtnNumber(props.row)">
-													<el-link type="success" :underline="false"
-														>Створити</el-link
-													>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<!-- Статус доставки -->
-						<div class="w-[16%] shadow-sm px-4 pb-2">
-							<div class="flex items-center gap-10 mb-5">
-								<div
-									class="flex items-center gap-2 text-sm font-semibold text-gray-700"
-								>
-									<el-icon><LocationInformation /></el-icon>
-									<h3>Статус доставки</h3>
-								</div>
-								<div
-									class="cursor-pointer hover:text-blue-500 transition"
-									@click="showDeliveryStatus(props.row)"
-								>
-									<el-tooltip
-										effect="dark"
-										content="Додаткова інформація"
-										placement="top"
-									>
-										<el-icon><More /></el-icon>
-									</el-tooltip>
-								</div>
-							</div>
-							<div class="pl-1 text-xs">
-								<el-timeline>
-									<el-timeline-item
-										v-for="(step, index) in getDeliverySteps(
-											props.row.delivery.delivery_status
-										)"
-										:key="index"
-										:icon="step.icon"
-										:type="
-											step.isCurrent
-												? 'primary'
-												: step.isDone
-												? 'success'
-												: 'info'
-										"
-										size="large"
-									>
-										<div
-											class="ml-3 pt-1"
-											:class="{
-												'text-blue-500': step.isCurrent,
-												'font-bold': step.isCurrent,
-												'font-semibold': !step.isCurrent,
-												'text-green-600': step.isDone,
-											}"
-										>
-											{{ step.title }}
-										</div>
-									</el-timeline-item>
-								</el-timeline>
-							</div>
-						</div>
-					</div>
-
-					<!--Товары-->
-					<div class="flex w-full justify-between gap-2">
-						<div class="w-4/5">
-							<div>
-								<div class="flex items-center justify-between m-2">
-									<div class="flex items-center gap-2">
-										<el-icon><Goods /></el-icon>
-										<span class="font-medium text-sm">Товари замовлення</span>
-									</div>
-									<div class="flex items-center gap-4">
-										<span class="text-sm"> Додаткові товари </span>
-
-										<el-switch v-model="isAdditionalProducts" size="small" />
-									</div>
-								</div>
-								<el-table
-									:data="props.row.products"
-									style="width: 100%"
-									border
-									size="small"
-								>
-									<el-table-column
-										label="Зображення"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<el-image
-												style="width: 50px"
-												:src="row.img"
-												:zoom-rate="1.2"
-												:max-scale="7"
-												:min-scale="0.2"
-												:preview-src-list="[row.img]"
-												show-progress
-												fit="cover"
-												preview-teleported="true"
-											/>
-										</template>
-									</el-table-column>
-									<el-table-column
-										prop="id"
-										label="Артикуль"
-										header-align="center"
-										align="center"
-									/>
-									<el-table-column
-										label="Назва товару"
-										header-align="center"
-										align="center"
-										width="400px"
-									>
-										<template #default="{ row }">
-											<div>
-												<span>{{ row.name }}</span>
-											</div>
-											<div>
-												<span class="text-gray-400 font-mono">{{
-													row.second_name
-												}}</span>
-											</div>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Кількість"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div class="flex gap-1 items-center justify-center">
-												<EditCountPopover
-													:initialCount="row.count"
-													@update:countValue="
-														newValue => (row.count = newValue)
-													"
-												/>
-												<span>{{ row.count_name }}</span>
-											</div>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Ціна товару"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div class="flex items-center justify-center gap-1">
-												<EditPricePopover
-													:initialPrice="row.price"
-													@update:priceValue="
-														newValue => (row.price = newValue)
-													"
-												/>
-												<span> грн</span>
-											</div>
-										</template>
-									</el-table-column>
-
-									<el-table-column
-										label="Ціна продажу"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<span>{{ formatNumber(row.price * row.count) }} грн</span>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Місце резерву"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div v-if="row.warehouse && row.warehouse.length > 0">
-												<div v-for="(reserve, i) in row.warehouse" :key="i">
-													<EditTextPopover
-														:initialText="reserve.place"
-														@update:textValue="
-															newValue => (reserve.place = newValue)
-														"
-													/>
-												</div>
-											</div>
-											<span v-else class="text-gray-400">Не задано</span>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Номер резерву"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div v-if="row.warehouse && row.warehouse.length > 0">
-												<div
-													class="flex items-center justify-center gap-4"
-													v-for="(reserve, i) in row.warehouse"
-													:key="i"
-												>
-													<EditTextPopover
-														:initialText="reserve.number"
-														@update:textValue="
-															newValue => (reserve.number = newValue)
-														"
-													/>
-													<div
-														class="mt-1 cursor-pointer hover:text-red-500 transition"
-													>
-														<el-tooltip
-															content="Видалити резерв"
-															placement="top"
-														>
-															<el-icon @click="deleteReserve(row.warehouse, i)"
-																><Delete
-															/></el-icon>
-														</el-tooltip>
-													</div>
-												</div>
-											</div>
-											<span v-else class="text-gray-400">Не задано</span>
-										</template>
-									</el-table-column>
-
-									<el-table-column
-										label="Дії"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div class="flex items-center justify-center gap-4">
-												<div
-													class="text-sm cursor-pointer hover:text-green-500 transition"
-												>
-													<el-tooltip content="Додати резерв" placement="top">
-														<el-icon @click="addReserveToOrder(row)"
-															><DocumentAdd
-														/></el-icon>
-													</el-tooltip>
-												</div>
-												<div
-													class="text-sm cursor-pointer hover:text-blue-500 transition"
-												>
-													<el-tooltip
-														content="Редагувати товар"
-														placement="top"
-													>
-														<el-icon @click="takeCurrentEditProduct(row)"
-															><Edit
-														/></el-icon>
-													</el-tooltip>
-												</div>
-												<div
-													class="text-sm cursor-pointer hover:text-red-500 transition"
-												>
-													<el-tooltip content="Видалити товар" placement="top">
-														<el-icon
-															@click="removeOrderConfirm(props.row, $index)"
-															><Delete
-														/></el-icon>
-													</el-tooltip>
-												</div>
-											</div>
-										</template>
-									</el-table-column>
-								</el-table>
-							</div>
-
-							<!--Допродажи-->
-
-							<div v-if="isAdditionalProducts">
-								<div class="flex items-center justify-between m-2">
-									<div class="flex items-center gap-2">
-										<el-icon><Sell /></el-icon>
-										<span class="font-medium text-sm">Додаткові товари</span>
-									</div>
-									<div class="flex items-center gap-4">
-										<span class="text-sm">
-											{{ props.row.additional_products.length }} позиції
-										</span>
-
-										<el-button
-											type="primary"
-											size="small"
-											@click="addAdditionalProductsToOrder(props.row)"
-										>
-											Додати
-										</el-button>
-									</div>
-								</div>
-
-								<el-table
-									:data="props.row.additional_products"
-									style="width: 100%"
-									border
-									size="small"
-								>
-									<el-table-column
-										label="Зображення"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<el-image
-												style="width: 50px"
-												:src="row.img"
-												:zoom-rate="1.2"
-												:max-scale="7"
-												:min-scale="0.2"
-												:preview-src-list="[row.img]"
-												show-progress
-												fit="cover"
-												preview-teleported="true"
-											/>
-										</template>
-									</el-table-column>
-									<el-table-column
-										prop="id"
-										label="Артикуль"
-										header-align="center"
-										align="center"
-									/>
-									<el-table-column
-										label="Назва товару"
-										header-align="center"
-										align="center"
-										width="400px"
-									>
-										<template #default="{ row }">
-											<div>
-												<span>{{ row.name }}</span>
-											</div>
-											<div>
-												<span class="text-gray-400 font-mono">{{
-													row.second_name
-												}}</span>
-											</div>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Кількість"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div class="flex gap-1 items-center justify-center">
-												<EditCountPopover
-													:initialCount="row.count"
-													@update:countValue="
-														newValue => (row.count = newValue)
-													"
-												/>
-												<span>{{ row.count_name }}</span>
-											</div>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Ціна товару"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div class="flex items-center justify-center gap-1">
-												<EditPricePopover
-													:initialPrice="row.price"
-													@update:priceValue="
-														newValue => (row.price = newValue)
-													"
-												/>
-												<span> грн</span>
-											</div>
-										</template>
-									</el-table-column>
-
-									<el-table-column
-										label="Ціна продажу"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<span>{{ formatNumber(row.price * row.count) }} грн</span>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Місце резерву"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div v-if="row.warehouse && row.warehouse.length > 0">
-												<div v-for="(reserve, i) in row.warehouse" :key="i">
-													<EditTextPopover
-														:initialText="reserve.place"
-														@update:textValue="
-															newValue => (reserve.place = newValue)
-														"
-													/>
-												</div>
-											</div>
-											<span v-else class="text-gray-400">Не задано</span>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Номер резерву"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div v-if="row.warehouse && row.warehouse.length > 0">
-												<div
-													class="flex items-center justify-center gap-4"
-													v-for="(reserve, i) in row.warehouse"
-													:key="i"
-												>
-													<EditTextPopover
-														:initialText="reserve.number"
-														@update:textValue="
-															newValue => (reserve.number = newValue)
-														"
-													/>
-													<div
-														class="mt-1 cursor-pointer hover:text-red-500 transition"
-													>
-														<el-tooltip
-															content="Видалити резерв"
-															placement="top"
-														>
-															<el-icon @click="deleteReserve(row.warehouse, i)"
-																><Delete
-															/></el-icon>
-														</el-tooltip>
-													</div>
-												</div>
-											</div>
-											<span v-else class="text-gray-400">Не задано</span>
-										</template>
-									</el-table-column>
-									<el-table-column
-										label="Дії"
-										header-align="center"
-										align="center"
-									>
-										<template #default="{ row }">
-											<div class="flex items-center justify-center gap-4">
-												<div
-													class="text-sm cursor-pointer hover:text-green-500 transition"
-												>
-													<el-tooltip content="Додати резерв" placement="top">
-														<el-icon @click="addReserveToOrder(row)"
-															><DocumentAdd
-														/></el-icon>
-													</el-tooltip>
-												</div>
-												<div
-													class="text-sm cursor-pointer hover:text-blue-500 transition"
-												>
-													<el-tooltip
-														content="Редагувати товар"
-														placement="top"
-													>
-														<el-icon @click="takeCurrentEditProduct(row)"
-															><Edit
-														/></el-icon>
-													</el-tooltip>
-												</div>
-												<div
-													class="text-sm cursor-pointer hover:text-red-500 transition"
-												>
-													<el-tooltip content="Видалити товар" placement="top">
-														<el-icon
-															@click="
-																removeAdditionalConfirm(props.row, $index)
-															"
-															><Delete
-														/></el-icon>
-													</el-tooltip>
-												</div>
-											</div>
-										</template>
-									</el-table-column>
-								</el-table>
-							</div>
-						</div>
-
-						<!--Оплата-->
-						<div
-							class="flex-1 px-5 mt-10 bg-white shadow-sm"
-							:class="{
-								'self-end pb-5': props.row.additional_products.length > 1,
-							}"
-						>
-							<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-								<el-icon><PriceTag /></el-icon>
-								Підсумкова вартість
-							</h2>
-
-							<div class="space-y-3">
-								<div class="flex justify-between items-center text-gray-700">
-									<div class="flex items-center gap-2">
-										<el-icon><ShoppingCart /></el-icon>
-										<span>Вартість товарів</span>
-									</div>
-									<span class="text-lg"
-										>{{
-											formatNumber(getTotalProductsPrice(props.row))
-										}}
-										грн</span
-									>
-								</div>
-
-								<div class="flex justify-between items-center text-gray-700">
-									<div class="flex items-center gap-2">
-										<el-icon><Money /></el-icon>
-										<span>Накладений платіж (2% + 20 грн)</span>
-									</div>
-									<span class="text-lg"
-										>{{ formatNumber(getDeliveryPrice(props.row)) }} грн</span
-									>
-								</div>
-
-								<div class="flex justify-between items-center text-gray-700">
-									<div class="flex items-center gap-2">
-										<el-icon><Box /></el-icon>
-										<span>Вартість упакування</span>
-									</div>
-									<div class="flex items-center gap-1 package-price-link">
-										<EditPricePopover
-											:initialPrice="packagePrice"
-											@update:priceValue="newValue => (packagePrice = newValue)"
-										/>
-										<span class="text-lg"> грн</span>
-									</div>
-								</div>
-							</div>
-
-							<hr class="my-5 border-gray-300" />
-
-							<div
-								class="flex justify-between items-center text-xl font-bold text-blue-600"
-							>
-								<div class="flex items-center gap-2">
-									<el-icon><CreditCard /></el-icon>
-									<span>Загальна вартість</span>
-								</div>
-								<span>{{ formatNumber(getTotalPrice(props.row)) }} грн</span>
-							</div>
-						</div>
-					</div>
-				</template>
-			</el-table-column>
-
-			<!-- Колонка отображения статуса просмотра -->
-			<el-table-column width="20" header-align="center" align="center">
-				<template #header> </template>
-				<template #default="{ row }">
-					<div class="flex justify-center text-green-500">
-						<el-icon v-if="row.isViewed === true"><Select /></el-icon>
-					</div>
-				</template>
-			</el-table-column>
-
-			<!-- Динамически генерируемые колонки таблицы -->
-			<el-table-column
-				v-for="column in visibleColumns"
-				:key="column.key"
-				:prop="column.prop"
-				:label="column.label"
-				:sortable="column.sortable === true"
-				:width="column.width"
-				header-align="center"
-				align="center"
-			>
-				<!-- Кастомные шаблоны для определенных колонок -->
-				<template #default="{ row }">
-					<div
-						class="flex items-center justify-center gap-2"
-						v-if="column.prop === 'isViewed'"
-					>
-						<el-icon v-if="row.isViewed === true"><View /></el-icon>
-						<el-icon v-else><Hide /></el-icon>
-					</div>
-					<div
-						@click="copyText(row.id)"
-						class="flex items-center justify-center cursor-pointer"
-						v-if="column.prop === 'id'"
-					>
-						<span>{{ row.id }}</span>
-					</div>
-
-					<div
-						v-else-if="column.prop === 'order.source'"
-						class="cursor-pointer"
-					>
-						<el-tooltip trigger="click" effect="light" placement="bottom">
-							<template #default>
-								<div v-if="row.order.source === 'Mail'">
-									<div class="flex items-center justify-center gap-2">
-										<el-icon><Message /></el-icon>
-										<span>Пошта</span>
-									</div>
-								</div>
-								<div v-else-if="row.order.source === 'Manager'">
-									<div class="flex items-center justify-center gap-2">
-										<el-icon><Service /></el-icon>
-										<span>Менеджер</span>
-									</div>
-								</div>
-							</template>
-							<template #content>
-								<div class="flex items-center gap-2">
-									<span class="text-sm">utm:</span>
-									<el-link type="primary" :underline="false">
-										<span>{{ row.order.source_utm }}</span>
-									</el-link>
-								</div>
-							</template>
-						</el-tooltip>
-					</div>
-
-					<div v-else-if="column.prop === 'order.created_at'">
-						<div v-html="formatDateTime(row.order.created_at)"></div>
-					</div>
-
-					<div v-else-if="column.prop === 'delivery.delivery_date'">
-						{{ row.delivery.delivery_date || 'Не задано' }}
-					</div>
-
-					<div
-						v-else-if="column.prop === 'order.order_status'"
-						class="flex flex-col items-center"
-					>
-						<SelectValueDropdown
-							:initialArray="subOptions.status"
-							:initialValue="row.order.order_status"
-							:useTag="true"
-							:getStatusColor="getStatusColor"
-							:statusColor="getStatusColor(row.order.order_status)"
-							@update:selectedValue="
-								newValue => updateOrderStatus(row, newValue)
-							"
-						/>
-						<span
-							v-if="row.order.status_changed_at"
-							class="text-xs text-gray-500 mt-1"
-						>
-							{{ row.order.status_changed_at }}
-						</span>
-					</div>
-					<div
-						v-else-if="column.prop === 'order.manager'"
-						class="flex items-center justify-center gap-4"
-					>
-						<el-icon><User /></el-icon>
-						<span>{{ row.order.manager || 'Не задано' }}</span>
-					</div>
-					<div
-						@click="copyText(row.customer.phone)"
-						class="flex items-center justify-center cursor-pointer"
-						v-else-if="column.prop === 'customer.phone'"
-					>
-						<span>{{ row.customer.phone }}</span>
-					</div>
-					<div v-else-if="column.prop === 'delivery.service'">
-						{{ row.delivery.service || 'Не задано' }}
-					</div>
-					<div
-						@click="copyText(row.delivery.ttn)"
-						class="flex items-center cursor-pointer"
-						v-else-if="column.prop === 'delivery.ttn'"
-					>
-						<span>{{ row.delivery.ttn || 'Не задано' }}</span>
-					</div>
-					<div v-else-if="column.prop === 'products.name'">
-						<div v-for="product in row.products" :key="product.id">
-							{{ product.name }} ({{ product.count }} шт.)
-						</div>
-					</div>
-					<div v-else-if="column.prop === 'products.price'">
-						{{ formatNumber(getTotalPrice(row)) }}
-						<span> грн</span>
-					</div>
-					<div
-						@click="copyText(row.recipient.phone)"
-						class="flex items-center cursor-pointer"
-						v-else-if="column.prop === 'recipient.phone'"
-					>
-						<span>{{ row.recipient.phone }}</span>
-					</div>
-					<div v-else-if="column.prop === 'delivery.adress'">
-						{{ row.delivery.adress || 'Не задано' }}
-					</div>
-					<div v-else-if="column.prop === 'delivery.city'">
-						{{ row.delivery.city || 'Не задано' }}
-					</div>
-				</template>
-			</el-table-column>
-		</el-table>
-	</div>
 </template>
 
 <style scoped>
+.app-container {
+	display: flex;
+	min-height: 100vh;
+}
+
+.sidebar-menu {
+	flex-shrink: 0;
+	height: 100vh;
+	overflow-y: auto;
+}
+
+.main-content {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow-x: auto;
+}
 /* Стили изменения шрифта */
 :deep(.el-table__expanded-cell) {
 	font-size: v-bind('tableFontSize + "px"') !important;
