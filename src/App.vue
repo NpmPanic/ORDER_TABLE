@@ -26,6 +26,7 @@ import {
 	LocationInformation,
 	More,
 	Select,
+	Setting,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -1300,30 +1301,11 @@ const CreateTtnNumber = order => {
 											<span v-if="props.row.delivery.ttn">{{
 												props.row.delivery.ttn
 											}}</span>
-											<div class="flex items-center gap-2">
-												<div
-													@click="CreateTtnNumber(props.row)"
-													class="text-sm cursor-pointer hover:text-green-500 transition"
-												>
-													<el-tooltip
-														effect="dark"
-														content="Створити номер"
-														placement="top"
+											<div class="flex items-center">
+												<div @click="CreateTtnNumber(props.row)">
+													<el-link type="success" :underline="false"
+														>Створити</el-link
 													>
-														<el-icon><DocumentAdd /></el-icon>
-													</el-tooltip>
-												</div>
-												<div
-													@click="props.row.delivery.ttn = null"
-													class="text-sm cursor-pointer hover:text-red-500 transition"
-												>
-													<el-tooltip
-														effect="dark"
-														content="Видалити номер"
-														placement="top"
-													>
-														<el-icon><Delete /></el-icon>
-													</el-tooltip>
 												</div>
 											</div>
 										</div>
@@ -2037,9 +2019,6 @@ const CreateTtnNumber = order => {
 }
 
 /* Стили линков */
-.el-link :hover {
-	color: orange;
-}
 .package-price-link :deep(.el-link) {
 	font-size: 18px;
 }
