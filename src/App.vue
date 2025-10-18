@@ -43,6 +43,7 @@ import AddOrderDialog from './components/AddOrderDialog.vue'
 import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
 import SelectValueDropdown from './components/SelectValueDropdown.vue'
 import CreateTtnDialog from './components/CreateTtnDialog.vue'
+import DeliverySettingsDialog from './components/DeliverySettingsDialog.vue'
 
 // Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
@@ -384,6 +385,7 @@ const isAdditionalProducts = ref(true)
 const isDeliveryStatusDialog = ref(false)
 const isAddOrder = ref(false)
 const isCreateTtnNumber = ref(false)
+const isDeliverySettings = ref(false)
 
 const statusGroups = {
 	new: {
@@ -825,20 +827,11 @@ const CreateTtnNumber = order => {
 			@open="handleOpen"
 			@close="handleClose"
 		>
-			<el-menu-item index="1" @click="isAddOrder = true">
-				<el-icon><DocumentAdd /></el-icon>
-				<template #title>Створити замовлення</template>
-			</el-menu-item>
-
-			<el-menu-item index="2" @click="isTableEditDrawer = true">
-				<el-icon><Setting /></el-icon>
-				<template #title>Налаштування таблиці</template>
-			</el-menu-item>
-			<el-menu-item index="3" @click="isTableEditDrawer = true" disabled>
+			<el-menu-item index="1" @click="isDeliverySettings = true">
 				<el-icon><Location /></el-icon>
 				<template #title>Налаштування доставки</template>
 			</el-menu-item>
-			<el-menu-item index="4" @click="isTableEditDrawer = true" disabled>
+			<el-menu-item index="2" @click="isTableEditDrawer = true" disabled>
 				<el-icon><User /></el-icon>
 				<template #title>Налаштування доступу</template>
 			</el-menu-item>
@@ -950,15 +943,23 @@ const CreateTtnNumber = order => {
 								</template>
 							</el-dropdown>
 						</div>
+						<div class="flex items-center gap-5">
+							<el-check-tag checked type="primary"
+								>Замовлень: {{ filteredOrdersCount }}</el-check-tag
+							>
+							<el-check-tag checked type="success"
+								>Вартість:
+								{{ formatNumber(filteredOrdersTotalPrice) }}</el-check-tag
+							>
+						</div>
 					</div>
 
-					<div class="flex items-center gap-5">
-						<el-check-tag checked type="primary"
-							>Замовлень: {{ filteredOrdersCount }}</el-check-tag
+					<div class="flex items-center">
+						<el-button type="success" @click="isAddOrder = true"
+							>Додати замовлення</el-button
 						>
-						<el-check-tag checked type="success"
-							>Вартість:
-							{{ formatNumber(filteredOrdersTotalPrice) }}</el-check-tag
+						<el-button type="primary" @click="isTableEditDrawer = true"
+							>Налаштування таблиці</el-button
 						>
 					</div>
 				</div>
@@ -2076,6 +2077,10 @@ const CreateTtnNumber = order => {
 		v-model="isDeliveryStatusDialog"
 		:statusHistory="currentOrder.delivery?.status_history || []"
 		:currentStatus="currentOrder.delivery?.delivery_status || ''"
+	/>
+	<DeliverySettingsDialog
+		v-model="isDeliverySettings"
+		:statusCRM="subOptions"
 	/>
 	<CreateTtnDialog v-model="isCreateTtnNumber" :selectedOrder="currentOrder" />
 </template>

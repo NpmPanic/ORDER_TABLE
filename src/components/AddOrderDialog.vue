@@ -365,7 +365,7 @@ const closeModal = () => {
 			<div class="flex gap-5 px-4 mb-10">
 				<!-- Блок 1: Основна інформація -->
 				<div class="w-1/4">
-					<p class="font-semibold pb-4">Основна інформація</p>
+					<p class="font-semibold mb-4">Основна інформація</p>
 
 					<el-select
 						v-model="newOrder[0].order.manager"
@@ -396,7 +396,7 @@ const closeModal = () => {
 
 				<!-- Блок 2: Інформація про покупця -->
 				<div class="w-1/4">
-					<p class="font-semibold pb-4">Інформація про покупця</p>
+					<p class="font-semibold mb-4">Інформація про покупця</p>
 
 					<el-input
 						v-model="newOrder[0].customer.name"
@@ -427,7 +427,7 @@ const closeModal = () => {
 
 				<!-- Блок 3: Інформація про доставку -->
 				<div class="w-1/4">
-					<p class="font-semibold pb-4">Інформація про отримувача</p>
+					<p class="font-semibold mb-4">Інформація про отримувача</p>
 					<el-input
 						v-model="newOrder[0].recipient.name"
 						size="large"
@@ -492,7 +492,7 @@ const closeModal = () => {
 				</div>
 				<!-- Блок 4: Інформація про вартість -->
 				<div class="w-1/4">
-					<p class="font-semibold pb-4">Інформація про вартість</p>
+					<p class="font-semibold mb-4">Інформація про вартість</p>
 					<div class="bg-white shadow-md">
 						<h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
 							<el-icon><PriceTag /></el-icon>
