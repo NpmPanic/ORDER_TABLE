@@ -27,6 +27,8 @@ import {
 	More,
 	Select,
 	Setting,
+	Warning,
+	Loading,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { TABLE_DATA } from './components/TableData'
@@ -44,6 +46,7 @@ import DeliveryStatusDialog from './components/DeliveryStatusDialog.vue'
 import SelectValueDropdown from './components/SelectValueDropdown.vue'
 import CreateTtnDialog from './components/CreateTtnDialog.vue'
 import DeliverySettingsDialog from './components/DeliverySettingsDialog.vue'
+import { checkClientInBlackbox } from './services/blackboxApi'
 
 // Переменная хранения данных поискового запроса
 const inputQuerySearch = ref('')
@@ -812,6 +815,83 @@ const CreateTtnNumber = order => {
 	currentOrder.value = order
 	isCreateTtnNumber.value = true
 }
+
+const blacklistCheckResults = ref(new Map())
+const checkingClients = ref(new Set())
+
+// Функция проверки клиента в BlackBox
+const checkClientBlacklistStatus = async client => {
+	if (!client?.name || !client?.phone) return
+
+	const clientKey = `${client.phone}_${client.name}`
+
+	// Если уже проверяем или проверили этого клиента
+	if (
+		checkingClients.value.has(clientKey) ||
+		blacklistCheckResults.value.has(clientKey)
+	) {
+		return
+	}
+
+	checkingClients.value.add(clientKey)
+
+	try {
+		const nameParts = client.name.split(' ')
+		const lastName = nameParts[0] || ''
+		const firstName = nameParts[1] || ''
+
+		const checkData = {
+			phone: client.phone.replace(/\D/g, ''),
+			lastName: lastName,
+			firstName: firstName,
+			city: client.city || '',
+		}
+
+		const result = await checkClientInBlackbox(checkData)
+		blacklistCheckResults.value.set(clientKey, result)
+	} catch (error) {
+		console.error('Ошибка проверки клиента:', error)
+		blacklistCheckResults.value.set(clientKey, {
+			isBlacklisted: false,
+			error: 'Ошибка проверки',
+		})
+	} finally {
+		checkingClients.value.delete(clientKey)
+	}
+}
+
+// Функция для получения статуса клиента
+const getClientBlacklistStatus = client => {
+	if (!client?.name || !client?.phone) return null
+	const clientKey = `${client.phone}_${client.name}`
+	return blacklistCheckResults.value.get(clientKey)
+}
+
+// Функция для проверки, является ли клиент проблемным
+const isClientBlacklisted = client => {
+	const status = getClientBlacklistStatus(client)
+	return status ? status.isBlacklisted : false
+}
+
+// Функция для проверки, выполняется ли проверка клиента
+const isClientChecking = client => {
+	if (!client?.name || !client?.phone) return false
+	const clientKey = `${client.phone}_${client.name}`
+	return checkingClients.value.has(clientKey)
+}
+
+// Автоматическая проверка клиентов при загрузке данных
+watch(
+	resultData,
+	newData => {
+		newData.forEach(order => {
+			if (order.customer) {
+				checkClientBlacklistStatus(order.customer)
+			}
+		})
+	},
+	{ immediate: true }
+)
 </script>
 
 <template>
@@ -1110,12 +1190,39 @@ const CreateTtnNumber = order => {
 												<span>Покупець</span>
 											</div>
 											<div class="w-1/2">
-												<EditTextPopover
-													:initialText="props.row.customer.name"
-													@update:textValue="
-														newValue => (props.row.customer.name = newValue)
-													"
-												/>
+												<div class="flex items-center gap-1">
+													<EditTextPopover
+														:initialText="props.row.customer.name"
+														@update:textValue="
+															newValue => {
+																props.row.customer.name = newValue
+																// При изменении имени перепроверяем клиента
+																checkClientBlacklistStatus(props.row.customer)
+															}
+														"
+													/>
+													<!-- Значок недобросовестного клиента -->
+													<el-tooltip
+														v-if="isClientBlacklisted(props.row.customer)"
+														effect="dark"
+														content="Несумлінний клієнт"
+														placement="top"
+													>
+														<el-icon class="text-red-500 cursor-help">
+															<Warning />
+														</el-icon>
+													</el-tooltip>
+													<el-tooltip
+														v-else-if="isClientChecking(props.row.customer)"
+														effect="dark"
+														content="Перевірка клієнта..."
+														placement="top"
+													>
+														<el-icon class="text-gray-400 animate-spin">
+															<Loading />
+														</el-icon>
+													</el-tooltip>
+												</div>
 											</div>
 										</div>
 
@@ -1992,10 +2099,37 @@ const CreateTtnNumber = order => {
 							</div>
 							<div
 								v-else-if="column.prop === 'order.manager'"
-								class="flex items-center justify-center gap-4"
+								class="flex items-center justify-center gap-2"
 							>
 								<el-icon><User /></el-icon>
 								<span>{{ row.order.manager || 'Не задано' }}</span>
+							</div>
+							<div
+								@click="copyText(row.customer.name)"
+								class="flex items-center justify-center cursor-pointer gap-2"
+								v-else-if="column.prop === 'customer.name'"
+							>
+								<span>{{ row.customer.name }}</span>
+								<el-tooltip
+									v-if="isClientBlacklisted(row.customer)"
+									effect="dark"
+									content="Несумлінний клієнт"
+									placement="top"
+								>
+									<el-icon class="text-red-500 cursor-help">
+										<Warning />
+									</el-icon>
+								</el-tooltip>
+								<el-tooltip
+									v-else-if="isClientChecking(row.customer)"
+									effect="dark"
+									content="Перевірка клієнта..."
+									placement="top"
+								>
+									<el-icon class="text-gray-400 animate-spin">
+										<Loading />
+									</el-icon>
+								</el-tooltip>
 							</div>
 							<div
 								@click="copyText(row.customer.phone)"
